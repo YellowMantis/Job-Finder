@@ -9,6 +9,7 @@ import httpx
 import pytest
 
 from providers import ProviderError
+from providers.base import outside_text
 from providers import claude_code, ollama
 
 
@@ -252,3 +253,21 @@ def test_claude_api_needs_a_key_and_a_model():
         anthropic_api.AnthropicAPI("claude-test-1", "").ask("", "", {})
     with pytest.raises(ProviderError, match="Choose a Claude model"):
         anthropic_api.AnthropicAPI("", ANTHROPIC_KEY).ask("", "", {})
+
+
+# ---- Text from outside, shown on the page --------------------------------------
+
+@pytest.mark.parametrize("reply", [
+    "Invalid key sk-proj-abc123DEF456ghi789 for this project",
+    "token gsk_9f8e7d6c5b4a3210 rejected",
+    "session eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9xyz expired",
+])
+def test_a_key_in_a_services_reply_is_never_shown(reply):
+    shown = outside_text(reply)
+    assert "[hidden]" in shown
+    assert not any(secret in shown for secret in ["abc123DEF", "9f8e7d6c", "eyJhbGci"])
+
+
+def test_ordinary_error_text_is_kept_on_one_short_line():
+    assert outside_text("Model not found.\n  Try another one.") == "Model not found. Try another one."
+    assert len(outside_text("x " * 500)) <= 200

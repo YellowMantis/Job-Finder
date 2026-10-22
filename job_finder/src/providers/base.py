@@ -9,6 +9,12 @@ connections.provider_for(). Everything else (the prompt, checking the answer, th
 score, the log) is shared, in scoring.py and fit_rules.py.
 """
 
+import re
+
+# Anything that looks like a key or token: a known key's start, or a long run of
+# letters and digits with no spaces (no real word is that long).
+KEY_LIKE = re.compile(r"\b(?:sk-ant-|sk-|gsk_|AIza|xai-|hf_)[\w-]{6,}|[\w-]{32,}")
+
 
 class Provider:
     id = ""               # the connection kind it serves: "claude", "ollama" or "api"
@@ -41,3 +47,10 @@ class Provider:
 
 class ProviderError(Exception):
     """The provider can't be used right now; the message says why, for the page."""
+
+
+def outside_text(text, limit=200):
+    """Text from outside the app, such as a service's error reply, made safe to
+    show on the page: on one line, shortened, and with anything that looks like
+    a key hidden, in case a service ever repeats one back."""
+    return KEY_LIKE.sub("[hidden]", " ".join(str(text).split())[:limit])

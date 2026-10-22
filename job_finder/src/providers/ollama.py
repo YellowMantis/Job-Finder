@@ -9,7 +9,7 @@ import time
 
 import httpx
 
-from providers.base import Provider, ProviderError
+from providers.base import Provider, ProviderError, outside_text
 from settings import OLLAMA_ADDRESS, OLLAMA_BATCH_SIZE
 
 
@@ -21,7 +21,7 @@ def _get(path, **options):
     except httpx.ConnectError as error:
         raise ProviderError("Ollama is not running. Start Ollama and try again.") from error
     except httpx.HTTPError as error:
-        raise ProviderError(f"Ollama answered with an error: {error}") from error
+        raise ProviderError(f"Ollama answered with an error: {outside_text(error)}") from error
 
 
 def installed_models():
@@ -59,7 +59,7 @@ class Ollama(Provider):
         except httpx.ConnectError as error:
             raise ProviderError("Ollama is not running. Start Ollama and try again.") from error
         except httpx.HTTPError as error:
-            raise ProviderError(f"Ollama answered with an error: {error}") from error
+            raise ProviderError(f"Ollama answered with an error: {outside_text(error)}") from error
 
         reply = response.json()
         return reply["message"]["content"], {

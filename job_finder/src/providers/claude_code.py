@@ -15,7 +15,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from providers.base import Provider, ProviderError
+from providers.base import Provider, ProviderError, outside_text
 from settings import CLAUDE_BATCH_SIZE, NO_WINDOW
 
 
@@ -57,11 +57,11 @@ class ClaudeCode(Provider):
                                       encoding="utf-8", timeout=900, cwd=empty_folder,
                                       creationflags=NO_WINDOW)
         if finished.returncode != 0:
-            raise ProviderError(f"Claude Code stopped with an error: {finished.stderr.strip()[:300]}")
+            raise ProviderError(f"Claude Code stopped with an error: {outside_text(finished.stderr, 300)}")
 
         reply = json.loads(finished.stdout)
         if reply.get("is_error"):
-            raise ProviderError(f"Claude Code reported an error: {str(reply.get('result'))[:300]}")
+            raise ProviderError(f"Claude Code reported an error: {outside_text(reply.get('result'), 300)}")
 
         usage = reply.get("usage", {})
         models = reply.get("modelUsage", {})

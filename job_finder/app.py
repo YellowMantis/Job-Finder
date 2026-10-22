@@ -176,8 +176,12 @@ def update_app():
         return jsonify({"error": "No newer version is known."}), 400
     try:
         closing = updates.install(available_update)
-    except (httpx.HTTPError, ValueError) as error:
-        return jsonify({"error": f"The update couldn't be downloaded: {error}"}), 400
+    except httpx.HTTPError as error:  # the kind of problem, not the raw details
+        return jsonify({"error": "The update couldn't be downloaded "
+                                 f"({type(error).__name__}). Try again later."}), 400
+    except ValueError:  # an installer from anywhere but this project's Releases
+        return jsonify({"error": "That update didn't come from this project's Releases, "
+                                 "so it wasn't installed."}), 400
     if closing:
         threading.Timer(1.0, os._exit, args=[0]).start()  # after this answer reaches the page
     return jsonify({"closing": closing})

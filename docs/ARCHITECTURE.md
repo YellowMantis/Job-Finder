@@ -628,6 +628,7 @@ A **cache** is a saved result you reuse instead of recomputing. Two are central:
 | Your identity reaching an AI | The AI service stores your name, phone number and address with your CV | `cv_privacy.for_ai()` removes the name line, the header's contact lines, and any email, phone number, link or mention of your name, on your PC, before any AI request. The AI is told they were removed on purpose, so they never count against you. "See what the AI receives" in the CV box shows the exact text |
 | Hijacked packages | A package or GitHub Action is taken over and a new version carries malware | Python packages are pinned to exact versions, the page's by `package-lock.json` with checksums, and GitHub Actions by commit, so nothing changes without a reviewed update (Dependabot) |
 | Leaked secrets | Your API key or CV ends up on GitHub | Keys are kept in the system's password safe, never in a file; your data folder (`job_finder/data/`) is in `.gitignore` |
+| Details in error messages | A service's error reply repeats part of a key, and the page shows it | Text from outside the app goes through `outside_text()` (`providers/base.py`) before it is shown: one short line, with anything key-like hidden. Other errors say what kind of problem it was, not the raw details |
 | Overloading other sites | Being blocked by career sites | One-second pause between requests; only new postings are fetched |
 
 Not protected, by design: the data files aren't encrypted (your computer login protects

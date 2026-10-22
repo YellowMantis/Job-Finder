@@ -17,7 +17,7 @@ import time
 
 import httpx
 
-from providers.base import Provider, ProviderError
+from providers.base import Provider, ProviderError, outside_text
 from settings import API_BATCH_SIZE
 
 
@@ -99,9 +99,9 @@ class OpenAICompatible(Provider):
             raise ProviderError("The service's rate or usage limit was reached. Wait a while, "
                                 "or score fewer jobs at a time.")
         if response.status_code >= 400:
-            # The service's own explanation, shortened; it never contains our key.
+            # The service's own explanation, shortened, with anything key-like hidden.
             raise ProviderError(f"The service answered with error {response.status_code}: "
-                                f"{response.text[:200]}")
+                                f"{outside_text(response.text)}")
         return response.json()
 
 

@@ -18,7 +18,7 @@ import time
 
 import httpx
 
-from providers.base import Provider, ProviderError
+from providers.base import Provider, ProviderError, outside_text
 from settings import API_BATCH_SIZE
 
 API_URL = "https://api.anthropic.com/v1"
@@ -98,5 +98,6 @@ class AnthropicAPI(Provider):
                 detail = response.json().get("error", {}).get("message", "")
             except ValueError:
                 detail = response.text[:200]
-            raise ProviderError(f"Anthropic answered with error {response.status_code}: {detail}")
+            raise ProviderError(f"Anthropic answered with error {response.status_code}: "
+                                f"{outside_text(detail)}")
         return response.json()
