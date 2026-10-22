@@ -1,0 +1,24 @@
+# Secrets: never committed, even though the app keeps keys in the password safe.
+.env
+.env.*
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Your data: CV, preferences, scores, downloaded jobs. Never uploaded.
+job_finder/data/
+
+# Packaged desktop app (job_finder/tools/build_desktop.py)
+job_finder/build/
+
+# Personal files kept next to the project, such as a copy of your CV.
+input/
+
+# Editor settings, system files and logs.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

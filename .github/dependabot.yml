@@ -1,0 +1,18 @@
+# Dependabot watches the packages this project uses. When a newer version
+# comes out (or a security hole is found in the one we use), it opens a pull
+# request with the update; the tests run on it, and it is merged only by hand.
+# Once a month, each kind grouped into one pull request, to keep it quiet.
+version: 2
+updates:
+  - package-ecosystem: pip          # requirements.txt
+    directory: /
+    schedule: {interval: monthly}
+    groups: {python: {patterns: ["*"]}}
+  - package-ecosystem: npm          # the page: job_finder/frontend/package.json
+    directory: /job_finder/frontend
+    schedule: {interval: monthly}
+    groups: {page: {patterns: ["*"]}}
+  - package-ecosystem: github-actions   # the actions in .github/workflows, pinned by commit
+    directory: /
+    schedule: {interval: monthly}
+    groups: {actions: {patterns: ["*"]}}

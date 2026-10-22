@@ -1,0 +1,48 @@
+# The shared snapshot of every job listing (job_finder/src/snapshot.py), built
+# every 6 hours on GitHub's machine and published on the "data" Release, where
+# every copy of the app downloads it. It holds no personal data and no posting
+# texts.
+#
+# It runs only while the repository is public: a private repository's files
+# can't be downloaded by the app anyway. "Run workflow" on the Actions tab
+# starts it by hand.
+
+name: Job data
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours, at 17 minutes past (quieter than on the hour)
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed to update the Release
+
+jobs:
+  snapshot:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the packages
+        run: pip install -r requirements.txt
+
+      - name: Build the snapshot
+        run: python job_finder/tools/build_snapshot.py job-data.json.gz
+
+      - name: Publish it on the "data" Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A pre-release, so GitHub never reports it as the app's latest version.
+          gh release view data > /dev/null 2>&1 || gh release create data --prerelease \
+            --title "Job data (refreshed every 6 hours)" \
+            --notes "The shared snapshot of job listings that Job Finder downloads. Data: techmap by Michael Lugassy (ODbL)."
+          gh release upload data job-data.json.gz --clobber

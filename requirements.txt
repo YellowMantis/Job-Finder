@@ -1,0 +1,12 @@
+# Exact versions, so every install and every build gets the same, tested code,
+# and a package hijacked later can't slip in unnoticed. Dependabot
+# (.github/dependabot.yml) suggests newer versions; each one passes the tests
+# before it is merged.
+pdfplumber==0.11.10    # reads the text of your CV (PDF)
+httpx==0.28.1          # web requests: job boards, careers sites, AI services
+pydantic==2.14.0       # describes the AI's answers and checks they have the right shape
+flask==3.1.3           # the back end: serves the page and answers its /api/ requests
+keyring==25.7.0        # keeps AI keys in the system password safe (Windows Credential Manager)
+pywebview==6.2.1       # the desktop app window (job_finder/desktop.py)
+pyinstaller==6.22.3    # packages the desktop app (job_finder/tools/build_desktop.py)
+pytest==9.1.1          # runs the automated tests (python -m pytest)

@@ -1,0 +1,62 @@
+# Continuous integration (CI): GitHub runs this on its own machines.
+# Every push and pull request gets the Python tests run, and the React page
+# type-checked and built, on a fresh computer,
+# and the commit shows a green tick (all passed) or a red cross (something failed).
+
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+# Tests only read the code. A pull request from anyone runs this, so it gets no
+# right to change the repository.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest      # a clean Linux machine, new for every run
+    steps:
+      - name: Get the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - name: Install Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
+        with:
+          python-version: "3.12"
+          cache: pip            # reuse downloaded packages between runs
+
+      - name: Install the packages the project needs
+        run: pip install -r requirements.txt
+
+      - name: Run the tests
+        run: python -m pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: job_finder/frontend
+    steps:
+      - name: Get the code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: job_finder/frontend/package-lock.json
+
+      - name: Install the exact package versions from package-lock.json
+        run: npm ci
+
+      - name: Run the page tests
+        run: npm test
+
+      - name: Check for mistakes (lint)
+        run: npm run lint
+
+      - name: Check types and build the page
+        run: npm run build
