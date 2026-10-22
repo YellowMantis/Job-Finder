@@ -4,6 +4,9 @@
 
 **One clear place to find the tech jobs in Israel that actually fit you.**
 
+<img width="1434" height="937" alt="Screenshot 2026-10-22 110940" src="https://github.com/user-attachments/assets/06d23916-8783-48c7-ad77-7bb0e61f8f0f" />
+
+
 Today it brings together thousands of open positions from hundreds of companies, shows how far
 each one is from your home and how well it fits your CV, and links straight to the application.
 
