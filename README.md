@@ -4,10 +4,10 @@
 
 **One clear place to find the tech jobs in Israel that actually fit you.**
 
-<img width="1424" height="753" alt="Screenshot 2026-10-22 110043" src="https://github.com/user-attachments/assets/4e0504d5-5881-4446-bf80-8b684faeec1c" />
+<img width="1424" height="753" alt="A job's fit review, quoting the CV for each requirement, next to the table of positions" src="https://github.com/user-attachments/assets/4e0504d5-5881-4446-bf80-8b684faeec1c" />
 
 
-<img width="1434" height="937" alt="Screenshot 2026-10-22 110940" src="https://github.com/user-attachments/assets/06d23916-8783-48c7-ad77-7bb0e61f8f0f" />
+<img width="1434" height="937" alt="The table of positions with fit, distance, work mode and posting date" src="https://github.com/user-attachments/assets/06d23916-8783-48c7-ad77-7bb0e61f8f0f" />
 
 
 Today it brings together thousands of open positions from hundreds of companies, shows how far
