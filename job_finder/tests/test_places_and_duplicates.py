@@ -194,3 +194,45 @@ def test_a_board_job_with_a_known_place_gets_that_place(monkeypatch):
                                                 [(32.08, 34.78)])
 
     assert listing["points"] == [list(job_boards.place_points("Haifa")[0])]
+
+
+# ---- Ashby and SmartRecruiters --------------------------------------------------
+
+def test_ashby_keeps_jobs_in_israel_with_their_text(monkeypatch):
+    import job_boards
+    monkeypatch.setattr(job_boards, "_get_json", lambda url, params=None: {"jobs": [
+        {"title": "Full Stack Developer ", "location": "Tel Aviv", "workplaceType": "Hybrid",
+         "address": {"postalAddress": {"addressCountry": "Israel"}}, "secondaryLocations": [],
+         "jobUrl": "https://jobs.ashbyhq.com/acme/1", "applyUrl": "https://jobs.ashbyhq.com/acme/1/apply",
+         "publishedAt": "2026-10-01T10:00:00Z", "descriptionPlain": "Build things."},
+        {"title": "Sales", "location": "London", "address": {"postalAddress": {"addressCountry": "UK"}},
+         "jobUrl": "https://jobs.ashbyhq.com/acme/2", "descriptionPlain": "Sell things."}]})
+
+    [(listing, posting)] = job_boards.ashby_jobs({"name": "Acme", "ashbyId": "acme"}, [])
+
+    assert listing["title"] == "Full Stack Developer" and listing["updated"] == "2026-10-01"
+    assert posting["source"] == "Ashby" and posting["text"] == "Build things."
+    assert posting["work_mode"] == "hybrid"
+
+
+def test_smartrecruiters_reads_descriptions_only_for_wanted_titles(monkeypatch):
+    import job_boards
+    asked = []
+
+    def fake(url, params=None):
+        asked.append(url)
+        if url.endswith("/postings"):
+            return {"totalFound": 2, "content": [
+                {"id": "1", "name": "QA Engineer", "location": {"city": "Haifa", "country": "il"},
+                 "releasedDate": "2026-10-02T00:00:00Z"},
+                {"id": "2", "name": "Sales Lead", "location": {"city": "Haifa", "country": "il"}}]}
+        return {"postingUrl": f"https://jobs.smartrecruiters.com/acme/{url[-1]}",
+                "jobAd": {"sections": {"jobDescription": {"title": "Job Description", "text": "<p>Test it.</p>"}}}}
+    monkeypatch.setattr(job_boards, "_get_json", fake)
+
+    pairs = job_boards.smartrecruiters_jobs({"name": "Acme", "smartrecruitersId": "acme"}, [],
+                                            only_titles={"qa engineer"})
+
+    assert [listing["title"] for listing, _ in pairs] == ["QA Engineer"]
+    assert "Test it." in pairs[0][1]["text"]
+    assert len(asked) == 2   # the list, then one description: Sales Lead's was never fetched

@@ -26,7 +26,8 @@ from settings import DATA_DIR, SNAPSHOT_URL
 
 FORMAT = 1
 ETAG_PATH = DATA_DIR / "snapshot_etag.json"
-BOARD_KEYS = ("greenhouseId", "leverId", "comeetId", "workdaySite")
+BOARD_KEYS = ("greenhouseId", "leverId", "ashbyId", "smartrecruitersId", "comeetId",
+              "workdaySite")
 
 
 class Unavailable(Exception):

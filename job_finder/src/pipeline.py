@@ -11,10 +11,11 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
-from career_sites import comeet_id, fetch_posting
+from career_sites import _normalise, comeet_id, fetch_posting
 from companies import company_points, load_companies, locate_cities, nearest_km, place_points
 from download import download_data
-from job_boards import greenhouse_jobs, lever_jobs, merge_board_jobs
+from job_boards import (FEED_KEYS, ashby_jobs, greenhouse_jobs, lever_jobs, merge_board_jobs,
+                        smartrecruiters_jobs)
 from jobs import label_listings, load_listings
 import snapshot
 from preferences import hidden_reason, load_preferences
@@ -26,7 +27,7 @@ POSTINGS_PATH = DATA_DIR / "postings.json"
 FITS_PATH = DATA_DIR / "fits.json"
 APPLIED_PATH = DATA_DIR / "applied.json"  # {job link: date you applied}
 MISSING_PATH = DATA_DIR / "missing_postings.json"  # {job link: date it wasn't found}
-BOARDS_PATH = DATA_DIR / "company_boards.json"  # {company: its Greenhouse/Lever/Comeet ids}
+BOARDS_PATH = DATA_DIR / "company_boards.json"  # {company: its job board ids (snapshot.BOARD_KEYS)}
 
 
 def read_json(path, default):
@@ -61,14 +62,24 @@ def due_for_fetch(url, missing, today):
     return (today - date.fromisoformat(missing[url])).days >= RETRY_MISSING_POSTINGS_AFTER_DAYS
 
 
-def _read_boards(company, offices):
-    """A company's complete job lists from Greenhouse and Lever: (listing, posting) pairs."""
+def _read_boards(company, offices, only_titles=None):
+    """A company's complete job lists from the job feeds it has (job_boards.py):
+    (listing, posting) pairs. only_titles: simplified titles to read descriptions
+    for, on feeds that need a request per job (SmartRecruiters); None for all."""
     pairs = []
     if company.get("greenhouseId"):
         pairs += greenhouse_jobs(company, offices)
     if company.get("leverId"):
         pairs += lever_jobs(company, offices)
+    if company.get("ashbyId"):
+        pairs += ashby_jobs(company, offices)
+    if company.get("smartrecruitersId"):
+        pairs += smartrecruiters_jobs(company, offices, only_titles)
     return pairs
+
+
+def _has_feed(company):
+    return any(company.get(key) for key in FEED_KEYS)
 
 
 def collect_listings(progress):
@@ -88,12 +99,11 @@ def collect_listings(progress):
     # too (with no position), so the distance filter decides what you see.
     listings = load_listings(city_locations, only_known_cities=False)
 
-    # Greenhouse and Lever publish each company's complete job list with full
-    # descriptions: one request per company. New jobs join the listings; jobs
-    # we already had just receive their description.
-    board_companies = [company for company in companies
-                       if company.get("greenhouseId") or company.get("leverId")]
-    progress.update(stage="Reading Greenhouse and Lever job boards", done=0,
+    # Job boards (Greenhouse, Lever, Ashby, SmartRecruiters) publish each
+    # company's complete job list with full descriptions. New jobs join the
+    # listings; jobs we already had just receive their description.
+    board_companies = [company for company in companies if _has_feed(company)]
+    progress.update(stage="Reading job boards", done=0,
                     total=len(board_companies))
     board_pairs = [pair for pairs in in_parallel(
         lambda company: _read_boards(company, company_points(company, city_locations)),
@@ -123,13 +133,16 @@ def fetch_texts(jobs, companies_by_name, progress, board_postings=None):
     known_before = set(postings)
 
     if board_postings is None:
-        needed = sorted({job["company"] for job in wanted if job["url"] not in postings
-                         and job["company"] in companies_by_name
-                         and (companies_by_name[job["company"]].get("greenhouseId")
-                              or companies_by_name[job["company"]].get("leverId"))})
+        missing_titles = {}  # company: the titles of its jobs still without a text
+        for job in wanted:
+            if (job["url"] not in postings and job["company"] in companies_by_name
+                    and _has_feed(companies_by_name[job["company"]])):
+                missing_titles.setdefault(job["company"], set()).add(_normalise(job["title"]))
+        needed = sorted(missing_titles)
         progress.update(stage="Reading job boards for your jobs", done=0, total=len(needed))
         pairs = [pair for found in in_parallel(
-            lambda name: _read_boards({"name": name, **companies_by_name[name]}, []),
+            lambda name: _read_boards({"name": name, **companies_by_name[name]}, [],
+                                      missing_titles[name]),
             needed, progress) for pair in found]
         _, found = merge_board_jobs([job for job in jobs if job["company"] in needed], pairs)
         urls = {job["url"] for job in jobs}
@@ -170,11 +183,10 @@ def fetch_texts(jobs, companies_by_name, progress, board_postings=None):
     return len(set(postings) - known_before)
 
 
-def _summary(jobs, new_postings, board_jobs_added=0):
+def _summary(jobs, new_postings):
     preferences = load_preferences()
     hidden = sum(1 for job in jobs if hidden_reason(job, preferences))
-    return {"jobs": len(jobs) - hidden, "hidden": hidden, "new_postings": new_postings,
-            "board_jobs_added": board_jobs_added}
+    return {"jobs": len(jobs) - hidden, "hidden": hidden, "new_postings": new_postings}
 
 
 def update_jobs(progress):

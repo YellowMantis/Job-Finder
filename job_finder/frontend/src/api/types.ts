@@ -96,7 +96,7 @@ export type FitProgress = Progress & {
   stop_requested: boolean
   started: number // when scoring began, in seconds since 1970
 }
-export type UpdateSummary = { jobs: number; hidden: number; new_postings: number; board_jobs_added: number }
+export type UpdateSummary = { jobs: number; hidden: number; new_postings: number }
 export type UpdateProgress = Progress & { stage: string; summary: UpdateSummary | null }
 
 // One scoring batch from GET /api/fit/log (scoring.py writes these).

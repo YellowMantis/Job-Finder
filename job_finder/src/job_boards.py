@@ -1,8 +1,9 @@
-"""Read companies' complete job lists from Greenhouse and Lever.
+"""Read companies' complete job lists from Greenhouse, Lever, Ashby and
+SmartRecruiters.
 
-Greenhouse and Lever are hiring systems with official public job feeds: one
-request returns every open job at a company, with its full description. That
-gives us two things:
+These are hiring systems with official public job feeds: one request returns
+every open job at a company (SmartRecruiters then needs one more per job for its
+description). That gives us two things:
 
   1. descriptions for jobs we already have from the techmap listings, and
   2. jobs techmap never listed, which become new rows in the table.
@@ -29,6 +30,10 @@ from settings import SECONDS_BETWEEN_REQUESTS
 
 LEVER_WORK_MODES = {"hybrid": "hybrid", "onsite": "on-site", "on-site": "on-site",
                     "remote": "remote"}
+ASHBY_WORK_MODES = {"OnSite": "on-site", "Hybrid": "hybrid", "Remote": "remote"}
+
+# The company record's key for each feed, and the reader for it.
+FEED_KEYS = ("greenhouseId", "leverId", "ashbyId", "smartrecruitersId")
 
 
 def job_key(company, title):
@@ -117,6 +122,72 @@ def lever_jobs(company, offices):
              "time_type": categories.get("commitment") or "",
              "work_mode": LEVER_WORK_MODES.get((job.get("workplaceType") or "").lower(), ""),
              "experience_level": "", "apply_url": job.get("applyUrl") or url},
+        ))
+    return pairs
+
+
+def ashby_jobs(company, offices):
+    """Return (listing, posting) pairs for the company's jobs in Israel."""
+    data = _get_json(f"https://api.ashbyhq.com/posting-api/job-board/{company['ashbyId']}")
+    pairs = []
+    for job in (data or {}).get("jobs", []):
+        country = ((job.get("address") or {}).get("postalAddress") or {}).get("addressCountry") or ""
+        places = [job.get("location") or ""] + [place.get("location") or ""
+                                                 for place in job.get("secondaryLocations") or []]
+        if country.lower() != "israel" and not any("israel" in place.lower() for place in places):
+            continue
+        url = job.get("jobUrl") or ""
+        location = job.get("location") or ""
+        pairs.append((
+            _listing(company, (job.get("title") or "").strip(), location, offices, url,
+                     (job.get("publishedAt") or "")[:10]),
+            {"source": "Ashby", "text": (job.get("descriptionPlain") or "").strip()
+             or _html_to_text(job.get("descriptionHtml") or ""),
+             "location": location, "time_type": job.get("employmentType") or "",
+             "work_mode": ASHBY_WORK_MODES.get(job.get("workplaceType") or "", ""),
+             "experience_level": "", "apply_url": job.get("applyUrl") or url},
+        ))
+    return pairs
+
+
+def smartrecruiters_jobs(company, offices, only_titles=None):
+    """Return (listing, posting) pairs for the company's jobs in Israel. The list
+    has no descriptions, so each job in Israel is then read on its own: only
+    those with a title in only_titles (simplified), when it is given."""
+    board = company["smartrecruitersId"]
+    listed, offset = [], 0
+    while True:  # the list comes 100 jobs at a time
+        data = _get_json(f"https://api.smartrecruiters.com/v1/companies/{board}/postings",
+                         {"limit": 100, "offset": offset})
+        page = (data or {}).get("content") or []
+        listed += page
+        offset += len(page)
+        if not page or offset >= (data or {}).get("totalFound", 0):
+            break
+    pairs = []
+    for job in listed:
+        place = job.get("location") or {}
+        if (place.get("country") or "").lower() != "il":
+            continue
+        if only_titles is not None and _normalise(job.get("name") or "") not in only_titles:
+            continue
+        detail = _get_json(f"https://api.smartrecruiters.com/v1/companies/{board}/postings/{job.get('id')}")
+        if not detail:
+            continue
+        sections = ((detail.get("jobAd") or {}).get("sections") or {})
+        text = "\n\n".join(f"{part.get('title')}\n{_html_to_text(part.get('text') or '')}"
+                            for part in sections.values() if (part or {}).get("text"))
+        url = detail.get("postingUrl") or ""
+        location = place.get("city") or place.get("fullLocation") or ""
+        work_mode = "remote" if place.get("remote") else "hybrid" if place.get("hybrid") else ""
+        pairs.append((
+            _listing(company, job.get("name") or "", location, offices, url,
+                     (job.get("releasedDate") or "")[:10]),
+            {"source": "SmartRecruiters", "text": text, "location": location,
+             "time_type": (job.get("typeOfEmployment") or {}).get("label") or "",
+             "work_mode": work_mode,
+             "experience_level": (job.get("experienceLevel") or {}).get("label") or "",
+             "apply_url": detail.get("applyUrl") or url},
         ))
     return pairs
 

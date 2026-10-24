@@ -44,8 +44,8 @@ track where you applied. Everything runs on your own computer.
                                                        │
                                                        ▼   data/jobs.json (every job, labelled)
    company career sites ──(2)──► career_sites.py ──────────► data/postings.json
-   (Workday, Comeet,             job_boards.py                 │
-    Greenhouse, Lever)                                 │
+   (Workday, Comeet, Greenhouse, job_boards.py                 │
+    Lever, Ashby, SmartRecruiters)                     │
                                                        ▼
    your CV (PDF) ──────────────► app.py  (reads the CV text; cv_privacy.py removes
                                                        │  your name and contact details)
@@ -186,10 +186,11 @@ second (`SECONDS_BETWEEN_REQUESTS`) to stay polite to the sites.
 *Why not read the LinkedIn links in the data?* LinkedIn's terms forbid automated reading, and
 it blocks it. Companies' own career sites publish their jobs openly.
 
-**Greenhouse and Lever** (in `src/job_boards.py`) work the other way round. Both publish an
-official public feed of a company's *complete* job list with full descriptions, so each
-update reads the feed of every company that uses them (about 30), keeping jobs located in
-Israel. Some of those jobs are already in our listings; others techmap never had. To avoid
+**Greenhouse, Lever, Ashby and SmartRecruiters** (in `src/job_boards.py`) work the other way
+round. Each publishes an official public feed of a company's *complete* job list with full
+descriptions, so each update reads the feed of every company that uses them, keeping jobs
+located in Israel. (SmartRecruiters' list has no descriptions, so each job is then read on
+its own; on your computer, only the ones still missing a text.) Some of those jobs are already in our listings; others techmap never had. To avoid
 showing a job twice, `job_key()` reduces each job to "company|title" in simplified form, and
 `merge_board_jobs()` keeps these keys in a dictionary: a job whose key is already there just
 gives its description to the existing row; a new key becomes a new row. New rows get a field
@@ -205,8 +206,9 @@ ignored and the listing's own city is shown instead.
 **Boards techmap doesn't know about.** Many listings come with only a LinkedIn link, which
 can't be read, yet most of those companies hire through a system the app can read; techmap
 just doesn't say which, or names one they have since left. `tools/find_boards.py` looks for
-each such company's board, on its careers page or, failing that, in the public feeds under
-its likely names, and keeps a board only if it lists a job with the same title as one of the
+each such company's board, on its careers page (with `--browser`, also opened in a real
+browser, which sees what pages built with JavaScript load) and in the public feeds under its
+likely names, and keeps a board only if it lists a job with the same title as one of the
 company's listings. The verified boards are saved in `src/boards.json`, which
 `load_companies()` applies on top of techmap's data. Because the shared snapshot is built
 from the same code, every user gets them.
@@ -679,7 +681,7 @@ one computer. A hosted service would need both.
 | `industries.py` | The ten industry rule cards (gambling, crypto, defence, banks...) and the labelling function | `company_industries` |
 | `preferences.py` | Your preferences: loading, checking, saving, and why a job is hidden | `load_preferences`, `hidden_reason` |
 | `career_sites.py` | Finds a job on its company's Workday or Comeet careers site and returns the description, location and work mode | `fetch_posting`, `comeet_id` |
-| `job_boards.py` | Reads complete job lists from Greenhouse and Lever, and merges them with the listings without duplicates | `greenhouse_jobs`, `lever_jobs`, `merge_board_jobs`, `job_key` |
+| `job_boards.py` | Reads complete job lists from Greenhouse, Lever, Ashby and SmartRecruiters, and merges them with the listings without duplicates | `greenhouse_jobs`, `lever_jobs`, `ashby_jobs`, `smartrecruiters_jobs`, `merge_board_jobs` |
 | `cv_privacy.py` | What an AI is sent of your CV: without your name, contact details and links | `for_ai` |
 | `fit_rules.py` | The fit score's rules: the AI's instructions, the answer shapes, and the checks and maths that turn any review into a percentage | `check_and_score`, `SYSTEM_PROMPT` |
 | `scoring.py` | Scoring with any provider: builds the request, checks the answer (one retry), scores it, logs what it used | `review_batch`, `read_cv_facts` |
@@ -737,7 +739,7 @@ one computer. A hosted service would need both.
 | **Thread** | A second line of work running at the same time inside one program |
 | **Workday** | A careers-site system many large companies use; it can be searched for jobs |
 | **Comeet** | An Israeli careers-site system; each company page lists all its jobs with full text |
-| **Greenhouse, Lever** | Hiring systems with official public feeds of a company's complete job list |
+| **Greenhouse, Lever, Ashby, SmartRecruiters** | Hiring systems with official public feeds of a company's complete job list |
 | **De-duplication** | Recognising that two records are the same job, so it's shown once |
 | **Migration** | A small function that upgrades saved data to the shape a new version expects |
 | **DNS rebinding** | A trick that makes a browser treat your computer's own address as a website's, so the site could read what the app answers |

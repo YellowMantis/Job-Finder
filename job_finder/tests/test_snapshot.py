@@ -88,7 +88,7 @@ def test_an_update_from_the_snapshot_reads_only_the_boards_it_needs(data, monkey
     serve(monkeypatch, 200, snapshot.build(JOBS, COMPANIES))
     asked = []
 
-    def read_boards(company, offices):
+    def read_boards(company, offices, only_titles=None):
         asked.append(company["name"])
         listing = {**JOBS[0], "url": "https://boards/acme/1"}
         return [(listing, {"text": "From the job board", "location": "", "apply_url": ""})]

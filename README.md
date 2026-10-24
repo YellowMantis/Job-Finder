@@ -30,8 +30,8 @@ and refining it to make it as useful as possible.
 ## What it does
 
 - **One table of open positions.** Listings from the open [techmap](https://github.com/mluggy/techmap)
-  data, plus complete job lists from companies' own Greenhouse and Lever boards, without
-  duplicates. Filter by company, field, level, posting age and distance from your home.
+  data, plus complete job lists from companies' own hiring systems (Greenhouse, Lever, Ashby,
+  SmartRecruiters, Comeet, Workday), without duplicates. Filter by company, field, level, posting age and distance from your home.
 - **A fit score you can check.** An AI reads each posting and lists its requirements, quoting the
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored
@@ -140,7 +140,7 @@ and the job of every file.
 
 Job listings come from [techmap](https://github.com/mluggy/techmap) by Michael Lugassy,
 licensed under the Open Database License (ODbL). Posting texts are read from the employers'
-own career sites and their public Greenhouse and Lever job boards. The list of Israeli towns
+own career sites and the public job feeds of their hiring systems. The list of Israeli towns
 and villages used to choose your home (`job_finder/src/places_il.json`) comes from
 [GeoNames](https://www.geonames.org), licensed under
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

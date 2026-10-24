@@ -39,7 +39,7 @@ def test_a_known_board_replaces_an_out_of_date_one(tmp_path, monkeypatch):
 
 def test_the_shipped_boards_file_is_well_formed():
     boards = json.loads(companies.BOARDS_PATH.read_text(encoding="utf-8"))["companies"]
-    allowed = {"greenhouseId", "leverId", "comeetId", "workdaySite"}
+    allowed = {"greenhouseId", "leverId", "ashbyId", "smartrecruitersId", "comeetId", "workdaySite"}
     assert boards and all(entry and set(entry) <= allowed for entry in boards.values())
     assert all(site.startswith("https://") and ".myworkdayjobs.com/wday/cxs/" in site
                for entry in boards.values() for key, site in entry.items() if key == "workdaySite")
@@ -68,3 +68,20 @@ def test_a_board_counts_only_if_it_lists_one_of_the_companys_titles(monkeypatch)
     assert find_boards._verified("greenhouse", "acme", {"qa engineer"}) == {"greenhouseId": "acme"}
     # A board under the same name, but another company's jobs: not taken.
     assert find_boards._verified("greenhouse", "acme", {"backend developer"}) is None
+
+
+def test_newer_systems_are_recognised_in_a_page():
+    page = """<iframe src="https://jobs.ashbyhq.com/moonactive/embed?version=2"></iframe>
+              <a href="https://jobs.smartrecruiters.com/Wix2/123-engineer">Apply</a>
+              <script src="https://www.comeet.co/careers-api/2.0/company/87.00B/positions?token=ABC123&details=true"></script>"""
+    assert find_boards._found_in(page) == [
+        ("ashby", "moonactive"), ("smartrecruiters", "Wix2"), ("comeet_api", "87.00B:ABC123")]
+
+
+def test_comeets_api_gives_the_companys_usual_comeet_id(monkeypatch):
+    monkeypatch.setattr(find_boards, "_json", lambda url: [
+        {"name": "Data Scientist", "url_comeet_hosted_page":
+            "https://www.comeet.com/jobs/sentra/87.00B/data-scientist/F6.078"}])
+    entry = find_boards._verified("comeet_api", "87.00B:ABC123", {"data scientist"})
+    assert entry == {"comeetId": "sentra/87.00B"}
+    assert find_boards._verified("comeet_api", "87.00B:ABC123", {"qa engineer"}) is None

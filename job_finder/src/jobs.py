@@ -23,7 +23,7 @@ def _contains_word(text, words):
 
 
 # Words in a title that place a job in a field, checked in this order. Jobs read
-# from Greenhouse and Lever come without techmap's category, so we sort them here.
+# from the job boards come without techmap's category, so we sort them here.
 FIELD_WORDS = [
     ("qa", ["qa", "test", "tester", "testing", "quality assurance", "verification", "validation"]),
     ("devops", ["devops", "sre", "site reliability", "infrastructure", "cloud", "platform",
