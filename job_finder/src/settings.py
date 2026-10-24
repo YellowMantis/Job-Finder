@@ -33,19 +33,9 @@ JUNIOR_WORDS = ["junior", "jr", "entry", "graduate", "graduates", "new grad", "g
 
 # --- Company career sites ----------------------------------------------------
 
-# Many large employers run their careers page on the same system (Workday).
-# For each company we know the address of, the full posting text can be read
-# from the company's own site. To add a company: open its careers page, and
-# copy the three parts of the address  https://<host>/<site>  plus the company
-# id that appears in the host name.
-WORKDAY_SITES = {
-    "Nvidia": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite",
-    "KLA": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search",
-    "Intel": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External",
-    "Philips": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers",
-    "Flex": "https://flextronics.wd1.myworkdayjobs.com/wday/cxs/flextronics/Careers",
-    "PTC": "https://ptc.wd1.myworkdayjobs.com/wday/cxs/ptc/PTC",
-}
+# Where companies' job boards and careers sites are, when techmap's data doesn't
+# say (or is out of date), is in src/boards.json, found and checked by
+# tools/find_boards.py.
 
 # Pause between requests to a careers site, so we never load it heavily.
 SECONDS_BETWEEN_REQUESTS = 1

@@ -1,0 +1,296 @@
+{
+  "about": "Where companies' job boards are when techmap's data doesn't say, or is out of date. Each entry was checked by tools/find_boards.py: the board lists jobs with the same titles as the company's listings. Read by companies.load_companies().",
+  "companies": {
+    "Abbott": {
+      "workdaySite": "https://abbott.wd5.myworkdayjobs.com/wday/cxs/abbott/abbottcareers"
+    },
+    "Agoda.com": {
+      "greenhouseId": "agoda"
+    },
+    "Aidoc": {
+      "greenhouseId": "aidocmedical"
+    },
+    "Anchor": {
+      "comeetId": "anchorfintech/87.00D"
+    },
+    "AppsFlyer": {
+      "greenhouseId": "appsflyer"
+    },
+    "Arpeely": {
+      "comeetId": "arpeely/57.001"
+    },
+    "Autodesk": {
+      "workdaySite": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext"
+    },
+    "BigID": {
+      "greenhouseId": "bigid"
+    },
+    "BioCatch": {
+      "leverId": "biocatch"
+    },
+    "Blockaid": {
+      "comeetId": "blockaid/69.00B"
+    },
+    "BlueGreen Water Technologies": {
+      "comeetId": "bgtechs/E6.00D"
+    },
+    "Bond Sports": {
+      "comeetId": "bondsports/F7.009"
+    },
+    "BridgeWise": {
+      "comeetId": "bridgewise/F9.009"
+    },
+    "Cato Networks": {
+      "greenhouseId": "catonetworks"
+    },
+    "Cognyte": {
+      "comeetId": "cognyte/F2.009"
+    },
+    "Connecteam": {
+      "greenhouseId": "connecteam"
+    },
+    "ControlUp": {
+      "leverId": "controlup"
+    },
+    "Cyera": {
+      "comeetId": "cyera/17.008"
+    },
+    "Cymulate": {
+      "greenhouseId": "cymulate"
+    },
+    "DataRails": {
+      "greenhouseId": "datarails"
+    },
+    "Directeam": {
+      "comeetId": "directeam/29.008"
+    },
+    "DoubleVerify": {
+      "workdaySite": "https://doubleverify.wd5.myworkdayjobs.com/wday/cxs/doubleverify/DV_Careers"
+    },
+    "Duve": {
+      "comeetId": "duve/58.00D"
+    },
+    "EasySend": {
+      "comeetId": "easysend/D5.009"
+    },
+    "Eitan Medical": {
+      "comeetId": "eitanmedical/C6.00F"
+    },
+    "Empathy": {
+      "comeetId": "empathy/F8.007"
+    },
+    "F5 Networks": {
+      "workdaySite": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs"
+    },
+    "Final": {
+      "comeetId": "final/C0.009"
+    },
+    "Flex": {
+      "workdaySite": "https://flextronics.wd1.myworkdayjobs.com/wday/cxs/flextronics/Careers"
+    },
+    "Forcepoint": {
+      "workdaySite": "https://forcepoint.wd1.myworkdayjobs.com/wday/cxs/forcepoint/external-careers"
+    },
+    "Gong.io": {
+      "greenhouseId": "gongio"
+    },
+    "Grain": {
+      "comeetId": "grain/4A.000"
+    },
+    "Guardio": {
+      "comeetId": "guardio/57.000"
+    },
+    "Guardz": {
+      "greenhouseId": "guardz"
+    },
+    "Hypernative Labs": {
+      "comeetId": "hypernative/8A.00E"
+    },
+    "INFINIDAT": {
+      "comeetId": "infinidat/D6.003"
+    },
+    "IRONSCALES": {
+      "comeetId": "ironscales/1A.007"
+    },
+    "Intel": {
+      "workdaySite": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External"
+    },
+    "KLA": {
+      "workdaySite": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search"
+    },
+    "Lightrun": {
+      "greenhouseId": "lightrun"
+    },
+    "LiveU": {
+      "comeetId": "liveu/90.00C"
+    },
+    "MDClone": {
+      "comeetId": "mdclone/66.004"
+    },
+    "MKS Instruments": {
+      "workdaySite": "https://mksinst.wd1.myworkdayjobs.com/wday/cxs/mksinst/MKSCareersEMEA"
+    },
+    "Majestic Labs": {
+      "comeetId": "majesticlabs/AA.004"
+    },
+    "Mastercard": {
+      "workdaySite": "https://mastercard.wd1.myworkdayjobs.com/wday/cxs/mastercard/CorporateCareers"
+    },
+    "Media Force": {
+      "greenhouseId": "mediaforceltd"
+    },
+    "Mego Afek": {
+      "comeetId": "megoafek/7A.003"
+    },
+    "Melio": {
+      "greenhouseId": "melio"
+    },
+    "Mentee Robotics": {
+      "comeetId": "mentee_robotics/6A.002"
+    },
+    "Mitiga": {
+      "comeetId": "mitiga/26.00B"
+    },
+    "Moonshot Marketing": {
+      "comeetId": "moonshot/87.005"
+    },
+    "Motorola Solutions": {
+      "workdaySite": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers"
+    },
+    "MyHeritage": {
+      "greenhouseId": "myheritage"
+    },
+    "NICE": {
+      "greenhouseId": "nice"
+    },
+    "Nanit": {
+      "greenhouseId": "nanit"
+    },
+    "Navina Technologies": {
+      "comeetId": "navina/E6.00C"
+    },
+    "Nominal": {
+      "comeetId": "nominal/E8.003"
+    },
+    "Nvidia": {
+      "workdaySite": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite"
+    },
+    "Oktopost": {
+      "leverId": "oktopost"
+    },
+    "Optimove": {
+      "greenhouseId": "optimove"
+    },
+    "PTC": {
+      "workdaySite": "https://ptc.wd1.myworkdayjobs.com/wday/cxs/ptc/PTC"
+    },
+    "Pagaya": {
+      "greenhouseId": "pagayais"
+    },
+    "Palo Alto Networks": {
+      "workdaySite": "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/panwexternalcareers"
+    },
+    "Payoneer Global": {
+      "greenhouseId": "payoneer"
+    },
+    "Pendo": {
+      "greenhouseId": "pendo"
+    },
+    "Philips": {
+      "workdaySite": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers"
+    },
+    "Pipl": {
+      "comeetId": "pipl/22.008"
+    },
+    "PlainID": {
+      "comeetId": "plainid/C4.00C"
+    },
+    "QuantHealth": {
+      "greenhouseId": "quanthealth"
+    },
+    "Red Hat": {
+      "workdaySite": "https://redhat.wd5.myworkdayjobs.com/wday/cxs/redhat/jobs"
+    },
+    "Riskified": {
+      "greenhouseId": "riskified"
+    },
+    "Riverside.fm": {
+      "comeetId": "riverside-fm/66.009"
+    },
+    "SafeBreach": {
+      "greenhouseId": "safebreach"
+    },
+    "ScaleOps": {
+      "greenhouseId": "scaleops"
+    },
+    "SciPlay": {
+      "workdaySite": "https://lnw.wd5.myworkdayjobs.com/wday/cxs/lnw/SciPlayExternalCareersSite"
+    },
+    "SuperCom": {
+      "comeetId": "supercom/46.00A"
+    },
+    "Sweet Security": {
+      "greenhouseId": "sweetsecurity"
+    },
+    "Tenable": {
+      "greenhouseId": "tenableinc"
+    },
+    "Tikal": {
+      "comeetId": "tikalk/68.00C"
+    },
+    "Token Security": {
+      "greenhouseId": "tokensecurity"
+    },
+    "Tomorrow.io": {
+      "greenhouseId": "tomorrow"
+    },
+    "Tonkean": {
+      "leverId": "tonkean"
+    },
+    "Utila": {
+      "comeetId": "utila/D9.00F"
+    },
+    "Venn": {
+      "greenhouseId": "venncity"
+    },
+    "Via": {
+      "greenhouseId": "via"
+    },
+    "Voyantis": {
+      "comeetId": "voyantis/86.00B"
+    },
+    "WalkMe": {
+      "leverId": "walkme"
+    },
+    "WeTrip": {
+      "comeetId": "weski/F8.00C"
+    },
+    "Wolt": {
+      "greenhouseId": "wolt"
+    },
+    "WorldQuant": {
+      "greenhouseId": "worldquant"
+    },
+    "Yotpo": {
+      "greenhouseId": "yotpo"
+    },
+    "YouAppi": {
+      "comeetId": "youappi/C9.00B"
+    },
+    "ZOLL Medical": {
+      "workdaySite": "https://zoll.wd5.myworkdayjobs.com/wday/cxs/zoll/ZOLLMedicalCorp"
+    },
+    "Zenity": {
+      "comeetId": "zenity/19.000"
+    },
+    "Zscaler Israel": {
+      "greenhouseId": "zscaler"
+    },
+    "accessiBe": {
+      "greenhouseId": "accessibe"
+    },
+    "torq": {
+      "greenhouseId": "torq"
+    }
+  }
+}

@@ -18,8 +18,7 @@ from job_boards import greenhouse_jobs, lever_jobs, merge_board_jobs
 from jobs import label_listings, load_listings
 import snapshot
 from preferences import hidden_reason, load_preferences
-from settings import (DATA_DIR, RETRY_MISSING_POSTINGS_AFTER_DAYS, SITES_AT_ONCE, TECHMAP_DIR,
-                      WORKDAY_SITES)
+from settings import DATA_DIR, RETRY_MISSING_POSTINGS_AFTER_DAYS, SITES_AT_ONCE, TECHMAP_DIR
 
 JOBS_PATH = DATA_DIR / "jobs.json"
 OLD_EXCLUDED_PATH = DATA_DIR / "excluded.json"  # no longer made; removed if found
@@ -144,7 +143,7 @@ def fetch_texts(jobs, companies_by_name, progress, board_postings=None):
     missing = read_json(MISSING_PATH, {})
     to_fetch = [job for job in wanted
                 if job["url"] not in postings and due_for_fetch(job["url"], missing, today)
-                and (job["company"] in WORKDAY_SITES
+                and ((companies_by_name.get(job["company"]) or {}).get("workdaySite")
                      or comeet_id(job, companies_by_name.get(job["company"])))]
 
     # One company's careers site at a time per worker, several companies at once.

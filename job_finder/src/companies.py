@@ -8,9 +8,13 @@ No LLM is involved.
 import json
 import re
 from math import asin, cos, radians, sin, sqrt
+from pathlib import Path
 from statistics import median
 
 from settings import TECHMAP_DIR
+
+# Job boards techmap doesn't know about, or knows out of date (see the file).
+BOARDS_PATH = Path(__file__).parent / "boards.json"
 
 def distance_km(lat1, lon1, lat2, lon2):
     """Straight-line distance between two points on Earth (the haversine formula)."""
@@ -20,11 +24,14 @@ def distance_km(lat1, lon1, lat2, lon2):
 
 
 def load_companies():
-    """Read every active company file."""
+    """Read every active company file, with the job boards from boards.json
+    filled in (they take the place of techmap's, which may be out of date)."""
+    boards = json.loads(BOARDS_PATH.read_text(encoding="utf-8"))["companies"]
     companies = []
     for path in (TECHMAP_DIR / "companies").glob("*.json"):
         company = json.loads(path.read_text(encoding="utf-8"))
         if company.get("isActive"):
+            company.update(boards.get(company.get("name"), {}))
             companies.append(company)
     return companies
 

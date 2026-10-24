@@ -65,6 +65,7 @@ def package(icon):
         # Files the code reads next to itself (see WEB_DIR in app.py and places.py).
         *data(FRONTEND / "dist", "frontend/dist"),
         *data(JOB_FINDER / "src" / "places_il.json", "."),
+        *data(JOB_FINDER / "src" / "boards.json", "."),
         # The password safe backends are found at run time, so PyInstaller can't see them.
         "--collect-submodules", "keyring.backends",
         # A browser-automation tool used only for checking the page while developing.

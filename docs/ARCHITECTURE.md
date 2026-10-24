@@ -160,8 +160,8 @@ techmap barely includes banks, insurers or government bodies.
 
 ### 3.4 Fetch the full job descriptions
 
-**Where:** `fetch_posting()` in `src/career_sites.py`; the list of Workday sites in
-`WORKDAY_SITES` in `src/settings.py`
+**Where:** `fetch_posting()` in `src/career_sites.py`; which hiring system each company uses
+comes from techmap's data, completed by `src/boards.json` (below)
 
 A listing has only a title. The requirements are in the job description, which lives on the
 company's careers site, run on a "hiring system". Two systems are supported:
@@ -202,10 +202,19 @@ On Comeet, a company may post the same title in several countries, so the Israel
 preferred. Some companies fill Comeet's location with "careers" or a web address; those are
 ignored and the listing's own city is shown instead.
 
-*Weakness (still the biggest one in the system):* only about one tech listing in seven has
-a description (October 2026). Most of the rest are listed only on LinkedIn, so they cannot
-be scored. A job
-can also be missed when its title on the careers site differs from the listing.
+**Boards techmap doesn't know about.** Many listings come with only a LinkedIn link, which
+can't be read, yet most of those companies hire through a system the app can read; techmap
+just doesn't say which, or names one they have since left. `tools/find_boards.py` looks for
+each such company's board, on its careers page or, failing that, in the public feeds under
+its likely names, and keeps a board only if it lists a job with the same title as one of the
+company's listings. The verified boards are saved in `src/boards.json`, which
+`load_companies()` applies on top of techmap's data. Because the shared snapshot is built
+from the same code, every user gets them.
+
+*Weakness (still the biggest one in the system):* many listings still have no description
+(October 2026): their companies run their own careers sites (Amazon, Google, Mobileye...) or
+a hiring system the app doesn't read yet, so they cannot be scored. A job can also be missed
+when its title on the careers site differs from the listing.
 
 ### 3.5 Score the fit
 
@@ -656,7 +665,7 @@ one computer. A hosted service would need both.
 | `app.py` | The back end: serves the page, answers `/api/` requests, runs updates and scoring in background threads, receives the CV |
 | `desktop.py` | The desktop app: starts the back end on a free port and opens the page in its own window |
 | `version.py` | The app's version number |
-| `tools/` | `build_desktop.py` (the builds and installer), `installer.iss` (the Windows installer's recipe), `build_snapshot.py` (the shared snapshot), `build_places.py` (the town list) |
+| `tools/` | `build_desktop.py` (the builds and installer), `installer.iss` (the Windows installer's recipe), `build_snapshot.py` (the shared snapshot), `build_places.py` (the town list), `find_boards.py` (job boards techmap doesn't know about) |
 | `tests/` | The Python tests (pytest): real cases, with fakes instead of the internet |
 
 ### `job_finder/src/` (the pipeline)
@@ -679,6 +688,7 @@ one computer. A hosted service would need both.
 | `pipeline.py` | Runs the stages together for the app, and joins the saved files into table rows | `refresh_listings`, `update_jobs`, `jobs_for_display` |
 | `snapshot.py` | The shared snapshot of every listing: building, writing and downloading it | `build`, `download` |
 | `places.py`, `places_il.json` | Finding a town by name, in English or Hebrew | `search` |
+| `boards.json` | Job boards techmap doesn't know about, or knows out of date, each verified by `tools/find_boards.py` | – |
 | `migrations.py` | Upgrades your data when a new version changes its shape, after a backup | `run` |
 | `updates.py` | Asks GitHub whether a newer version is out, and installs it when you choose | `check`, `install` |
 

@@ -3,7 +3,8 @@
 Our job list only has titles. The requirements are on the posting page, which
 lives on the hiring system the company uses. Two systems are supported:
 
-  Workday   large employers (Nvidia, KLA, Intel...); listed in WORKDAY_SITES.
+  Workday   large employers (Nvidia, KLA, Intel...); the company's site is in
+            boards.json ("workdaySite").
             We search the site for the title, then download that posting.
   Comeet    an Israeli system used by many startups. A company's Comeet page
             lists ALL its open positions with their full text, so one request
@@ -22,7 +23,7 @@ import time
 
 import httpx
 
-from settings import SECONDS_BETWEEN_REQUESTS, WORKDAY_SITES
+from settings import SECONDS_BETWEEN_REQUESTS
 
 # Comeet's words for where the work happens, turned into ours.
 COMEET_WORK_MODES = {"hybrid": "hybrid", "on-site": "on-site", "onsite": "on-site",
@@ -71,8 +72,8 @@ def fetch_posting(job, company, comeet_pages):
     site says so, work mode and experience level. Returns None if the job's
     company uses neither system or the job wasn't found.
     """
-    if job["company"] in WORKDAY_SITES:
-        return _fetch_workday(WORKDAY_SITES[job["company"]], job["title"])
+    if company and company.get("workdaySite"):
+        return _fetch_workday(company["workdaySite"], job["title"])
     company_id = comeet_id(job, company)
     if company_id:
         return _fetch_comeet(company_id, job["title"], comeet_pages)
