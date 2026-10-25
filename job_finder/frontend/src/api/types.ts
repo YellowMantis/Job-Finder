@@ -50,6 +50,7 @@ export type Job = {
   work_mode: string // stated by the company's site, "" if not
   fit: Fit | null
   applied: string | null // the date you marked it, or null
+  years: number | null // years of experience the posting asks for; null if unknown
   hidden: string | null // why your preferences hide it, or null if shown
 }
 
@@ -164,6 +165,8 @@ export type Preferences = {
   fields: string[] // ticked in the Fields filter when the page opens
   hide_industries: string[] // industry ids, e.g. "defence"
   max_age_days: number // 0: any age
+  max_years: number | null // hide postings asking for more; null: no limit
+  keep_unknown_years: boolean // with a limit, still show postings that don't say
   home: Place | null // null until you choose it in the setup
 }
 

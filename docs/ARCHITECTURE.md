@@ -682,6 +682,7 @@ one computer. A hosted service would need both.
 | `preferences.py` | Your preferences: loading, checking, saving, and why a job is hidden | `load_preferences`, `hidden_reason` |
 | `career_sites.py` | Finds a job on its company's Workday or Comeet careers site and returns the description, location and work mode | `fetch_posting`, `comeet_id` |
 | `job_boards.py` | Reads complete job lists from Greenhouse, Lever, Ashby and SmartRecruiters, and merges them with the listings without duplicates | `greenhouse_jobs`, `lever_jobs`, `ashby_jobs`, `smartrecruiters_jobs`, `merge_board_jobs` |
+| `years.py` | Reads the years of experience a posting asks for from its text, in plain code ("3+ years", "2-4 years", "3+ שנות ניסיון"), skipping company history and bonus lines. A fit review's number is used instead when there is one | `years_asked` |
 | `cv_privacy.py` | What an AI is sent of your CV: without your name, contact details and links | `for_ai` |
 | `fit_rules.py` | The fit score's rules: the AI's instructions, the answer shapes, and the checks and maths that turn any review into a percentage | `check_and_score`, `SYSTEM_PROMPT` |
 | `scoring.py` | Scoring with any provider: builds the request, checks the answer (one retry), scores it, logs what it used | `review_batch`, `read_cv_facts` |

@@ -9,6 +9,10 @@ private. A missing file or setting falls back to DEFAULTS.
                    posting texts are fetched only for these
   hide_industries  industries to hide: ids from industries.py, e.g. "defence"
   max_age_days     hide postings last updated longer ago than this; 0 shows all
+  max_years        hide postings asking for more years of experience than this;
+                   None shows all
+  keep_unknown_years  with max_years set, still show postings that don't say
+                   how many years they ask for (or whose text we don't have)
   home             where distances are measured from: {"name", "he", "lat", "lon"}.
                    There is no default: you choose it in the first-run setup.
 
@@ -32,8 +36,9 @@ FIELDS = ["software", "frontend", "qa", "devops", "data-science", "security", "h
 # don't state a level, posted in the last 30 days (older ones are usually
 # filled or forgotten). Nothing is hidden by industry until you choose to.
 DEFAULTS = {"levels": ["junior", "not stated"], "fields": JOB_CATEGORIES, "hide_industries": [],
-            "max_age_days": 30, "home": None}
+            "max_age_days": 30, "max_years": None, "keep_unknown_years": True, "home": None}
 MAX_AGE_LIMIT = 365
+MAX_YEARS_LIMIT = 20
 
 
 def load_preferences():
@@ -57,6 +62,12 @@ def check_preferences(preferences):
     # bool is a kind of int in Python, so True must be refused separately.
     if not isinstance(age, int) or isinstance(age, bool) or not 0 <= age <= MAX_AGE_LIMIT:
         return f'"max_age_days" must be a whole number from 0 (any age) to {MAX_AGE_LIMIT}'
+    years = preferences.get("max_years")
+    if years is not None and (not isinstance(years, int) or isinstance(years, bool)
+                              or not 0 <= years <= MAX_YEARS_LIMIT):
+        return f'"max_years" must be empty (any) or a whole number from 0 to {MAX_YEARS_LIMIT}'
+    if not isinstance(preferences.get("keep_unknown_years", True), bool):
+        return '"keep_unknown_years" must be true or false'
     home = preferences.get("home")
     if home is None:
         return "Choose your home town: distances are measured from it."
@@ -71,7 +82,8 @@ def check_preferences(preferences):
 
 def save_preferences(preferences):
     DATA_DIR.mkdir(exist_ok=True)
-    chosen = {key: preferences[key] for key in DEFAULTS}  # nothing else is kept
+    # Nothing else is kept; a setting left out keeps its default.
+    chosen = {key: preferences.get(key, DEFAULTS[key]) for key in DEFAULTS}
     home = preferences["home"]
     chosen["home"] = {"name": home["name"], "he": str(home.get("he", ""))[:100],
                       "lat": home["lat"], "lon": home["lon"]}
@@ -88,6 +100,15 @@ def hidden_reason(job, preferences, today=None):
         age = ((today or date.today()) - date.fromisoformat(job["updated"])).days
         if age > max_age:
             return f'Older than {max_age} days: last updated {job["updated"]}'
+    # Only rows made for display carry "years". When deciding which posting
+    # texts to fetch, a job's years aren't known yet, and hiding it would mean
+    # its text is never fetched, so its years would never be known.
+    max_years = preferences["max_years"]
+    if max_years is not None and "years" in job:
+        if job["years"] is None and not preferences["keep_unknown_years"]:
+            return "Years of experience: the posting doesn't say"
+        if job["years"] is not None and job["years"] > max_years:
+            return f'Asks for {job["years"]}+ years of experience'
     for industry in preferences["hide_industries"]:
         if industry in job["industries"]:
             return f'{INDUSTRIES[industry]["label"]}: {job["industries"][industry]}'

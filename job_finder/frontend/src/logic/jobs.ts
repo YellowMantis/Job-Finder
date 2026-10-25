@@ -21,6 +21,10 @@ export const scoreOf = (job: Job) => job.fit?.score ?? null
 // Colour group for a score.
 export const fitClass = (score: number) => (score >= 60 ? 'high' : score >= 40 ? 'middle' : 'low')
 
+// "3+", "2.5+", "0" (entry level), or "?" when the posting doesn't say.
+export const yearsText = (job: Job) =>
+  job.years === null ? '?' : job.years === 0 ? '0' : `${job.years}+`
+
 export const distanceText = (job: Job) =>
   job.distance_km === null ? '–' : `${job.distance_km} km`
 
@@ -83,7 +87,8 @@ export function passesFilters(job: Job, filters: Filters, now = Date.now()) {
 // ---- Sorting ------------------------------------------------------------------
 
 export type SortKey =
-  | 'fit' | 'title' | 'company' | 'field' | 'place' | 'distance' | 'mode' | 'age' | 'applied'
+  | 'fit' | 'title' | 'company' | 'field' | 'years' | 'place' | 'distance' | 'mode' | 'age'
+  | 'applied'
 export type Sort = { key: SortKey; descending: boolean }
 
 // What each column sorts by. null means "no value": those rows always go last.
@@ -92,6 +97,7 @@ const sortValue: Record<SortKey, (job: Job) => string | number | null> = {
   title: (job) => job.title,
   company: (job) => job.company,
   field: (job) => job.field,
+  years: (job) => job.years,
   place: placeOf,
   distance: (job) => job.distance_km,
   mode: (job) => modeOf(job) || null,

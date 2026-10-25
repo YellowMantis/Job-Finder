@@ -19,6 +19,7 @@ from job_boards import (FEED_KEYS, ashby_jobs, greenhouse_jobs, lever_jobs, merg
 from jobs import label_listings, load_listings
 import snapshot
 from preferences import hidden_reason, load_preferences
+from years import years_asked
 from settings import DATA_DIR, RETRY_MISSING_POSTINGS_AFTER_DAYS, SITES_AT_ONCE, TECHMAP_DIR
 
 JOBS_PATH = DATA_DIR / "jobs.json"
@@ -289,7 +290,9 @@ def jobs_for_display(cv_id=None):
                else job.get("distance_km"),
                "level_reason": job.get("level_reason", ""),
                # The date you marked this job as applied to, or None.
-               "applied": applied.get(job["url"])}
+               "applied": applied.get(job["url"]),
+               # Years of experience the posting asks for; None if unknown.
+               "years": None}
 
         if posting:
             row["text"] = posting["text"]
@@ -309,6 +312,11 @@ def jobs_for_display(cv_id=None):
             if row["level"] == "not stated" and describes_junior_role(posting["text"], fit):
                 row["level"] = "junior"
                 row["level_reason"] = "the posting text presents the role as junior"
+            # The AI's reading when a review found a number (it is about the
+            # posting, so any review will do, whatever CV it was for), else
+            # the code's own reading of the text.
+            ai_years = (review or {}).get("years_required") or 0
+            row["years"] = ai_years if ai_years > 0 else years_asked(posting["text"])
 
         row["hidden"] = hidden_reason(row, preferences)
         rows.append(row)

@@ -16,9 +16,10 @@ const LEVEL_LABELS: Record<string, string> = {
 }
 const AGES = [{ days: 7, label: '7 days' }, { days: 14, label: '14 days' },
   { days: 30, label: '30 days' }, { days: 60, label: '60 days' }, { days: 0, label: 'any age' }]
+const YEARS = [0, 1, 2, 3, 4, 5, 7, 10]
 
-// What you're looking for: home, levels, fields, posting age, industries to
-// hide. Used in Settings and in the first-run setup.
+// What you're looking for: home, levels, fields, posting age, years of
+// experience, industries to hide. Used in Settings and in the first-run setup.
 export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences', note }: Props) {
   const [draft, setDraft] = useState<Preferences>(answer.preferences)
   const [moreOptions, setMoreOptions] = useState(draft.hide_industries.length > 0)
@@ -63,6 +64,25 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
         onChange={(event) => change({ max_age_days: Number(event.target.value) })}>
         {AGES.map(({ days, label }) => <option key={days} value={days}>{label}</option>)}
       </select>
+
+      <h3>Most years of experience asked</h3>
+      <p className="muted small">Hides postings that ask for more. Read from the posting text.</p>
+      <select value={draft.max_years ?? ''}
+        onChange={(event) => change({
+          max_years: event.target.value === '' ? null : Number(event.target.value),
+        })}>
+        <option value="">no limit</option>
+        {YEARS.map((years) => (
+          <option key={years} value={years}>{years === 0 ? 'none (entry level)' : `${years} years`}</option>
+        ))}
+      </select>
+      {draft.max_years !== null && (
+        <label className="checkbox">
+          <input type="checkbox" checked={draft.keep_unknown_years}
+            onChange={(event) => change({ keep_unknown_years: event.target.checked })} />
+          {' '}Keep postings that don't say
+        </label>
+      )}
 
       <h3>
         <button type="button" className="link-button" onClick={() => setMoreOptions(!moreOptions)}>

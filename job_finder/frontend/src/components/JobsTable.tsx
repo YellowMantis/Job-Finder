@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react'
 import type { Job } from '../api/types'
 import {
-  ageInDays, ageLabel, distanceText, modeOf, placeOf, type Sort, type SortKey,
+  ageInDays, ageLabel, distanceText, modeOf, placeOf, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
 import { FitBadge } from './FitBadge'
 
@@ -18,6 +18,7 @@ const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean }[] = [
   { key: 'title', label: 'Position' },
   { key: 'company', label: 'Company' },
   { key: 'field', label: 'Field' },
+  { key: 'years', label: 'Years', numeric: true },
   { key: 'place', label: 'Location' },
   { key: 'distance', label: 'Distance', numeric: true },
   { key: 'mode', label: 'Work mode' },
@@ -74,6 +75,11 @@ function JobRow({ job, onOpen, onApplied }: RowProps) {
       </td>
       <td className="wrap-narrow">{job.company}</td>
       <td>{job.field}</td>
+      <td className={job.years === null ? 'num muted' : 'num'}
+        title={job.years === null ? "The posting doesn't say, or we don't have its text"
+          : 'Years of experience the posting asks for'}>
+        {yearsText(job)}
+      </td>
       <td className="wrap-narrow">{placeOf(job)}</td>
       <td className="num">{distanceText(job)}</td>
       <td className={mode && mode !== 'not stated' ? undefined : 'muted'}>{mode || '–'}</td>

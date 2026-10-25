@@ -342,6 +342,7 @@ td.wrap-narrow { white-space: normal; min-width: 110px; max-width: 190px; }
 .preferences h3 { margin: 18px 0 4px; font-size: 14px; }
 .preferences .checkbox-list { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .preferences .checkbox-list label { padding: 3px 0; }
+.preferences label.checkbox { display: block; margin-top: 8px; cursor: pointer; }
 .preferences select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
 .home-picker p { margin: 0 0 6px; }
 .home-picker input { width: min(420px, 100%); padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }

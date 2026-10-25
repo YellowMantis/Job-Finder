@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, modeOf, passesFilters,
-  placeOf, sortJobs,
+  placeOf, sortJobs, yearsText,
   type Filters,
 } from './jobs'
 
@@ -15,7 +15,7 @@ function job(changes: Partial<Job> = {}): Job {
     field: 'software', industry: '', company_size: 'l', city: 'תל אביב-יפו', location: '',
     distance_km: 40, updated: '2026-10-10', data_level: '', level: 'not stated',
     level_reason: '', industries: {}, has_text: true, apply_url: '', source: '',
-    work_mode: '', fit: null, applied: null, hidden: null,
+    work_mode: '', fit: null, applied: null, years: null, hidden: null,
     ...changes,
   }
 }
@@ -93,6 +93,14 @@ describe('sorting', () => {
       .toEqual(['near', 'far', '?'])
     expect(sortJobs(jobs, { key: 'distance', descending: true }).map((j) => j.url))
       .toEqual(['far', 'near', '?'])
+  })
+
+  it("sorts by years asked, the ones that don't say last", () => {
+    const jobs = [job({ url: '5', years: 5 }), job({ url: '?', years: null }), job({ url: '0', years: 0 })]
+    expect(sortJobs(jobs, { key: 'years', descending: false }).map((j) => j.url)).toEqual(['0', '5', '?'])
+    expect(yearsText(jobs[0])).toBe('5+')
+    expect(yearsText(jobs[1])).toBe('?')
+    expect(yearsText(jobs[2])).toBe('0')
   })
 
   it('does not change the list it was given', () => {
