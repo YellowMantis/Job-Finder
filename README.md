@@ -95,6 +95,16 @@ Job Finder is in early development (version 0.x).
 
 ## For developers
 
+### Built with
+
+- **Back end:** Python 3.12 and Flask; httpx for the job boards and AI services, pydantic to
+  check the AI's answers, pdfplumber to read CVs, keyring for keys.
+- **Page:** React and TypeScript, built with Vite and tested with Vitest.
+- **Desktop app:** pywebview for the window, PyInstaller to package it, Inno Setup for the
+  Windows installer.
+- **CI/CD:** GitHub Actions runs the tests on every push, builds the installers for each
+  release, and refreshes the shared job list every 6 hours.
+
 ### Run from the source code
 
 Requirements: Python 3.12 and Node.js 22.
