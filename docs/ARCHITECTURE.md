@@ -507,6 +507,7 @@ frontend/src/
   api/client.ts       the only code that calls the back end
   logic/jobs.ts       filtering, sorting and cell values, as plain functions
   logic/scoring.ts    the scoring panel's rules (what can be scored, estimates, progress)
+  logic/skills.ts     "What to learn": the skills scored jobs ask for that the CV doesn't show
   logic/connections.ts  the AI connection forms' rules
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)
   hooks/useProgress.ts  follows a background task, checking only while it runs

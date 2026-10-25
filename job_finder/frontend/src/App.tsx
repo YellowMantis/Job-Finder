@@ -10,6 +10,7 @@ import { FilterBar } from './components/FilterBar'
 import { HiddenJobs } from './components/HiddenJobs'
 import { JobPanel } from './components/JobPanel'
 import { JobsTable } from './components/JobsTable'
+import { SkillGaps } from './components/SkillGaps'
 import { PreferencesForm } from './components/PreferencesForm'
 import { SetupWizard } from './components/SetupWizard'
 import { UpdateBanner } from './components/UpdateBanner'
@@ -34,7 +35,7 @@ function App() {
   const [dataVersion, setDataVersion] = useState(0) // goes up whenever the data is reloaded
   const [filters, setFilters] = useState<Filters | null>(null) // set once status arrives
   const [sort, setSort] = useState<Sort>({ key: 'fit', descending: true })
-  const [tab, setTab] = useState<'jobs' | 'hidden'>('jobs')
+  const [tab, setTab] = useState<'jobs' | 'skills' | 'hidden'>('jobs')
   const [openUrl, setOpenUrl] = useState<string | null>(null) // the job in the side panel
   const [error, setError] = useState('') // the page can't work at all
   const [message, setMessage] = useState<Message>(null) // news or a problem, page still works
@@ -274,16 +275,24 @@ function App() {
           <button className={`tab${tab === 'jobs' ? ' active' : ''}`} onClick={() => setTab('jobs')}>
             Positions <span className="count">{shown.length}</span>
           </button>
+          <button className={`tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
+            What to learn
+          </button>
           <button className={`tab${tab === 'hidden' ? ' active' : ''}`} onClick={() => setTab('hidden')}>
             Hidden <span className="count">{hiddenCount}</span>
           </button>
         </nav>
 
-        {tab === 'jobs' ? (
+        {tab !== 'hidden' ? (
           <>
+            {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
             <FilterBar jobs={jobs} filters={filters} onChange={setFilters} />
-            <JobsTable jobs={shown} sort={sort} onSort={changeSort}
-              onOpen={(job) => setOpenUrl(job.url)} onApplied={markApplied} />
+            {tab === 'jobs' ? (
+              <JobsTable jobs={shown} sort={sort} onSort={changeSort}
+                onOpen={(job) => setOpenUrl(job.url)} onApplied={markApplied} />
+            ) : (
+              <SkillGaps jobs={shown} onOpen={(job) => setOpenUrl(job.url)} />
+            )}
           </>
         ) : (
           // Rendered (and so fetched) only while this tab is open. The key makes

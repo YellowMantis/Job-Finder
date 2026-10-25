@@ -36,6 +36,9 @@ and refining it to make it as useful as possible.
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored
   what it did, line by line.
+- **What to learn next.** The skills your scored jobs ask for most that your CV doesn't show,
+  counted across the jobs in the table, with the jobs behind each one. No extra AI use: it reads
+  the reviews you already have.
 - **The AI you already have.** Claude Code (with your Claude plan), the Claude API, any service
   with your own key (OpenAI, Groq, OpenRouter…), or a model on your own PC (Ollama, LM Studio).
   Score a batch or a single job, see what each run used, and stop at any time.

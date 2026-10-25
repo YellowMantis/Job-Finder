@@ -394,3 +394,9 @@ td.wrap-narrow { white-space: normal; min-width: 110px; max-width: 190px; }
 .update-banner p { margin: 0; }
 .update-banner .form-actions { margin-top: 10px; }
 .release-notes { white-space: pre-wrap; font: inherit; margin: 6px 0 0; }
+
+/* What to learn: a bar per skill, and the jobs under a skill you open. */
+.skill-bar { display: inline-block; height: 8px; margin-right: 8px; border-radius: 4px; background: var(--accent); opacity: 0.6; vertical-align: middle; }
+.skills-table tr.sortable { cursor: pointer; }
+.skills-table .skill-job { cursor: pointer; background: var(--accent-soft); font-size: 0.92em; }
+.skills-table .skill-job td { padding-left: 28px; }
