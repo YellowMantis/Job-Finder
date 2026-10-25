@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, modeOf, passesFilters,
+  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, modeLabel, modeOf, passesFilters,
   placeOf, sortJobs, yearsText,
   type Filters,
 } from './jobs'
@@ -21,7 +21,7 @@ function job(changes: Partial<Job> = {}): Job {
 }
 
 const noFilters: Filters = {
-  search: '', companies: [], fields: [], levels: [], maxAgeDays: 0, needText: false,
+  search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, needText: false,
   maxKm: ANY_DISTANCE, hideApplied: false,
 }
 
@@ -76,6 +76,16 @@ describe('filters', () => {
   it('can hide jobs you applied to', () => {
     const filters = { ...noFilters, hideApplied: true }
     expect(passesFilters(job({ applied: '2026-10-15' }), filters)).toBe(false)
+  })
+
+  it("filters by work mode, the site's own or else the review's", () => {
+    const filters = { ...noFilters, modes: ['hybrid', 'not stated'] }
+    expect(passesFilters(job({ work_mode: 'hybrid' }), filters)).toBe(true)
+    expect(passesFilters(job({ work_mode: 'on-site' }), filters)).toBe(false)
+    expect(passesFilters(job(), filters)).toBe(true) // nothing known: "not stated"
+    const reviewedRemote = job({ fit: { work_mode: 'remote' } as Job['fit'] })
+    expect(modeLabel(reviewedRemote)).toBe('remote')
+    expect(passesFilters(reviewedRemote, filters)).toBe(false)
   })
 })
 

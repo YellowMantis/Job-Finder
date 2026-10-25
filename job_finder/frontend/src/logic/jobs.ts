@@ -15,6 +15,12 @@ export const levelLabel = (job: Job) =>
 // Work mode: what the company's own site states, otherwise what the fit review read.
 export const modeOf = (job: Job) => job.work_mode || job.fit?.work_mode || ''
 
+// The work mode as the filter offers it: "hybrid", "on-site", "remote" or "not stated".
+export const modeLabel = (job: Job) => {
+  const mode = modeOf(job)
+  return mode && mode !== 'not stated' ? mode : 'not stated'
+}
+
 // The fit score, or null when there isn't one (not scored, or couldn't be scored).
 export const scoreOf = (job: Job) => job.fit?.score ?? null
 
@@ -57,6 +63,7 @@ export type Filters = {
   companies: string[] // empty means all
   fields: string[]
   levels: string[] // level labels, as levelLabel gives them
+  modes: string[] // work modes, as modeLabel gives them
   maxAgeDays: number // 0 means any age
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
@@ -65,7 +72,7 @@ export type Filters = {
 
 // Filters when the page opens: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
-  search: '', companies: [], fields, levels: [], maxAgeDays: 0, needText: false, maxKm,
+  search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, needText: false, maxKm,
   hideApplied: false,
 })
 
@@ -77,6 +84,7 @@ export function passesFilters(job: Job, filters: Filters, now = Date.now()) {
     (!filters.companies.length || filters.companies.includes(job.company)) &&
     (!filters.fields.length || filters.fields.includes(job.field)) &&
     (!filters.levels.length || filters.levels.includes(levelLabel(job))) &&
+    (!filters.modes.length || filters.modes.includes(modeLabel(job))) &&
     (!filters.maxAgeDays || ageInDays(job, now) <= filters.maxAgeDays) &&
     (!filters.needText || job.has_text) &&
     (filters.maxKm >= ANY_DISTANCE ||

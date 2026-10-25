@@ -31,7 +31,7 @@ and refining it to make it as useful as possible.
 
 - **One table of open positions.** Listings from the open [techmap](https://github.com/mluggy/techmap)
   data, plus complete job lists from companies' own hiring systems (Greenhouse, Lever, Ashby,
-  SmartRecruiters, Comeet, Workday), without duplicates. Filter by company, field, level, posting age, years of experience asked and distance from your home.
+  SmartRecruiters, Comeet, Workday), without duplicates. Filter by company, field, level, work mode, posting age, years of experience asked and distance from your home.
 - **A fit score you can check.** An AI reads each posting and lists its requirements, quoting the
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored

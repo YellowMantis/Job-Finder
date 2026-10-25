@@ -1,9 +1,11 @@
 import type { Job } from '../api/types'
-import { ANY_DISTANCE, distanceLabel, distinct, levelLabel, type Filters } from '../logic/jobs'
+import {
+  ANY_DISTANCE, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
+} from '../logic/jobs'
 import { MultiSelect } from './MultiSelect'
 
 type Props = {
-  jobs: Job[] // all shown jobs, to offer their companies, fields and levels
+  jobs: Job[] // all shown jobs, to offer their companies, fields, levels and work modes
   filters: Filters
   onChange: (filters: Filters) => void
 }
@@ -32,6 +34,8 @@ export function FilterBar({ jobs, filters, onChange }: Props) {
         selected={filters.fields} onChange={(fields) => set({ fields })} />
       <MultiSelect label="Level" options={asOptions(jobs.map(levelLabel))}
         selected={filters.levels} onChange={(levels) => set({ levels })} />
+      <MultiSelect label="Work mode" options={asOptions(jobs.map(modeLabel))}
+        selected={filters.modes} onChange={(modes) => set({ modes })} />
 
       <select className="age-filter" value={filters.maxAgeDays}
         onChange={(event) => set({ maxAgeDays: Number(event.target.value) })}>
