@@ -44,6 +44,7 @@ and refining it to make it as useful as possible.
   Score a batch or a single job, see what each run used, and stop at any time.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden.
+- **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
 - **Track applications** with one tick per job.
 
 ## Install

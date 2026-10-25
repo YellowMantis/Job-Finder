@@ -17,6 +17,7 @@ from download import download_data
 from job_boards import (FEED_KEYS, ashby_jobs, greenhouse_jobs, lever_jobs, merge_board_jobs,
                         smartrecruiters_jobs)
 from jobs import label_listings, load_listings
+import new_jobs
 import snapshot
 from preferences import hidden_reason, load_preferences
 from years import years_asked
@@ -195,6 +196,7 @@ def update_jobs(progress):
     Used when the shared snapshot can't be had (see refresh_listings)."""
     jobs, board_postings, companies = collect_listings(progress)
     write_json(JOBS_PATH, jobs)
+    new_jobs.record_first_seen(jobs)
     OLD_EXCLUDED_PATH.unlink(missing_ok=True)
     by_name = {company["name"]: company for company in companies}
     # Kept for updates from the snapshot later: which companies have job boards.
@@ -210,6 +212,7 @@ def update_from_snapshot(progress):
     shared = snapshot.download()
     if shared is not None:  # None: unchanged since last time
         write_json(JOBS_PATH, shared["jobs"])
+        new_jobs.record_first_seen(shared["jobs"])
         write_json(BOARDS_PATH, shared["companies"])
     jobs = read_json(JOBS_PATH, [])
     return _summary(jobs, fetch_texts(jobs, read_json(BOARDS_PATH, {}), progress))
@@ -261,6 +264,7 @@ def jobs_for_display(cv_id=None):
     postings = read_json(POSTINGS_PATH, {})
     fits = read_json(FITS_PATH, {})
     applied = read_json(APPLIED_PATH, {})
+    first_seen = new_jobs.first_seen()
     preferences = load_preferences()
     chosen = preferences["home"]  # None until the first-run setup is done
     home = (chosen["lat"], chosen["lon"]) if chosen else None
@@ -292,7 +296,9 @@ def jobs_for_display(cv_id=None):
                # The date you marked this job as applied to, or None.
                "applied": applied.get(job["url"]),
                # Years of experience the posting asks for; None if unknown.
-               "years": None}
+               "years": None,
+               # When the job first appeared in your list ("" if it was in the first one).
+               "first_seen": first_seen.get(job["url"], "")}
 
         if posting:
             row["text"] = posting["text"]

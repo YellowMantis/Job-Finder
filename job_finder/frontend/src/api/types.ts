@@ -51,6 +51,7 @@ export type Job = {
   fit: Fit | null
   applied: string | null // the date you marked it, or null
   years: number | null // years of experience the posting asks for; null if unknown
+  first_seen: string // when it first appeared in your list, "2026-10-25T15:24:07"; "" if in the first one
   hidden: string | null // why your preferences hide it, or null if shown
 }
 
@@ -81,6 +82,7 @@ export type Status = {
   startup_problem: string | null // e.g. data saved by a newer version of the app
   version: string // this app's version, e.g. "0.1.0"
   update: AppUpdate | null // a newer version on GitHub, if there is one
+  new_since: string | null // the end of your previous visit: jobs that appeared after it are new
 }
 
 // The AI connection that scores (connections.py), as /api/status describes it.

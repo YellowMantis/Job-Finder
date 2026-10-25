@@ -117,9 +117,10 @@ function App() {
 
   // The rows to show. useMemo redoes this only when the jobs, filters or
   // order change, not on every redraw (for example when the panel opens).
+  const newSince = status?.new_since ?? null // jobs that appeared after this are new
   const shown = useMemo(
-    () => (filters ? sortJobs(jobs.filter((job) => passesFilters(job, filters)), sort) : []),
-    [jobs, filters, sort])
+    () => (filters ? sortJobs(jobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
+    [jobs, filters, sort, newSince])
 
   // Clicking the sorted column again reverses it; fit starts best first.
   function changeSort(key: SortKey) {
@@ -288,7 +289,7 @@ function App() {
             {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
             <FilterBar jobs={jobs} filters={filters} onChange={setFilters} />
             {tab === 'jobs' ? (
-              <JobsTable jobs={shown} sort={sort} onSort={changeSort}
+              <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
                 onOpen={(job) => setOpenUrl(job.url)} onApplied={markApplied} />
             ) : (
               <SkillGaps jobs={shown} onOpen={(job) => setOpenUrl(job.url)} />

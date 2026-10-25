@@ -32,6 +32,7 @@ from flask import Flask, jsonify, request, send_from_directory
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import migrations  # noqa: E402
+import new_jobs  # noqa: E402
 import updates  # noqa: E402
 import scoring  # noqa: E402
 import places  # noqa: E402
@@ -132,7 +133,10 @@ def status():
                     # First run: no preferences saved yet, so the page shows the setup.
                     "setup_needed": not PREFERENCES_PATH.exists(),
                     "startup_problem": startup_problem,
-                    "version": VERSION, "update": available_update})
+                    "version": VERSION, "update": available_update,
+                    # Jobs that first appeared after this are marked new. Asking
+                    # for the status also counts as using the app (new_jobs.visit).
+                    "new_since": new_jobs.visit()})
 
 
 @app.get("/api/jobs")

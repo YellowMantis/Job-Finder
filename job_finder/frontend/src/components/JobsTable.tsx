@@ -1,12 +1,13 @@
 import type { MouseEvent } from 'react'
 import type { Job } from '../api/types'
 import {
-  ageInDays, ageLabel, distanceText, modeOf, placeOf, yearsText, type Sort, type SortKey,
+  ageInDays, ageLabel, distanceText, isNew, modeOf, placeOf, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
 import { FitBadge } from './FitBadge'
 
 type Props = {
   jobs: Job[] // already filtered and sorted
+  newSince: string | null // jobs that appeared after this get a "New" badge
   sort: Sort
   onSort: (key: SortKey) => void
   onOpen: (job: Job) => void
@@ -29,7 +30,7 @@ const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean }[] = [
 
 // The positions table. It only displays: the rows, the order and what happens
 // on a click all come from App, through the props above.
-export function JobsTable({ jobs, sort, onSort, onOpen, onApplied }: Props) {
+export function JobsTable({ jobs, newSince, sort, onSort, onOpen, onApplied }: Props) {
   return (
     <div className="table-wrap">
       <table className="jobs-table">
@@ -50,7 +51,8 @@ export function JobsTable({ jobs, sort, onSort, onOpen, onApplied }: Props) {
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <JobRow key={job.url} job={job} onOpen={onOpen} onApplied={onApplied} />
+            <JobRow key={job.url} job={job} isNew={isNew(job, newSince)} onOpen={onOpen}
+              onApplied={onApplied} />
           ))}
         </tbody>
       </table>
@@ -59,9 +61,9 @@ export function JobsTable({ jobs, sort, onSort, onOpen, onApplied }: Props) {
   )
 }
 
-type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job }
+type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job; isNew: boolean }
 
-function JobRow({ job, onOpen, onApplied }: RowProps) {
+function JobRow({ job, isNew, onOpen, onApplied }: RowProps) {
   const mode = modeOf(job)
   // Clicks on the link and the tick box must not also open the side panel.
   const stop = (event: MouseEvent) => event.stopPropagation()
@@ -72,6 +74,7 @@ function JobRow({ job, onOpen, onApplied }: RowProps) {
       <td className="wrap">
         {job.title}
         {job.level === 'junior' && <> <span className="badge junior">Junior</span></>}
+        {isNew && <> <span className="badge new">New</span></>}
       </td>
       <td className="wrap-narrow">{job.company}</td>
       <td>{job.field}</td>

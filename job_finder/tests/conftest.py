@@ -12,3 +12,16 @@ from pathlib import Path
 JOB_FINDER = Path(__file__).parent.parent
 sys.path.insert(0, str(JOB_FINDER / "src"))
 sys.path.insert(0, str(JOB_FINDER))
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def new_jobs_files_in_a_test_folder(tmp_path, monkeypatch):
+    """Asking for the app's status records a visit, and updates record when
+    jobs first appeared (new_jobs.py). In every test those files go to the
+    test's own empty folder, never to your real data."""
+    import new_jobs
+    monkeypatch.setattr(new_jobs, "FIRST_SEEN_PATH", tmp_path / "first_seen.json")
+    monkeypatch.setattr(new_jobs, "VISITS_PATH", tmp_path / "visits.json")

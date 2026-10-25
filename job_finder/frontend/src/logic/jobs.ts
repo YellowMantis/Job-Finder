@@ -31,6 +31,11 @@ export const fitClass = (score: number) => (score >= 60 ? 'high' : score >= 40 ?
 export const yearsText = (job: Job) =>
   job.years === null ? '?' : job.years === 0 ? '0' : `${job.years}+`
 
+// New since your previous visit (newSince: Status.new_since). Jobs from the
+// very first list ("") are never new, and nothing is on your first visit.
+export const isNew = (job: Job, newSince: string | null) =>
+  newSince !== null && job.first_seen !== '' && job.first_seen > newSince
+
 export const distanceText = (job: Job) =>
   job.distance_km === null ? '–' : `${job.distance_km} km`
 
@@ -68,17 +73,20 @@ export type Filters = {
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
+  onlyNew: boolean
 }
 
 // Filters when the page opens: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
   search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, needText: false, maxKm,
-  hideApplied: false,
+  hideApplied: false, onlyNew: false,
 })
 
-export function passesFilters(job: Job, filters: Filters, now = Date.now()) {
+export function passesFilters(job: Job, filters: Filters, newSince: string | null = null,
+  now = Date.now()) {
   const search = filters.search.trim().toLowerCase()
   return (
+    (!filters.onlyNew || isNew(job, newSince)) &&
     (!filters.hideApplied || !job.applied) &&
     (!search || `${job.title} ${job.company}`.toLowerCase().includes(search)) &&
     (!filters.companies.length || filters.companies.includes(job.company)) &&

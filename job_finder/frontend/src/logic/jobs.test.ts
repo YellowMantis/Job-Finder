@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, modeLabel, modeOf, passesFilters,
+  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, isNew, modeLabel, modeOf, passesFilters,
   placeOf, sortJobs, yearsText,
   type Filters,
 } from './jobs'
@@ -15,14 +15,14 @@ function job(changes: Partial<Job> = {}): Job {
     field: 'software', industry: '', company_size: 'l', city: 'תל אביב-יפו', location: '',
     distance_km: 40, updated: '2026-10-10', data_level: '', level: 'not stated',
     level_reason: '', industries: {}, has_text: true, apply_url: '', source: '',
-    work_mode: '', fit: null, applied: null, years: null, hidden: null,
+    work_mode: '', fit: null, applied: null, years: null, first_seen: '', hidden: null,
     ...changes,
   }
 }
 
 const noFilters: Filters = {
   search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, needText: false,
-  maxKm: ANY_DISTANCE, hideApplied: false,
+  maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
 }
 
 const fit = (score: number | null, work_mode = 'not stated') => ({
@@ -86,6 +86,26 @@ describe('filters', () => {
     const reviewedRemote = job({ fit: { work_mode: 'remote' } as Job['fit'] })
     expect(modeLabel(reviewedRemote)).toBe('remote')
     expect(passesFilters(reviewedRemote, filters)).toBe(false)
+  })
+})
+
+describe('new jobs', () => {
+  const since = '2026-10-24T20:00:00' // your previous visit ended then
+
+  it('marks jobs that first appeared after your previous visit', () => {
+    expect(isNew(job({ first_seen: '2026-10-25T09:00:00' }), since)).toBe(true)
+    expect(isNew(job({ first_seen: '2026-10-24T08:00:00' }), since)).toBe(false)
+  })
+
+  it('never marks jobs from the first list, or anything on your first visit', () => {
+    expect(isNew(job({ first_seen: '' }), since)).toBe(false)
+    expect(isNew(job({ first_seen: '2026-10-25T09:00:00' }), null)).toBe(false)
+  })
+
+  it('can show only the new ones', () => {
+    const filters = { ...noFilters, onlyNew: true }
+    expect(passesFilters(job({ first_seen: '2026-10-25T09:00:00' }), filters, since)).toBe(true)
+    expect(passesFilters(job({ first_seen: '2026-10-24T08:00:00' }), filters, since)).toBe(false)
   })
 })
 

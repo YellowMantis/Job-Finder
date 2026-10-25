@@ -59,6 +59,12 @@ export function FilterBar({ jobs, filters, onChange }: Props) {
           onChange={(event) => set({ hideApplied: event.target.checked })} />
         Hide applied
       </label>
+
+      <label className="check">
+        <input type="checkbox" checked={filters.onlyNew}
+          onChange={(event) => set({ onlyNew: event.target.checked })} />
+        New only
+      </label>
     </div>
   )
 }
