@@ -31,6 +31,17 @@ export const fitClass = (score: number) => (score >= 60 ? 'high' : score >= 40 ?
 export const yearsText = (job: Job) =>
   job.years === null ? '?' : job.years === 0 ? '0' : `${job.years}+`
 
+// A good bet for a recent graduate: scored at least GOOD_FIT, and asking for
+// at most GOOD_YEARS of experience (or not saying). Postings ask for more
+// than they need, so a few years over your own is still worth applying to.
+export const GOOD_FIT = 40
+export const GOOD_YEARS = 3
+export const isGoodBet = (job: Job) =>
+  (scoreOf(job) ?? 0) >= GOOD_FIT && (job.years === null || job.years <= GOOD_YEARS)
+
+// Hybrid or remote: you don't travel there every day.
+const isFlexible = (job: Job) => ['hybrid', 'remote'].includes(modeLabel(job))
+
 // New since your previous visit (newSince: Status.new_since). Jobs from the
 // very first list ("") are never new, and nothing is on your first visit.
 export const isNew = (job: Job, newSince: string | null) =>
@@ -74,12 +85,14 @@ export type Filters = {
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
   onlyNew: boolean
+  goodBets: boolean
+  flexibleAnywhere: boolean // hybrid and remote jobs pass whatever their distance
 }
 
 // Filters when the page opens: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
   search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, needText: false, maxKm,
-  hideApplied: false, onlyNew: false,
+  hideApplied: false, onlyNew: false, goodBets: false, flexibleAnywhere: false,
 })
 
 export function passesFilters(job: Job, filters: Filters, newSince: string | null = null,
@@ -87,6 +100,7 @@ export function passesFilters(job: Job, filters: Filters, newSince: string | nul
   const search = filters.search.trim().toLowerCase()
   return (
     (!filters.onlyNew || isNew(job, newSince)) &&
+    (!filters.goodBets || isGoodBet(job)) &&
     (!filters.hideApplied || !job.applied) &&
     (!search || `${job.title} ${job.company}`.toLowerCase().includes(search)) &&
     (!filters.companies.length || filters.companies.includes(job.company)) &&
@@ -95,7 +109,7 @@ export function passesFilters(job: Job, filters: Filters, newSince: string | nul
     (!filters.modes.length || filters.modes.includes(modeLabel(job))) &&
     (!filters.maxAgeDays || ageInDays(job, now) <= filters.maxAgeDays) &&
     (!filters.needText || job.has_text) &&
-    (filters.maxKm >= ANY_DISTANCE ||
+    (filters.maxKm >= ANY_DISTANCE || (filters.flexibleAnywhere && isFlexible(job)) ||
       (job.distance_km !== null && job.distance_km <= filters.maxKm))
   )
 }

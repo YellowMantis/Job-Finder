@@ -260,6 +260,24 @@ def describes_junior_role(text, fit):
     return False
 
 
+# Postings meant for people just out of university. In a title, the words
+# alone are enough ("Graduate QA Automation Engineer", "New College Grad").
+# In a text they appear in other senses too ("graduate of an elite unit",
+# "the Field Academy"), so only clear phrases count there.
+GRADUATE_TITLE = re.compile(r"\bgraduates?\b|\bgrads?\b|\bacademy\b|entry[- ]level", re.IGNORECASE)
+GRADUATE_TEXT = re.compile(
+    r"\b(?:new|recent|fresh)[ -]?grad(?:uate)?s?\b|\bgraduate (?:program|track|position)"
+    r"|entry[- ]level (?:role|position|opportunity)"
+    r"|\bno (?:prior |previous )?(?:professional |work )?experience (?:is )?(?:required|needed|necessary)"
+    r"|(?<![\d.])0\s*[-–]\s*[12]\s*(?:years|yrs)",
+    re.IGNORECASE)
+
+
+def for_graduates(title, text):
+    """True if the posting is aimed at recent graduates."""
+    return bool(GRADUATE_TITLE.search(title) or GRADUATE_TEXT.search(text or ""))
+
+
 def jobs_for_display(cv_id=None):
     """Return every job as a table row: joined with its posting text and its fit
     review, if we have them, and with "hidden": the reason your preferences
@@ -304,7 +322,8 @@ def jobs_for_display(cv_id=None):
                # Years of experience the posting asks for; None if unknown.
                "years": None,
                # When the job first appeared in your list ("" if it was in the first one).
-               "first_seen": first_seen.get(job["url"], "")}
+               "first_seen": first_seen.get(job["url"], ""),
+               "for_graduates": for_graduates(job["title"], "")}
 
         if posting:
             row["text"] = posting["text"]
@@ -329,6 +348,8 @@ def jobs_for_display(cv_id=None):
             # the code's own reading of the text.
             ai_years = (review or {}).get("years_required") or 0
             row["years"] = ai_years if ai_years > 0 else years_asked(posting["text"])
+            row["for_graduates"] = (for_graduates(job["title"], posting["text"])
+                                    or row["years"] == 0)
 
         row["hidden"] = hidden_reason(row, preferences)
         rows.append(row)

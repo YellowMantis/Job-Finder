@@ -56,3 +56,29 @@ def test_a_review_finding_three_years_overrules_the_text():
 ])
 def test_junior_words_in_titles(title, is_junior):
     assert bool(_contains_word(title, JUNIOR_WORDS)) == is_junior
+
+
+# ---- Postings for recent graduates (real titles and sentences) -----------------
+
+from pipeline import for_graduates  # noqa: E402
+
+
+@pytest.mark.parametrize("title, text", [
+    ("Graduate QA Automation Engineer", ""),
+    ("Software Engineer -New College Grad", ""),
+    ("NOC Engineer", "a current student, recent graduate, or early-career technologist"),
+    ("Data Scientist", "- 0-2 years of industry experience (strong academic background)"),
+])
+def test_postings_for_graduates_are_recognised(title, text):
+    assert for_graduates(title, text)
+
+
+@pytest.mark.parametrize("title, text", [
+    # "Graduate" and "academy" in a text mean other things.
+    ("Senior Embedded Vulnerability Researcher", "- Advantage - Graduate of an elite technological unit"),
+    ("Revenue Enablement Manager", "Develop training courses as part of the Field Academy"),
+    ("Software Engineer", "- 0-5 years of experience"),
+    ("Software Engineer", "ability to mentor and guide junior engineers"),
+])
+def test_other_mentions_of_graduates_are_not(title, text):
+    assert not for_graduates(title, text)

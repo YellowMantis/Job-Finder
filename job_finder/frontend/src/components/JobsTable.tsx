@@ -75,6 +75,9 @@ function JobRow({ job, isNew, onOpen, onApplied }: RowProps) {
         {job.title}
         {job.level === 'junior' && <> <span className="badge junior">Junior</span></>}
         {isNew && <> <span className="badge new">New</span></>}
+        {job.for_graduates && (
+          <> <span className="badge graduates" title="The posting is aimed at recent graduates">Graduates</span></>
+        )}
       </td>
       <td className="wrap-narrow">{job.company}</td>
       <td>{job.field}</td>

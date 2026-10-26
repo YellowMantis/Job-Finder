@@ -15,14 +15,15 @@ function job(changes: Partial<Job> = {}): Job {
     field: 'software', industry: '', company_size: 'l', city: 'תל אביב-יפו', location: '',
     distance_km: 40, updated: '2026-10-10', data_level: '', level: 'not stated',
     level_reason: '', industries: {}, has_text: true, apply_url: '', source: '',
-    work_mode: '', fit: null, applied: null, years: null, first_seen: '', hidden: null,
+    work_mode: '', fit: null, applied: null, years: null, first_seen: '', for_graduates: false, hidden: null,
     ...changes,
   }
 }
 
 const noFilters: Filters = {
   search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, needText: false,
-  maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
+  maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false, goodBets: false,
+  flexibleAnywhere: false,
 }
 
 const fit = (score: number | null, work_mode = 'not stated') => ({
@@ -106,6 +107,28 @@ describe('new jobs', () => {
     const filters = { ...noFilters, onlyNew: true }
     expect(passesFilters(job({ first_seen: '2026-10-25T09:00:00' }), filters, since)).toBe(true)
     expect(passesFilters(job({ first_seen: '2026-10-24T08:00:00' }), filters, since)).toBe(false)
+  })
+})
+
+describe('good bets', () => {
+  const scored = (score: number, years: number | null) => job({ fit: fit(score), years })
+
+  it('are scored 40% or more and ask for 3 years or less, or don’t say', () => {
+    const filters = { ...noFilters, goodBets: true }
+    expect(passesFilters(scored(40, 3), filters)).toBe(true)
+    expect(passesFilters(scored(55, null), filters)).toBe(true)
+    expect(passesFilters(scored(39, 1), filters)).toBe(false)
+    expect(passesFilters(scored(70, 5), filters)).toBe(false)
+    expect(passesFilters(job(), filters)).toBe(false) // not scored yet
+  })
+
+  it('can keep hybrid and remote jobs beyond the distance', () => {
+    const far = { ...noFilters, maxKm: 50 }
+    const hybrid = job({ distance_km: 120, work_mode: 'hybrid' })
+    expect(passesFilters(hybrid, far)).toBe(false)
+    expect(passesFilters(hybrid, { ...far, flexibleAnywhere: true })).toBe(true)
+    expect(passesFilters(job({ distance_km: 120, work_mode: 'on-site' }),
+      { ...far, flexibleAnywhere: true })).toBe(false)
   })
 })
 

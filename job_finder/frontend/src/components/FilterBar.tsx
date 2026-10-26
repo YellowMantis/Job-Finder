@@ -1,6 +1,6 @@
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
+  ANY_DISTANCE, GOOD_FIT, GOOD_YEARS, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
 } from '../logic/jobs'
 import { MultiSelect } from './MultiSelect'
 
@@ -53,6 +53,13 @@ export function FilterBar({ jobs, filters, onChange }: Props) {
           onChange={(event) => set({ maxKm: Number(event.target.value) })} />
         <span className="distance-label">{distanceLabel(filters.maxKm)}</span>
       </label>
+      {filters.maxKm < ANY_DISTANCE && (
+        <label className="check" title="Hybrid and remote jobs further away: you don't travel there every day">
+          <input type="checkbox" checked={filters.flexibleAnywhere}
+            onChange={(event) => set({ flexibleAnywhere: event.target.checked })} />
+          + hybrid/remote anywhere
+        </label>
+      )}
 
       <label className="check">
         <input type="checkbox" checked={filters.hideApplied}
@@ -64,6 +71,13 @@ export function FilterBar({ jobs, filters, onChange }: Props) {
         <input type="checkbox" checked={filters.onlyNew}
           onChange={(event) => set({ onlyNew: event.target.checked })} />
         New only
+      </label>
+
+      <label className="check"
+        title={`Scored ${GOOD_FIT}% or more, and asking for ${GOOD_YEARS} years of experience or less (or not saying). Score more jobs to grow this list.`}>
+        <input type="checkbox" checked={filters.goodBets}
+          onChange={(event) => set({ goodBets: event.target.checked })} />
+        Good bets
       </label>
     </div>
   )

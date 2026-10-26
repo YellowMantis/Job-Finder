@@ -51,6 +51,7 @@ export type Job = {
   fit: Fit | null
   applied: string | null // the date you marked it, or null
   years: number | null // years of experience the posting asks for; null if unknown
+  for_graduates: boolean // the posting is aimed at recent graduates
   first_seen: string // when it first appeared in your list, "2026-10-25T15:24:07"; "" if in the first one
   hidden: string | null // why your preferences hide it, or null if shown
 }
