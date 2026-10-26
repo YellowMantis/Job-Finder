@@ -99,9 +99,12 @@ def test_postings_older_than_the_limit_are_hidden():
     old = {**job(), "updated": "2025-01-27"}        # a real 628-day-old Comeet posting
     recent = {**job(), "updated": "2026-10-10"}
     edge = {**job(), "updated": "2026-09-17"}       # exactly 30 days: still shown
-    assert hidden_reason(old, DEFAULTS, today) == "Older than 30 days: last updated 2025-01-27"
-    assert hidden_reason(recent, DEFAULTS, today) is None
-    assert hidden_reason(edge, DEFAULTS, today) is None
+    thirty = {**DEFAULTS, "max_age_days": 30}
+    assert hidden_reason(old, thirty, today) == "Older than 30 days: first posted 2025-01-27"
+    assert hidden_reason(recent, thirty, today) is None
+    assert hidden_reason(edge, thirty, today) is None
+    # The default is 60 days: a job reposted after a month is still shown.
+    assert hidden_reason({**job(), "updated": "2026-08-25"}, DEFAULTS, today) is None
 
 
 def test_postings_asking_for_too_many_years_are_hidden():

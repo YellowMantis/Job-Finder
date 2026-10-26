@@ -138,8 +138,9 @@ its reason:
 
 Your **preferences** (`data/preferences.json`, private, never uploaded) then decide what
 the table hides: which levels to show (by default junior and not stated), how old a
-posting may be (by default 30 days: older ones are usually filled or forgotten, and one
-listing dated from 2022), and which industries to hide (none by default). `hidden_reason()`
+posting may be (by default 60 days after it was first posted; a repost on LinkedIn keeps the
+first date, and a job still listed is usually still open, so a shorter limit hides jobs that are
+still hiring), and which industries to hide (none by default). `hidden_reason()`
 returns the reason, such as 'Advertising technology: techmap lists the company under "AdTech"', which the
 **Hidden** tab shows.
 Change a preference and the jobs come back; nothing has to be downloaded again. Hidden

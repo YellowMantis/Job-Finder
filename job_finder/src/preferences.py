@@ -33,10 +33,12 @@ FIELDS = ["software", "frontend", "qa", "devops", "data-science", "security", "h
           "admin", "procurement-operations", "other"]
 
 # Made for someone looking for their first job: junior roles and roles that
-# don't state a level, posted in the last 30 days (older ones are usually
-# filled or forgotten). Nothing is hidden by industry until you choose to.
+# don't state a level, first posted in the last 60 days. The date is the
+# first posting's: a job reposted on LinkedIn keeps it, and a job still in the
+# list is usually still open, so a short limit hides jobs still hiring. Nothing
+# is hidden by industry until you choose to.
 DEFAULTS = {"levels": ["junior", "not stated"], "fields": JOB_CATEGORIES, "hide_industries": [],
-            "max_age_days": 30, "max_years": None, "keep_unknown_years": True, "home": None}
+            "max_age_days": 60, "max_years": None, "keep_unknown_years": True, "home": None}
 MAX_AGE_LIMIT = 365
 MAX_YEARS_LIMIT = 20
 
@@ -99,7 +101,7 @@ def hidden_reason(job, preferences, today=None):
     if max_age and job.get("updated"):
         age = ((today or date.today()) - date.fromisoformat(job["updated"])).days
         if age > max_age:
-            return f'Older than {max_age} days: last updated {job["updated"]}'
+            return f'Older than {max_age} days: first posted {job["updated"]}'
     # Only rows made for display carry "years". When deciding which posting
     # texts to fetch, a job's years aren't known yet, and hiding it would mean
     # its text is never fetched, so its years would never be known.

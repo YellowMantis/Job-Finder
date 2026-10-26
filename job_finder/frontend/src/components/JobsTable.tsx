@@ -14,7 +14,7 @@ type Props = {
   onApplied: (job: Job, applied: boolean) => void
 }
 
-const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean }[] = [
+const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean; hint?: string }[] = [
   { key: 'fit', label: 'Fit', numeric: true },
   { key: 'title', label: 'Position' },
   { key: 'company', label: 'Company' },
@@ -23,7 +23,8 @@ const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean }[] = [
   { key: 'place', label: 'Location' },
   { key: 'distance', label: 'Distance', numeric: true },
   { key: 'mode', label: 'Work mode' },
-  { key: 'age', label: 'Updated', numeric: true },
+  { key: 'age', label: 'Posted', numeric: true,
+    hint: 'When the job was first posted. A repost on LinkedIn keeps this date, so an older job may still be hiring.' },
   { key: null, label: '' }, // Apply
   { key: 'applied', label: 'Applied' },
 ]
@@ -36,12 +37,12 @@ export function JobsTable({ jobs, newSince, sort, onSort, onOpen, onApplied }: P
       <table className="jobs-table">
         <thead>
           <tr>
-            {COLUMNS.map(({ key, label, numeric }) => {
+            {COLUMNS.map(({ key, label, numeric, hint }) => {
               const sorted = key !== null && key === sort.key
               const classes = [numeric && 'num', key && 'sortable',
                 sorted && 'sorted', sorted && sort.descending && 'descending']
               return (
-                <th key={label || 'apply'} className={classes.filter(Boolean).join(' ')}
+                <th key={label || 'apply'} className={classes.filter(Boolean).join(' ')} title={hint}
                   onClick={key ? () => onSort(key) : undefined}>
                   {label}
                 </th>
