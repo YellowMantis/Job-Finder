@@ -6,6 +6,7 @@ jobs_for_display()   combine the saved results into the rows the table shows,
 """
 
 import json
+import os
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -37,8 +38,13 @@ def read_json(path, default):
 
 
 def write_json(path, data):
+    """Save all or nothing: the new contents go to a temporary file, which then
+    takes the old file's place in one step. If the app stops halfway (closing
+    the window ends it at once), the old file is still whole."""
     DATA_DIR.mkdir(exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    temporary = path.with_name(path.name + ".saving")
+    temporary.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(temporary, path)
 
 
 def in_parallel(work, items, progress):

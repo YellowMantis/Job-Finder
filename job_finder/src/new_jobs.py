@@ -16,6 +16,7 @@ Times are "2026-10-25T15:24:07" strings, which sort in time order.
 """
 
 import json
+import os
 from datetime import datetime, timedelta
 
 from settings import DATA_DIR
@@ -30,8 +31,11 @@ def _read(path, default):
 
 
 def _write(path, data):
+    """All or nothing, like pipeline.write_json."""
     DATA_DIR.mkdir(exist_ok=True)
-    path.write_text(json.dumps(data, indent=1), encoding="utf-8")
+    temporary = path.with_name(path.name + ".saving")
+    temporary.write_text(json.dumps(data, indent=1), encoding="utf-8")
+    os.replace(temporary, path)
 
 
 def _now(now):

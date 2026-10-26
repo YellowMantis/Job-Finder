@@ -64,6 +64,10 @@ def install(update):
     response.raise_for_status()
     installer = Path(tempfile.mkdtemp()) / INSTALLER_NAME
     installer.write_bytes(response.content)
-    # The installer offers to open Job Finder again when it's done.
-    subprocess.Popen([str(installer)], creationflags=NO_WINDOW)
+    # A quiet update: only a progress bar, no questions (it's an update you
+    # already chose), and Job Finder opens again by itself when it's done
+    # (tools/installer.iss). /CLOSEAPPLICATIONS closes anything still using the
+    # app's files.
+    subprocess.Popen([str(installer), "/SILENT", "/SUPPRESSMSGBOXES", "/CLOSEAPPLICATIONS"],
+                     creationflags=NO_WINDOW)
     return True

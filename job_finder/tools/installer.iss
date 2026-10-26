@@ -8,6 +8,8 @@
 ; folder: installing a new version or uninstalling never touches it.
 
 #define AppName "Job Finder"
+; The name the app keeps while it runs (MUTEX_NAME in desktop.py).
+#define MutexName "JobFinderIsRunning"
 
 [Setup]
 ; The installer's identity. It must never change: it is how a new version
@@ -43,3 +45,31 @@ Name: "{userdesktop}\{#AppName}"; Filename: "{app}\{#AppName}.exe"; Tasks: deskt
 
 [Run]
 Filename: "{app}\{#AppName}.exe"; Description: "Open Job Finder now"; Flags: nowait postinstall skipifsilent
+; After a quiet update (the app's Update button runs this installer with
+; /SILENT), open Job Finder again by itself.
+Filename: "{app}\{#AppName}.exe"; Flags: nowait; Check: WizardSilent
+
+[Code]
+// Windows keeps a running program's files locked, so the app can't be
+// replaced while it's open. The app is closing itself when its Update button
+// started this installer, so wait a few seconds; if it's still open after
+// that, ask for it to be closed rather than fail halfway through the files.
+function InitializeSetup(): Boolean;
+var
+  Waited: Integer;
+begin
+  Waited := 0;
+  while CheckForMutexes('{#MutexName}') and (Waited < 10000) do
+  begin
+    Sleep(250);
+    Waited := Waited + 250;
+  end;
+  while CheckForMutexes('{#MutexName}') do
+    if SuppressibleMsgBox('Job Finder is open. Close it, then click OK to continue.',
+        mbInformation, MB_OKCANCEL, IDCANCEL) = IDCANCEL then
+    begin
+      Result := False;
+      Exit;
+    end;
+  Result := True;
+end;
