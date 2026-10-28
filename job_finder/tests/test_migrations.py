@@ -63,3 +63,21 @@ def test_data_from_a_newer_app_is_left_untouched(folder):
     problem = migrations.run()
     assert "newer version of Job Finder" in problem
     assert read(folder, "jobs.json") == [{"title": "kept"}]
+
+
+def test_applied_dates_get_the_title_company_and_apply_link(folder):
+    write(folder, "data_version.json", {"version": 1})
+    write(folder, "applied.json", {"https://jobs/1": "2026-10-20", "https://jobs/gone": "2026-09-01"})
+    write(folder, "jobs.json", [{"url": "https://jobs/1", "title": "QA Engineer", "company": "Acme"}])
+    write(folder, "postings.json", {"https://jobs/1": {"apply_url": "https://acme/apply/1"}})
+
+    assert migrations.run() is None
+
+    assert read(folder, "applied.json") == {
+        "https://jobs/1": {"date": "2026-10-20", "title": "QA Engineer", "company": "Acme",
+                           "apply_url": "https://acme/apply/1"},
+        # No longer listed: only what was saved, the link and the date.
+        "https://jobs/gone": {"date": "2026-09-01", "title": "", "company": "",
+                              "apply_url": "https://jobs/gone"}}
+    [backup] = (folder / "backups").iterdir()
+    assert read(backup, "applied.json")["https://jobs/1"] == "2026-10-20"

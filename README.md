@@ -47,7 +47,8 @@ and refining it to make it as useful as possible.
 - **Good bets.** One tick narrows the table to jobs scored 40% or more that ask for 3 years or less, and
   postings aimed at recent graduates are marked. Hybrid and remote jobs can be kept beyond your distance.
 - **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
-- **Track applications** with one tick per job.
+- **Track applications** with one tick per job. The Applied tab counts and lists every job you
+  applied to, even after its listing closes, and your preferences never hide them.
 
 ## Install
 

@@ -12,6 +12,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
+from applied import APPLIED_PATH
 from career_sites import _normalise, comeet_id, fetch_posting
 from companies import company_points, load_companies, locate_cities, nearest_km, place_points
 from download import download_data
@@ -28,7 +29,6 @@ JOBS_PATH = DATA_DIR / "jobs.json"
 OLD_EXCLUDED_PATH = DATA_DIR / "excluded.json"  # no longer made; removed if found
 POSTINGS_PATH = DATA_DIR / "postings.json"
 FITS_PATH = DATA_DIR / "fits.json"
-APPLIED_PATH = DATA_DIR / "applied.json"  # {job link: date you applied}
 MISSING_PATH = DATA_DIR / "missing_postings.json"  # {job link: date it wasn't found}
 BOARDS_PATH = DATA_DIR / "company_boards.json"  # {company: its job board ids (snapshot.BOARD_KEYS)}
 
@@ -318,7 +318,7 @@ def jobs_for_display(cv_id=None):
                else job.get("distance_km"),
                "level_reason": job.get("level_reason", ""),
                # The date you marked this job as applied to, or None.
-               "applied": applied.get(job["url"]),
+               "applied": applied.get(job["url"], {}).get("date"),
                # Years of experience the posting asks for; None if unknown.
                "years": None,
                # When the job first appeared in your list ("" if it was in the first one).
@@ -351,6 +351,8 @@ def jobs_for_display(cv_id=None):
             row["for_graduates"] = (for_graduates(job["title"], posting["text"])
                                     or row["years"] == 0)
 
-        row["hidden"] = hidden_reason(row, preferences)
+        # A job you applied to stays in the table whatever your preferences
+        # say, so it doesn't seem to vanish once it gets older than they allow.
+        row["hidden"] = None if row["applied"] else hidden_reason(row, preferences)
         rows.append(row)
     return rows

@@ -57,7 +57,17 @@ export type Job = {
 }
 
 // GET /api/jobs
-export type JobsAnswer = { jobs: Job[]; hidden_count: number }
+export type JobsAnswer = { jobs: Job[]; hidden_count: number; applied_count: number }
+
+// GET /api/applied: every job you applied to, newest first.
+export type AppliedJob = {
+  url: string
+  date: string
+  title: string // "" for a tick saved before titles were kept, on a job no longer listed
+  company: string
+  apply_url: string
+  listed: boolean // false: no longer in the listings, so probably closed
+}
 
 // GET /api/hidden: one row per hidden job.
 export type HiddenJob = { title: string; company: string; reason: string }

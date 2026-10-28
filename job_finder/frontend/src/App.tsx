@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError, api } from './api/client'
 import type {
-  BatchRecord, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
+  AppliedJob, BatchRecord, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
   Status, UpdateProgress,
 } from './api/types'
+import { AppliedJobs } from './components/AppliedJobs'
 import { ConnectionsSettings } from './components/ConnectionsSettings'
 import { CvDropZone } from './components/CvDropZone'
 import { FilterBar } from './components/FilterBar'
@@ -32,10 +33,12 @@ function App() {
   const [status, setStatus] = useState<Status | null>(null)
   const [jobs, setJobs] = useState<Job[]>([])
   const [hiddenCount, setHiddenCount] = useState(0)
+  const [appliedCount, setAppliedCount] = useState(0)
   const [dataVersion, setDataVersion] = useState(0) // goes up whenever the data is reloaded
+  const [appliedVersion, setAppliedVersion] = useState(0) // goes up when one is removed there
   const [filters, setFilters] = useState<Filters | null>(null) // set once status arrives
   const [sort, setSort] = useState<Sort>({ key: 'fit', descending: true })
-  const [tab, setTab] = useState<'jobs' | 'skills' | 'hidden'>('jobs')
+  const [tab, setTab] = useState<'jobs' | 'skills' | 'applied' | 'hidden'>('jobs')
   const [openUrl, setOpenUrl] = useState<string | null>(null) // the job in the side panel
   const [error, setError] = useState('') // the page can't work at all
   const [message, setMessage] = useState<Message>(null) // news or a problem, page still works
@@ -50,6 +53,7 @@ function App() {
     setStatus(status)
     setJobs(answer.jobs)
     setHiddenCount(answer.hidden_count)
+    setAppliedCount(answer.applied_count)
     setDataVersion((version) => version + 1)
     setFilters((current) => current ?? startingFilters(status.default_fields, status.default_max_km))
   }, [])
@@ -137,10 +141,26 @@ function App() {
       setJobs((all) => all.map((j) => (j.url === job.url ? { ...j, applied: value } : j)))
     setFor(applied ? new Date().toISOString().slice(0, 10) : null)
     try {
-      setFor((await api.setApplied(job.url, applied)).applied)
+      const answer = await api.setApplied(job, applied)
+      setFor(answer.applied)
+      setAppliedCount(answer.count)
     } catch {
       setFor(job.applied)
       setMessage({ text: 'Could not save "applied". Is the back end running?', isError: true })
+    }
+  }
+
+  // Remove from the Applied tab. A job no longer listed can't be ticked again,
+  // so that removal is asked about first.
+  async function removeApplied(job: AppliedJob) {
+    if (!job.listed && !window.confirm('Remove this application from your history?\n\n' +
+      "The job isn't listed anymore, so it can't be added back.")) return
+    try {
+      setAppliedCount((await api.setApplied(job, false)).count)
+      setJobs((all) => all.map((j) => (j.url === job.url ? { ...j, applied: null } : j)))
+      setAppliedVersion((version) => version + 1)
+    } catch {
+      setMessage({ text: 'Could not remove it. Is the back end running?', isError: true })
     }
   }
 
@@ -279,12 +299,15 @@ function App() {
           <button className={`tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
             What to learn
           </button>
+          <button className={`tab${tab === 'applied' ? ' active' : ''}`} onClick={() => setTab('applied')}>
+            Applied <span className="count">{appliedCount}</span>
+          </button>
           <button className={`tab${tab === 'hidden' ? ' active' : ''}`} onClick={() => setTab('hidden')}>
             Hidden <span className="count">{hiddenCount}</span>
           </button>
         </nav>
 
-        {tab !== 'hidden' ? (
+        {tab === 'jobs' || tab === 'skills' ? (
           <>
             {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
             <FilterBar jobs={jobs} filters={filters} onChange={setFilters} />
@@ -295,6 +318,8 @@ function App() {
               <SkillGaps jobs={shown} onOpen={(job) => setOpenUrl(job.url)} />
             )}
           </>
+        ) : tab === 'applied' ? (
+          <AppliedJobs key={`${dataVersion}-${appliedVersion}`} onRemove={removeApplied} />
         ) : (
           // Rendered (and so fetched) only while this tab is open. The key makes
           // it fetch again after the data reloads, e.g. after a new CV.

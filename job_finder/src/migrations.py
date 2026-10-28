@@ -61,8 +61,27 @@ def _to_version_1():
         _write("scoring_log.json", log)
 
 
+def _to_version_2():
+    """applied.json kept only a date per job: {job link: "2026-10-20"}. It now
+    keeps the title, company and apply link too, so a job you applied to is
+    still known after its listing closes. They are filled in from the
+    listings; a job no longer listed keeps just its link and date."""
+    applied = _read("applied.json", None)
+    if applied is None:
+        return
+    jobs = {job["url"]: job for job in _read("jobs.json", [])}
+    postings = _read("postings.json", {})
+    for url, entry in applied.items():
+        if isinstance(entry, str):
+            job = jobs.get(url, {})
+            applied[url] = {"date": entry, "title": job.get("title", ""),
+                            "company": job.get("company", ""),
+                            "apply_url": postings.get(url, {}).get("apply_url") or url}
+    _write("applied.json", applied)
+
+
 # Version number -> the migration that brings the data up to that version.
-MIGRATIONS = {1: _to_version_1}
+MIGRATIONS = {1: _to_version_1, 2: _to_version_2}
 CURRENT_VERSION = max(MIGRATIONS)
 
 

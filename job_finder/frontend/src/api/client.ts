@@ -2,9 +2,9 @@
 // addresses, error handling and (later) caching live in one place.
 
 import type {
-  BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo, DetectAnswer,
-  FitProgress, HiddenJob, JobsAnswer, Place, Preferences, PreferencesAnswer, Status, Suggestions,
-  TestAnswer, UpdateProgress,
+  AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo,
+  DetectAnswer, FitProgress, HiddenJob, Job, JobsAnswer, Place, Preferences, PreferencesAnswer,
+  Status, Suggestions, TestAnswer, UpdateProgress,
 } from './types'
 
 // The back end answered with an error; message is its explanation.
@@ -32,9 +32,14 @@ export const api = {
   // One job's posting text, fetched when its side panel opens.
   posting: (url: string) =>
     request<{ text: string }>(`/api/posting?url=${encodeURIComponent(url)}`),
-  // Mark or unmark "I applied"; answers with the saved date, or null.
-  setApplied: (url: string, applied: boolean) =>
-    post<{ applied: string | null }>('/api/applied', { url, applied }),
+  // Mark or unmark "I applied". The title, company and apply link are kept with
+  // it, for after the listing closes. Answers with the saved date (or null) and
+  // how many jobs you have applied to.
+  setApplied: (job: Pick<Job, 'url' | 'title' | 'company' | 'apply_url'>, applied: boolean) =>
+    post<{ applied: string | null; count: number }>('/api/applied', {
+      url: job.url, applied, title: job.title, company: job.company, apply_url: job.apply_url,
+    }),
+  appliedJobs: () => request<AppliedJob[]>('/api/applied'),
   // Send a CV PDF; the back end checks it is a PDF and reads its text.
   uploadCv: (file: File) => {
     const form = new FormData()

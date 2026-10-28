@@ -31,13 +31,14 @@ from flask import Flask, jsonify, request, send_from_directory
 # The pipeline code lives in job_finder/src; let Python find it.
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+import applied  # noqa: E402
 import migrations  # noqa: E402
 import new_jobs  # noqa: E402
 import updates  # noqa: E402
 import scoring  # noqa: E402
 import places  # noqa: E402
 from industries import INDUSTRIES  # noqa: E402
-from pipeline import (APPLIED_PATH, FITS_PATH, JOBS_PATH, POSTINGS_PATH,  # noqa: E402
+from pipeline import (FITS_PATH, JOBS_PATH, POSTINGS_PATH,  # noqa: E402
                       jobs_for_display, read_json, refresh_listings, write_json)
 from preferences import (FIELDS, LEVELS, PREFERENCES_PATH, check_preferences,  # noqa: E402
                          load_preferences, save_preferences)
@@ -148,7 +149,8 @@ def jobs():
     rows = jobs_for_display(cv_id())
     shown = [{key: value for key, value in row.items() if key != "text"}
              for row in rows if not row["hidden"]]
-    return jsonify({"jobs": shown, "hidden_count": len(rows) - len(shown)})
+    return jsonify({"jobs": shown, "hidden_count": len(rows) - len(shown),
+                    "applied_count": applied.count()})
 
 
 @app.get("/api/posting")
@@ -429,15 +431,24 @@ def start_fit():
 @app.post("/api/applied")
 def set_applied():
     """Remember (or forget) that you applied to a job. The page sends the
-    job's link and whether its box is now ticked."""
+    job's link, whether its box is now ticked, and the title, company and
+    apply link to keep. Answers with the date saved (None once unticked) and
+    how many jobs you have applied to."""
     body = request.get_json()
-    applied = read_json(APPLIED_PATH, {})
     if body["applied"]:
-        applied[body["url"]] = datetime.now().strftime("%Y-%m-%d")
+        saved = applied.mark(body["url"], body.get("title", ""), body.get("company", ""),
+                             body.get("apply_url", ""))
     else:
-        applied.pop(body["url"], None)
-    write_json(APPLIED_PATH, applied)
-    return jsonify({"applied": applied.get(body["url"])})
+        applied.unmark(body["url"])
+        saved = None
+    return jsonify({"applied": saved, "count": applied.count()})
+
+
+@app.get("/api/applied")
+def applied_jobs():
+    """Every job you applied to, newest first, including ones no longer listed."""
+    listed = {job["url"] for job in read_json(JOBS_PATH, [])}
+    return jsonify(applied.everything(listed))
 
 
 @app.get("/api/fit/status")

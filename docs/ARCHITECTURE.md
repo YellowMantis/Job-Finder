@@ -308,7 +308,7 @@ fingerprint of the CV they were made for.
 
 This joins the saved files into one row per job: the listing, plus its description if
 fetched, plus its fit review if one exists **for the CV currently loaded**, plus the date you
-marked it as applied. It also upgrades a job to "junior" when its description presents the
+marked it as applied. A job you applied to is never hidden by your preferences. It also upgrades a job to "junior" when its description presents the
 role itself as junior ("As a Junior Engineer, you'll…", "an entry-level position";
 `describes_junior_role()`). A bare "junior" isn't enough: postings for experienced people
 often say "mentor junior engineers", so mentoring words just before it, or a review finding
@@ -416,7 +416,8 @@ They talk over HTTP at addresses starting with `/api/`:
 | `POST /api/cv/years` | Saves your corrected years of experience |
 | `POST /api/fit/start`, `GET /api/fit/status`, `POST /api/fit/stop` | Start scoring the jobs the page sends; how far it has got; stop after the batch under way |
 | `GET /api/fit/log` | The latest scoring batches: jobs, tokens, seconds, price equivalent |
-| `POST /api/applied` | Records or removes "applied" for one job |
+| `POST /api/applied` | Records or removes "applied" for one job, keeping its title, company and apply link |
+| `GET /api/applied` | Every job you applied to, newest first, and whether each is still listed |
 | `GET` / `POST /api/connections`, `POST` / `DELETE /api/connections/<id>` | List, add, change or remove AI connections |
 | `POST /api/connections/<id>/activate`, `…/calibrate` | Use a connection; learn what a batch costs as a share of a Claude session |
 | `POST /api/connections/models`, `…/test`, `…/detect` | A service's models; a one-line test; look for AI programs on this PC (only when you ask) |
@@ -525,6 +526,7 @@ frontend/src/
 | `ScoringPanel` | How many jobs to score and what that will probably use; the progress bar; stop; usage so far |
 | `JobsTable`, `FitBadge` | The table and its coloured fit badges |
 | `JobPanel` | The side panel: the fit review, the posting text, and scoring this one job |
+| `AppliedJobs` | Every job you applied to, including ones no longer listed |
 | `HiddenJobs` | The jobs your preferences hide, with reasons |
 | `SetupWizard` | The first-run setup in three steps |
 | `PreferencesForm`, `HomePicker` | Your preferences, and choosing your home town |
@@ -609,7 +611,7 @@ uploaded.
 | `connections.json` | `add_connection` and others | Your AI connections and which one is in use (no keys: those are in the system password safe) | connection id |
 | `postings.json` | `update_jobs` | Job descriptions | job link |
 | `fits.json` | `score_jobs` | Fit reviews | job link (+ CV fingerprint inside) |
-| `applied.json` | `set_applied` | Dates you applied | job link |
+| `applied.json` | `applied.py` | The jobs you applied to: date, title, company, apply link (kept after the listing closes) | job link |
 | `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list) | job link |
 | `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended: later jobs get a "New" badge | – |
 | `cv.pdf`, `cv.txt` | `upload_cv` | Your CV and its extracted text | – |
@@ -686,6 +688,7 @@ one computer. A hosted service would need both.
 | `preferences.py` | Your preferences: loading, checking, saving, and why a job is hidden | `load_preferences`, `hidden_reason` |
 | `career_sites.py` | Finds a job on its company's Workday or Comeet careers site and returns the description, location and work mode | `fetch_posting`, `comeet_id` |
 | `job_boards.py` | Reads complete job lists from Greenhouse, Lever, Ashby and SmartRecruiters, and merges them with the listings without duplicates | `greenhouse_jobs`, `lever_jobs`, `ashby_jobs`, `smartrecruiters_jobs`, `merge_board_jobs` |
+| `applied.py` | The jobs you applied to: saving and removing them one at a time (a lock), listing them | `mark`, `unmark`, `everything` |
 | `new_jobs.py` | Which jobs are new since your previous visit: when each job first appeared, and when you last used the app | `record_first_seen`, `visit` |
 | `years.py` | Reads the years of experience a posting asks for from its text, in plain code ("3+ years", "2-4 years", "3+ שנות ניסיון"), skipping company history and bonus lines. A fit review's number is used instead when there is one | `years_asked` |
 | `cv_privacy.py` | What an AI is sent of your CV: without your name, contact details and links | `for_ai` |
