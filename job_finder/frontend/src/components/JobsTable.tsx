@@ -94,12 +94,14 @@ function JobRow({ job, isNew, onOpen, onApplied }: RowProps) {
       <td>
         <a href={job.apply_url} target="_blank" rel="noopener noreferrer" onClick={stop}>Apply</a>
       </td>
-      <td>
-        <label className="applied" onClick={stop}>
-          <input type="checkbox" checked={Boolean(job.applied)}
+      {/* Only the box itself ticks (not a <label>, which would make the whole
+          cell a target), and a click beside it doesn't open the job either. */}
+      <td className="applied-cell" onClick={stop}>
+        <span className="applied">
+          <input type="checkbox" checked={Boolean(job.applied)} aria-label="Applied"
             onChange={(event) => onApplied(job, event.target.checked)} />
           {job.applied && ` ${job.applied}`}
-        </label>
+        </span>
       </td>
     </tr>
   )
