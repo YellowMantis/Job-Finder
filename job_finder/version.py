@@ -6,4 +6,4 @@ the middle one for new features, the first for big changes), commit, then
 push a tag with the same number: git tag v1.2.3, git push origin v1.2.3.
 """
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
