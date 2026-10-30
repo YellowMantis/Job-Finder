@@ -416,6 +416,7 @@ They talk over HTTP at addresses starting with `/api/`:
 | `POST /api/cv/years` | Saves your corrected years of experience |
 | `POST /api/fit/start`, `GET /api/fit/status`, `POST /api/fit/stop` | Start scoring the jobs the page sends; how far it has got; stop after the batch under way |
 | `GET /api/fit/log` | The latest scoring batches: jobs, tokens, seconds, price equivalent |
+| `POST /api/filters` | Keeps the table's filters, so the app opens the way you left it |
 | `POST /api/applied` | Records or removes "applied" for one job, keeping its title, company and apply link |
 | `GET /api/applied` | Every job you applied to, newest first, and whether each is still listed |
 | `GET` / `POST /api/connections`, `POST` / `DELETE /api/connections/<id>` | List, add, change or remove AI connections |
@@ -509,7 +510,7 @@ frontend/src/
   api/client.ts       the only code that calls the back end
   logic/jobs.ts       filtering, sorting and cell values, as plain functions
   logic/scoring.ts    the scoring panel's rules (what can be scored, estimates, progress)
-  logic/skills.ts     "What to learn": the skills scored jobs ask for that the CV doesn't show
+  logic/skills.ts     "Missing skills": the skills scored jobs ask for that the CV doesn't show
   logic/connections.ts  the AI connection forms' rules
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)
   hooks/useProgress.ts  follows a background task, checking only while it runs
@@ -612,6 +613,7 @@ uploaded.
 | `postings.json` | `update_jobs` | Job descriptions | job link |
 | `fits.json` | `score_jobs` | Fit reviews | job link (+ CV fingerprint inside) |
 | `applied.json` | `applied.py` | The jobs you applied to: date, title, company, apply link (kept after the listing closes) | job link |
+| `filters.json` | `save_filters` | The table's filters as you last left them | – |
 | `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list) | job link |
 | `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended: later jobs get a "New" badge | – |
 | `cv.pdf`, `cv.txt` | `upload_cv` | Your CV and its extracted text | – |

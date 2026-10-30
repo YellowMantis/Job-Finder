@@ -2,6 +2,8 @@
 // function's answer; if the back end changes a field, update it here and
 // TypeScript will point to every place in the page that needs to follow.
 
+import type { Filters } from '../logic/jobs'
+
 export type Match = 'yes' | 'partial' | 'no'
 export type Importance = 'core' | 'must' | 'nice'
 export type Level = 'junior' | 'not stated' | 'senior'
@@ -94,6 +96,8 @@ export type Status = {
   version: string // this app's version, e.g. "0.1.0"
   update: AppUpdate | null // a newer version on GitHub, if there is one
   new_since: string | null // the end of your previous visit: jobs that appeared after it are new
+  // The table's filters as you last left them; null before the first change.
+  filters: Partial<Filters> | null
 }
 
 // The AI connection that scores (connections.py), as /api/status describes it.

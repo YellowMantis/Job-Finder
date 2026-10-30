@@ -31,12 +31,12 @@ and refining it to make it as useful as possible.
 
 - **One table of open positions.** Listings from the open [techmap](https://github.com/mluggy/techmap)
   data, plus complete job lists from companies' own hiring systems (Greenhouse, Lever, Ashby,
-  SmartRecruiters, Comeet, Workday), without duplicates. Filter by company, field, level, work mode, posting age, years of experience asked and distance from your home.
+  SmartRecruiters, Comeet, Workday), without duplicates. Filter by company, field, level, work mode, posting age, fit score, years of experience asked and distance from your home, and the app opens with the filters you left.
 - **A fit score you can check.** An AI reads each posting and lists its requirements, quoting the
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored
   what it did, line by line.
-- **What to learn next.** The skills your scored jobs ask for most that your CV doesn't show,
+- **Missing skills.** The skills your scored jobs ask for most that your CV doesn't show,
   counted across the jobs in the table, with the jobs behind each one. No extra AI use: it reads
   the reviews you already have.
 - **The AI you already have.** Claude Code (with your Claude plan), the Claude API, any service
@@ -44,8 +44,7 @@ and refining it to make it as useful as possible.
   Score a batch or a single job, see what each run used, and stop at any time.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden.
-- **Good bets.** One tick narrows the table to jobs scored 40% or more that ask for 3 years or less, and
-  postings aimed at recent graduates are marked. Hybrid and remote jobs can be kept beyond your distance.
+- **Postings for graduates are marked.** Hybrid and remote jobs can be kept beyond your distance.
 - **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
 - **Track applications** with one tick per job. The Applied tab counts and lists every job you
   applied to, even after its listing closes, and your preferences never hide them.

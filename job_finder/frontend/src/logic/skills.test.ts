@@ -1,4 +1,4 @@
-// Tests for "What to learn next". Requirements are real ones from fit reviews.
+// Tests for "Missing skills". Requirements are real ones from fit reviews.
 
 import { describe, expect, it } from 'vitest'
 import type { Fit, Job, Requirement } from '../api/types'

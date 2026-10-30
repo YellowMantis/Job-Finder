@@ -9,7 +9,7 @@ type Props = {
 
 const IMPORTANCE: Record<string, string> = { core: 'core', must: 'required', nice: 'nice to have' }
 
-// "What to learn next": the skills the scored jobs in the table ask for that
+// "Missing skills": the skills the scored jobs in the table ask for that
 // your CV doesn't show, most-asked first. Click a skill to see the jobs.
 export function SkillGaps({ jobs, onOpen }: Props) {
   const gaps = useMemo(() => skillGaps(jobs), [jobs])

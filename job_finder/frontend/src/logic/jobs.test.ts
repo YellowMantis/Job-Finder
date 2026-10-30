@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, isNew, modeLabel, modeOf, passesFilters,
-  placeOf, sortJobs, yearsText,
+  placeOf, restoredFilters, sortJobs, yearsText,
   type Filters,
 } from './jobs'
 
@@ -21,8 +21,8 @@ function job(changes: Partial<Job> = {}): Job {
 }
 
 const noFilters: Filters = {
-  search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, needText: false,
-  maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false, goodBets: false,
+  search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, minFit: 0,
+  maxYears: null, needText: false, maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
   flexibleAnywhere: false,
 }
 
@@ -110,16 +110,28 @@ describe('new jobs', () => {
   })
 })
 
-describe('good bets', () => {
-  const scored = (score: number, years: number | null) => job({ fit: fit(score), years })
+describe('fit, years and distance filters', () => {
+  const scored = (score: number, years: number | null = null) => job({ fit: fit(score), years })
 
-  it('are scored 40% or more and ask for 3 years or less, or don’t say', () => {
-    const filters = { ...noFilters, goodBets: true }
-    expect(passesFilters(scored(40, 3), filters)).toBe(true)
-    expect(passesFilters(scored(55, null), filters)).toBe(true)
-    expect(passesFilters(scored(39, 1), filters)).toBe(false)
+  it("can hide jobs scored below a minimum, and keeps the ones without a score", () => {
+    const filters = { ...noFilters, minFit: 40 }
+    expect(passesFilters(scored(40), filters)).toBe(true)
+    expect(passesFilters(scored(39), filters)).toBe(false)
+    expect(passesFilters(job(), filters)).toBe(true) // not scored, or no text to score
+  })
+
+  it("can keep only jobs asking for at most some years, and ones that don't say", () => {
+    const filters = { ...noFilters, maxYears: 2 }
+    expect(passesFilters(job({ years: 2 }), filters)).toBe(true)
+    expect(passesFilters(job({ years: 3 }), filters)).toBe(false)
+    expect(passesFilters(job({ years: null }), filters)).toBe(true)
+    expect(passesFilters(job({ years: 0 }), { ...noFilters, maxYears: 0 })).toBe(true)
+  })
+
+  it('combines them: 40%+, up to 3 years', () => {
+    const filters = { ...noFilters, minFit: 40, maxYears: 3 }
+    expect(passesFilters(scored(55, 3), filters)).toBe(true)
     expect(passesFilters(scored(70, 5), filters)).toBe(false)
-    expect(passesFilters(job(), filters)).toBe(false) // not scored yet
   })
 
   it('can keep hybrid and remote jobs beyond the distance', () => {
@@ -171,5 +183,22 @@ describe('filter choices', () => {
   it("labels the slider's last position as any distance", () => {
     expect(distanceLabel(50)).toBe('Up to 50 km')
     expect(distanceLabel(ANY_DISTANCE)).toBe('Any distance')
+  })
+})
+
+describe('filters you left the app with', () => {
+  const start = { ...noFilters, maxKm: 50 }
+
+  it('start from the defaults when none were saved', () => {
+    expect(restoredFilters(null, start)).toEqual(start)
+  })
+
+  it('keep your choices, give new filters their starting value, and drop old ones', () => {
+    const saved = { minFit: 40, modes: ['hybrid'], goodBets: true } as Partial<Filters>
+    const restored = restoredFilters(saved, start)
+    expect(restored.minFit).toBe(40)
+    expect(restored.modes).toEqual(['hybrid'])
+    expect(restored.maxKm).toBe(50)
+    expect('goodBets' in restored).toBe(false)
   })
 })

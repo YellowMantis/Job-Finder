@@ -18,7 +18,7 @@ import { UpdateBanner } from './components/UpdateBanner'
 import { ScoringPanel } from './components/ScoringPanel'
 import { useProgress } from './hooks/useProgress'
 import {
-  passesFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
+  passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
 } from './logic/jobs'
 import { scorable } from './logic/scoring'
 
@@ -55,7 +55,8 @@ function App() {
     setHiddenCount(answer.hidden_count)
     setAppliedCount(answer.applied_count)
     setDataVersion((version) => version + 1)
-    setFilters((current) => current ?? startingFilters(status.default_fields, status.default_max_km))
+    setFilters((current) => current ??
+      restoredFilters(status.filters, startingFilters(status.default_fields, status.default_max_km)))
   }, [])
 
   useEffect(() => {
@@ -118,6 +119,18 @@ function App() {
       })
     }
   }, [showData]))
+
+  // Keep the filters, so the app opens the way you left it: saved a moment
+  // after the last change, not on every letter typed in the search box.
+  useEffect(() => {
+    if (!filters) return
+    const save = setTimeout(() => api.saveFilters(filters).catch(() => {}), 800)
+    return () => clearTimeout(save)
+  }, [filters])
+
+  function resetFilters() {
+    if (status) setFilters(startingFilters(status.default_fields, status.default_max_km))
+  }
 
   // The rows to show. useMemo redoes this only when the jobs, filters or
   // order change, not on every redraw (for example when the panel opens).
@@ -297,7 +310,7 @@ function App() {
             Positions <span className="count">{shown.length}</span>
           </button>
           <button className={`tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
-            What to learn
+            Missing skills
           </button>
           <button className={`tab${tab === 'applied' ? ' active' : ''}`} onClick={() => setTab('applied')}>
             Applied <span className="count">{appliedCount}</span>
@@ -310,7 +323,7 @@ function App() {
         {tab === 'jobs' || tab === 'skills' ? (
           <>
             {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
-            <FilterBar jobs={jobs} filters={filters} onChange={setFilters} />
+            <FilterBar jobs={jobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
             {tab === 'jobs' ? (
               <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
                 onOpen={(job) => setOpenUrl(job.url)} onApplied={markApplied} />

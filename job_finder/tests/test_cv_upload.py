@@ -144,3 +144,14 @@ def test_suggestions_need_an_ai(client, monkeypatch):
 
     answer = test_client.post("/api/cv/suggest")
     assert answer.status_code == 400 and "add an AI connection" in answer.get_json()["error"]
+
+
+def test_filters_are_kept_for_next_time(client, monkeypatch):
+    import app
+    test_client, folder = client
+    monkeypatch.setattr(app, "FILTERS_PATH", folder / "filters.json")
+    assert test_client.get("/api/status").get_json()["filters"] is None
+    test_client.post("/api/filters", json={"minFit": 40, "modes": ["hybrid", "remote"]})
+    assert test_client.get("/api/status").get_json()["filters"] == {
+        "minFit": 40, "modes": ["hybrid", "remote"]}
+    assert test_client.post("/api/filters", json=[1, 2]).status_code == 400

@@ -98,7 +98,8 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
 }
 
 /* ---- Filters ---- */
-.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; }
+.filters { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .filters input[type="search"], .filters select {
   padding: 7px 10px;
   border: 1px solid var(--border);
@@ -213,7 +214,9 @@ td a:hover { text-decoration: underline; }
   user-select: none;
 }
 .multi-button::after { content: "▾"; position: absolute; right: 9px; color: var(--muted); }
-.multi.active .multi-button { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.multi.active .multi-button, .filters select.active {
+  border-color: var(--accent); color: var(--accent); font-weight: 600;
+}
 .multi-list {
   position: absolute;
   z-index: 5;
@@ -230,7 +233,6 @@ td a:hover { text-decoration: underline; }
 }
 .checkbox-list label { display: block; padding: 5px 8px; border-radius: 6px; white-space: nowrap; cursor: pointer; }
 .checkbox-list label:hover { background: var(--accent-soft); }
-.age-filter { padding: 7px 10px; }
 
 /* ---- Fit score ---- */
 .badge.fit { font-size: 13px; }
@@ -399,7 +401,7 @@ td.wrap-narrow { white-space: normal; min-width: 110px; max-width: 190px; }
 .update-banner .form-actions { margin-top: 10px; }
 .release-notes { white-space: pre-wrap; font: inherit; margin: 6px 0 0; }
 
-/* What to learn: a bar per skill, and the jobs under a skill you open. */
+/* Missing skills: a bar per skill, and the jobs under a skill you open. */
 .skill-bar { display: inline-block; height: 8px; margin-right: 8px; border-radius: 4px; background: var(--accent); opacity: 0.6; vertical-align: middle; }
 .skills-table tr.sortable { cursor: pointer; }
 .skills-table .skill-job { cursor: pointer; background: var(--accent-soft); font-size: 0.92em; }

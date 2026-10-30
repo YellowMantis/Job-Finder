@@ -1,6 +1,7 @@
 // Every request the page makes to the back end goes through this file, so
 // addresses, error handling and (later) caching live in one place.
 
+import type { Filters } from '../logic/jobs'
 import type {
   AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo,
   DetectAnswer, FitProgress, HiddenJob, Job, JobsAnswer, Place, Preferences, PreferencesAnswer,
@@ -27,6 +28,8 @@ function post<T>(path: string, data: unknown): Promise<T> {
 
 export const api = {
   status: () => request<Status>('/api/status'),
+  // Keep the table's filters for the next time the app opens.
+  saveFilters: (filters: Filters) => post<Filters>('/api/filters', filters),
   jobs: () => request<JobsAnswer>('/api/jobs'),
   hidden: () => request<HiddenJob[]>('/api/hidden'),
   // One job's posting text, fetched when its side panel opens.

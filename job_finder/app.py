@@ -55,6 +55,7 @@ WEB_DIR = Path(__file__).parent / "frontend" / "dist"
 CV_PDF_PATH = DATA_DIR / "cv.pdf"
 CV_TEXT_PATH = DATA_DIR / "cv.txt"
 CV_INFO_PATH = DATA_DIR / "cv_info.json"
+FILTERS_PATH = DATA_DIR / "filters.json"  # the table's filters as you last left them
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # refuse uploads over 10 MB
@@ -137,7 +138,20 @@ def status():
                     "version": VERSION, "update": available_update,
                     # Jobs that first appeared after this are marked new. Asking
                     # for the status also counts as using the app (new_jobs.visit).
-                    "new_since": new_jobs.visit()})
+                    "new_since": new_jobs.visit(),
+                    # Your filters as you left them, or None to start from the defaults.
+                    "filters": read_json(FILTERS_PATH, None)})
+
+
+@app.post("/api/filters")
+def save_filters():
+    """Keep the table's filters, so the app opens the way you left it. They
+    only choose which rows the page shows, so the page checks them itself."""
+    filters = request.get_json()
+    if not isinstance(filters, dict):
+        return jsonify({"error": "Filters must be an object."}), 400
+    write_json(FILTERS_PATH, filters)
+    return jsonify(filters)
 
 
 @app.get("/api/jobs")

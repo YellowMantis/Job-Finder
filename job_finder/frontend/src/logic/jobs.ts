@@ -31,14 +31,6 @@ export const fitClass = (score: number) => (score >= 60 ? 'high' : score >= 40 ?
 export const yearsText = (job: Job) =>
   job.years === null ? '?' : job.years === 0 ? '0' : `${job.years}+`
 
-// A good bet for a recent graduate: scored at least GOOD_FIT, and asking for
-// at most GOOD_YEARS of experience (or not saying). Postings ask for more
-// than they need, so a few years over your own is still worth applying to.
-export const GOOD_FIT = 40
-export const GOOD_YEARS = 3
-export const isGoodBet = (job: Job) =>
-  (scoreOf(job) ?? 0) >= GOOD_FIT && (job.years === null || job.years <= GOOD_YEARS)
-
 // Hybrid or remote: you don't travel there every day.
 const isFlexible = (job: Job) => ['hybrid', 'remote'].includes(modeLabel(job))
 
@@ -81,26 +73,37 @@ export type Filters = {
   levels: string[] // level labels, as levelLabel gives them
   modes: string[] // work modes, as modeLabel gives them
   maxAgeDays: number // 0 means any age
+  minFit: number // 0 means any; jobs without a score always pass, they aren't known to fit badly
+  maxYears: number | null // null means any; postings that don't say always pass
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
   onlyNew: boolean
-  goodBets: boolean
   flexibleAnywhere: boolean // hybrid and remote jobs pass whatever their distance
 }
 
-// Filters when the page opens: your fields ticked, the default distance.
+// The filters to start from: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
-  search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, needText: false, maxKm,
-  hideApplied: false, onlyNew: false, goodBets: false, flexibleAnywhere: false,
+  search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, minFit: 0,
+  maxYears: null, needText: false, maxKm, hideApplied: false, onlyNew: false,
+  flexibleAnywhere: false,
 })
+
+// The filters you left the app with, on top of the starting ones: a filter
+// added since they were saved gets its starting value, and one removed since
+// (like the old "Good bets") is dropped.
+export function restoredFilters(saved: Partial<Filters> | null, start: Filters): Filters {
+  const kept = Object.entries(saved ?? {}).filter(([key]) => key in start)
+  return { ...start, ...Object.fromEntries(kept) }
+}
 
 export function passesFilters(job: Job, filters: Filters, newSince: string | null = null,
   now = Date.now()) {
   const search = filters.search.trim().toLowerCase()
   return (
     (!filters.onlyNew || isNew(job, newSince)) &&
-    (!filters.goodBets || isGoodBet(job)) &&
+    (scoreOf(job) === null || scoreOf(job)! >= filters.minFit) &&
+    (filters.maxYears === null || job.years === null || job.years <= filters.maxYears) &&
     (!filters.hideApplied || !job.applied) &&
     (!search || `${job.title} ${job.company}`.toLowerCase().includes(search)) &&
     (!filters.companies.length || filters.companies.includes(job.company)) &&

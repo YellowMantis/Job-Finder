@@ -1,4 +1,4 @@
-// "What to learn next": the skills that scored jobs ask for and your CV doesn't
+// "Missing skills": the skills that scored jobs ask for and your CV doesn't
 // show, counted across the jobs in the table. It only reads the fit reviews
 // already saved, so it costs no AI usage.
 //
