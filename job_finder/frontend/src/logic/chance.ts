@@ -12,7 +12,7 @@ export type Chance = 'good' | 'try' | 'long'
 export type ChanceReading = { chance: Chance; reasons: string[]; guess: boolean }
 
 export const CHANCE_LABELS: Record<Chance, string> = {
-  good: 'Apply first', try: 'Worth sending', long: 'Long shot',
+  good: 'Strong chance', try: 'Fair chance', long: 'Long shot',
 }
 const FROM_AI: Record<NonNullable<Fit['chance']>, Chance> = {
   'apply first': 'good', 'worth sending': 'try', 'long shot': 'long',

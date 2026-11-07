@@ -32,8 +32,8 @@ const FITS = [
 
 const CHANCES = [
   { chance: '', label: 'Chance: any' },
-  { chance: 'try', label: 'Worth sending or better' },
-  { chance: 'good', label: 'Apply first only' },
+  { chance: 'try', label: 'Fair chance or better' },
+  { chance: 'good', label: 'Strong chance only' },
 ]
 
 // "" stands for any (a select's values are text).

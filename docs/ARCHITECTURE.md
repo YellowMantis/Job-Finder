@@ -399,16 +399,18 @@ yours gets called, which is what decides the order to apply in. The table opens 
 and by fit within each level.
 
 - **Scored jobs:** the AI judges it in the same request as the fit (about 20 more tokens a
-  job), as a recruiter would: **apply first** (the role is open to your level and your CV has
-  work or projects in its core area), **worth sending** (one of the two is a stretch) or
+  job), as a recruiter would: **strong chance** (the role is open to your level and your CV
+  has work or projects in its core area), **fair chance** (one of the two is a stretch) or
   **long shot** (senior, 4+ years, a PhD or another field), with a one-line reason. Missing
   some tools alone never lowers it. Three levels rather than a number, because levels hold
   steady between runs: in a check on 13 jobs, 12 got the same level twice.
 - **Other jobs** (unscored, or scored before the AI was asked) get a guess from rules in
-  `logic/chance.ts`, shown with "?": a long shot for senior, internship and PhD titles or 4+
-  years asked; apply first for graduate postings, up to 2 years or a junior title; otherwise
-  worth sending, raised for roles that often take people starting out (QA, integration,
-  support...) or a fit of 50%+, and lowered for a fit under 20%.
+  `logic/chance.ts`, shown with a dashed edge: a long shot for senior, internship and PhD
+  titles or 4+ years asked; a strong chance for graduate postings, up to 2 years or a junior
+  title; otherwise a fair chance, raised for roles that often take people starting out (QA,
+  integration, support...) or a fit of 50%+, and lowered for a fit under 20%. The AI answers
+  in the words "apply first", "worth sending" and "long shot", which the page shows as these
+  three levels.
 
 ### Its honest limits
 

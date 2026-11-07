@@ -9,7 +9,7 @@ export function ChanceBadge({ job }: { job: Job }) {
   return (
     <span className={`badge chance ${chance}${guess ? ' guess' : ''}`}
       title={guess ? `A guess from the posting's title and years: ${why}` : why}>
-      {CHANCE_LABELS[chance]}{guess && '?'}
+      {CHANCE_LABELS[chance]}
     </span>
   )
 }

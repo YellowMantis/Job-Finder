@@ -46,10 +46,10 @@ and refining it to make it as useful as possible.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden. Found a
   posting closed, or not for you? Hide it yourself, and undo that any time.
-- **Where to start.** A Chance column says whether to apply first, send it anyway, or treat it
-  as a long shot, with the reason on hover. For scored jobs the AI judges it as a recruiter
-  would; other jobs get a guess (marked "?") from the years asked, the level and the kind of
-  role. The table opens with the best chances first, the best fit first within each.
+- **Where to start.** A Chance column says whether you have a strong chance, a fair chance or a
+  long shot, with the reason on hover. For scored jobs the AI judges it as a recruiter
+  would; other jobs get a guess (with a dashed edge) from the years asked, the level and the
+  kind of role. The table opens with the best chances first, the best fit first within each.
 - **Postings for graduates are marked.** Hybrid and remote jobs can be kept beyond your distance.
 - **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
 - **Track applications** with one tick per job. The Applied tab counts and lists every job you
