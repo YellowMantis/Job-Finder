@@ -41,7 +41,7 @@ export const api = {
   // A job's earlier fit reviews (other models, earlier runs), newest first,
   // and making one of them the job's current review again.
   earlierReviews: (url: string) => request<Fit[]>(`/api/reviews?url=${encodeURIComponent(url)}`),
-  useReview: (url: string, scored: string) => post<Fit>('/api/reviews/use', { url, scored }),
+  chooseReview: (url: string, scored: string) => post<Fit>('/api/reviews/use', { url, scored }),
   // Mark or unmark "I applied". The title, company and apply link are kept with
   // it, for after the listing closes. Answers with the saved date (or null) and
   // how many jobs you have applied to.

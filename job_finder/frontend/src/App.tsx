@@ -195,9 +195,9 @@ function App() {
   }
 
   // Make an earlier review a job's current score, then show it.
-  async function useReview(url: string, scored: string) {
+  async function chooseReview(url: string, scored: string) {
     try {
-      await api.useReview(url, scored)
+      await api.chooseReview(url, scored)
       showData(await fetchData())
     } catch (problem) {
       setMessage({ text: problem instanceof ApiError ? problem.message : 'Could not change it.',
@@ -383,7 +383,7 @@ function App() {
       {openJob && (
         <JobPanel job={openJob} onClose={closePanel} scoring={fit.progress?.running ?? false}
           onHide={(reason) => hideJob(openJob, reason)}
-          onUseReview={(scored) => useReview(openJob.url, scored)}
+          onUseReview={(scored) => chooseReview(openJob.url, scored)}
           onScore={status.cv && status.scorer
             ? (again) => startScoring([openJob], again) : undefined} />
       )}
