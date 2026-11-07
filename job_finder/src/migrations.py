@@ -19,9 +19,11 @@ the next number, and add a test with data in the old shape.
 """
 
 import json
+import re
 import shutil
 from datetime import datetime
 
+from fit_rules import score_of
 from settings import DATA_DIR
 
 VERSION_PATH = DATA_DIR / "data_version.json"
@@ -30,7 +32,8 @@ BACKUPS_DIR = DATA_DIR / "backups"
 # up: it can always be downloaded again.
 DATA_FILES = ["jobs.json", "postings.json", "fits.json", "applied.json", "preferences.json",
               "connections.json", "cv_info.json", "scoring_log.json", "missing_postings.json",
-              "company_boards.json", "hidden_by_you.json"]
+              "company_boards.json", "hidden_by_you.json",
+              "earlier_reviews.json"]
 
 
 def _read(name, default):
@@ -80,8 +83,39 @@ def _to_version_2():
     _write("applied.json", applied)
 
 
+YEARS_SHOWN = re.compile(r"CV shows about (\d+) year")
+
+
+def _rescored(review):
+    """A saved review worked out again under today's years rule. Reviews of
+    postings that ask no years, or with no score, are left as they were."""
+    if review.get("score") is None or not review.get("years_required"):
+        return review
+    # The years line the code added says how many years the CV showed.
+    shown = next((YEARS_SHOWN.search(r["evidence"]) for r in review["requirements"]
+                  if YEARS_SHOWN.search(r["evidence"])), None)
+    if shown is None:
+        return review
+    score, note = score_of(review["requirements"], review["years_required"], int(shown[1]))
+    notes = [n for n in review["notes"] if not n.startswith(("Halved:", "Lowered by"))]
+    return {**review, "score": score, "notes": notes + ([note] if note else [])}
+
+
+def _to_version_3():
+    """A posting asking 2 more years than the CV shows used to halve the fit
+    score; now that lowers it by a quarter, and halving starts at 3 more.
+    Saved scores are worked out again from their saved requirements."""
+    fits = _read("fits.json", None)
+    if fits is not None:
+        _write("fits.json", {url: _rescored(review) for url, review in fits.items()})
+    earlier = _read("earlier_reviews.json", None)
+    if earlier is not None:
+        _write("earlier_reviews.json", {url: [_rescored(review) for review in reviews]
+                                        for url, reviews in earlier.items()})
+
+
 # Version number -> the migration that brings the data up to that version.
-MIGRATIONS = {1: _to_version_1, 2: _to_version_2}
+MIGRATIONS = {1: _to_version_1, 2: _to_version_2, 3: _to_version_3}
 CURRENT_VERSION = max(MIGRATIONS)
 
 

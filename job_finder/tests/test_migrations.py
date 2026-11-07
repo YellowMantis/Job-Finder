@@ -81,3 +81,31 @@ def test_applied_dates_get_the_title_company_and_apply_link(folder):
                               "apply_url": "https://jobs/gone"}}
     [backup] = (folder / "backups").iterdir()
     assert read(backup, "applied.json")["https://jobs/1"] == "2026-10-20"
+
+
+def saved_review(years_required, score, notes):
+    """A review as fits.json keeps it: core and must met, the years line added by code."""
+    return {"score": score, "years_required": years_required, "notes": notes, "requirements": [
+        {"requirement": f"{years_required}+ years of experience", "importance": "must",
+         "evidence": "CV shows about 1 year(s) of paid work", "match": "no"},
+        {"requirement": "Python", "importance": "core", "evidence": "Python", "match": "yes"},
+        {"requirement": "Linux", "importance": "must", "evidence": "Linux", "match": "yes"}]}
+
+
+def test_scores_halved_for_3_years_asked_are_lowered_by_a_quarter_instead(folder):
+    write(folder, "data_version.json", {"version": 2})
+    halved = ["Halved: asks for 3+ years, CV shows about 1."]
+    write(folder, "fits.json", {
+        "three": saved_review(3, 38, halved),
+        "five": saved_review(5, 38, ["Halved: asks for 5+ years, CV shows about 1."]),
+        "none": {"score": 80, "years_required": 0, "notes": [], "requirements": []}})
+    write(folder, "earlier_reviews.json", {"three": [saved_review(3, 38, halved)]})
+
+    assert migrations.run() is None
+
+    fits = read(folder, "fits.json")
+    assert (fits["three"]["score"], fits["three"]["notes"]) == (
+        56, ["Lowered by a quarter: asks for 3+ years, CV shows about 1."])   # 75% less a quarter
+    assert fits["five"]["score"] == 38   # 3+ years short: still halved
+    assert fits["none"]["score"] == 80
+    assert read(folder, "earlier_reviews.json")["three"][0]["score"] == 56

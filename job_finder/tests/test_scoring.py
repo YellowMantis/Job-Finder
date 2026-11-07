@@ -50,7 +50,7 @@ def test_worked_example_from_the_guide_scores_59():
     assert result["requirements"][0]["match"] == "partial"
 
 
-def test_two_or_more_years_short_halves_the_score():
+def test_three_or_more_years_short_halves_the_score():
     # Everything met, but the posting asks for 4 years and the CV shows 1.
     result = score([
         req("Python", "core", "yes", "Python and Bash automation"),
@@ -60,6 +60,17 @@ def test_two_or_more_years_short_halves_the_score():
     # Before halving: core 4 + must 2 met, years (must 2) not met -> 6/8 = 75%.
     assert result["score"] == 38   # 75% halved, rounded
     assert any("Halved" in note for note in result["notes"])
+
+
+def test_two_years_short_lowers_the_score_by_a_quarter():
+    # Postings often ask for more than they need: 3 years asked, 1 shown.
+    result = score([
+        req("Python", "core", "yes", "Python and Bash automation"),
+        req("Linux", "must", "yes", "automation on Linux"),
+    ], years_required=3, professional_years=1)
+
+    assert result["score"] == 56   # 75% lowered by a quarter, rounded
+    assert result["notes"] == ["Lowered by a quarter: asks for 3+ years, CV shows about 1."]
 
 
 def test_enough_years_is_not_penalised():
@@ -103,3 +114,9 @@ def test_fewer_than_two_requirements_gives_no_score():
 
     assert result["score"] is None
     assert result["notes"]
+
+
+def test_an_older_review_has_no_chance():
+    # Reviews made before the AI judged the chance: the page guesses it instead.
+    assert "chance" not in score([req("Python", "core", "yes", "Python and Bash automation"),
+                                  req("Linux", "must", "yes", "automation on Linux")])

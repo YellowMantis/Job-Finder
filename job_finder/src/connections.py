@@ -40,6 +40,10 @@ KEYRING_SERVICE = "job-finder-" + hashlib.sha1(str(DATA_DIR.resolve()).encode())
 KINDS = {"claude": "Claude Code", "anthropic": "Claude API", "ollama": "Ollama on this PC",
          "api": "An AI service"}
 
+# Claude Code's names for its latest models; "" leaves the choice to Claude Code
+# (its largest). Reading a posting and quoting the CV doesn't need the largest.
+CLAUDE_MODELS = ["", "opus", "sonnet", "haiku"]
+
 # Services that speak the OpenAI chat format: their name and address.
 SERVICES = {
     "openai": ("OpenAI", "https://api.openai.com/v1"),
@@ -91,6 +95,8 @@ def check(fields):
             return "A custom service needs its address, starting with http:// or https://"
         if not fields.get("model"):
             return "Choose a model."
+    if fields["kind"] == "claude" and fields.get("model", "") not in CLAUDE_MODELS:
+        return f'The model must be one of: {", ".join(CLAUDE_MODELS[1:])}, or empty for the default'
     if fields["kind"] in ("ollama", "anthropic") and not fields.get("model"):
         return "Choose a model."
     return None
@@ -208,7 +214,7 @@ def provider_for(connection, key=None):
     """The provider that talks to this connection's AI."""
     kind = connection["kind"]
     if kind == "claude":
-        provider = ClaudeCode()
+        provider = ClaudeCode(connection.get("model", ""))
     elif kind == "ollama":
         provider = Ollama(connection["model"])
     elif kind == "anthropic":

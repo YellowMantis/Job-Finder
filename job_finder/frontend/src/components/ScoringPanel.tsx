@@ -7,7 +7,7 @@ import {
 } from '../logic/scoring'
 
 type Props = {
-  candidates: Job[] // jobs in the table below that can be scored, in table order
+  candidates: Job[] // jobs in the table below that can be scored, best chances first
   shownCount: number // all jobs in the table below
   progress: FitProgress | null
   log: BatchRecord[]
@@ -51,7 +51,8 @@ export function ScoringPanel(props: Props) {
           ? `Nothing to score among the ${shownCount} jobs in the table below: every one with ` +
             'posting text already has a score for this CV. Change the filters to see others.'
           : `${available} of the ${shownCount} jobs in the table below can be scored ` +
-            '(they have posting text and no score for this CV). The top rows are scored first.'}
+            '(they have posting text and no score for this CV). Good chances are scored ' +
+            "first, then in the table's order."}
       </p>
 
       {progress?.running ? (

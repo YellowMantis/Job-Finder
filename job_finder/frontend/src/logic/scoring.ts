@@ -1,10 +1,30 @@
 // The scoring panel's rules as plain functions (tested in scoring.test.ts).
 
 import type { BatchRecord, Job } from '../api/types'
+import { chanceOf, chanceRank } from './chance'
 
 // Jobs that can be scored: they have posting text, and no score for this CV
-// yet. A score stays valid whichever AI connection made it.
-export const scorable = (jobs: Job[]) => jobs.filter((job) => job.has_text && !job.fit)
+// yet. A score stays valid whichever AI connection made it. The best chances
+// come first, so a small batch is spent on jobs you'd most likely apply to;
+// within a level, the table's order is kept.
+export const scorable = (jobs: Job[]) => jobs
+  .filter((job) => job.has_text && !job.fit)
+  .sort((a, b) => chanceRank(chanceOf(b).chance) - chanceRank(chanceOf(a).chance))
+
+// The batches made with this connection, and with its current model when one
+// is chosen: an estimate from another model's batches would mislead. Batches
+// record the model's full name ("claude-sonnet-5-5"); a choice may be short ("sonnet").
+export const batchesFor = (log: BatchRecord[], connection: string, model: string) =>
+  log.filter((batch) => batch.connection === connection &&
+    (!model || (batch.model ?? '').includes(model)))
+
+// Who made a review, briefly: "Claude (claude-sonnet-5-5)" -> "Sonnet",
+// "Groq (llama-3.3-70b)" -> "llama-3.3-70b".
+export function modelName(model: string) {
+  const claude = model.match(/claude-([a-z]+)-/)
+  if (claude) return claude[1][0].toUpperCase() + claude[1].slice(1)
+  return model.match(/\((.+)\)/)?.[1] ?? model
+}
 
 // Every token a batch used. Cached tokens count too: they are cheaper, but
 // still part of the session.

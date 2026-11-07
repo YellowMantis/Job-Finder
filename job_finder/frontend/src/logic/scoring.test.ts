@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { BatchRecord, Job } from '../api/types'
 import {
-  batchesLabel, dayOf, estimate, formatDuration, formatTokens, runProgress, scorable, sessionPercent,
-  tokensOf, totalsFor, totalsSince,
+  batchesFor, batchesLabel, dayOf, estimate, formatDuration, formatTokens, modelName, runProgress, scorable,
+  sessionPercent, tokensOf, totalsFor, totalsSince,
 } from './scoring'
 
 const batch = (time: string, jobs: number, output_tokens = 1000): BatchRecord => ({
@@ -11,6 +11,20 @@ const batch = (time: string, jobs: number, output_tokens = 1000): BatchRecord =>
 })
 
 describe('scoring panel', () => {
+  it('names the model of a review briefly', () => {
+    expect(modelName('Claude (claude-sonnet-5-5)')).toBe('Sonnet')
+    expect(modelName('Groq (llama-3.3-70b)')).toBe('llama-3.3-70b')
+    expect(modelName('Claude (one-off review in chat)')).toBe('one-off review in chat')
+  })
+
+  it("estimates from this connection's batches with its current model", () => {
+    const opus = { ...batch('2026-10-17 03:18', 10), connection: 'c1' }
+    const sonnet = { ...opus, model: 'claude-sonnet-5-5' }
+    const other = { ...opus, connection: 'c2' }
+    expect(batchesFor([opus, sonnet, other], 'c1', 'sonnet')).toEqual([sonnet])
+    expect(batchesFor([opus, sonnet, other], 'c1', '')).toEqual([opus, sonnet]) // the default
+  })
+
   it('scores only jobs with text and no current score', () => {
     const job = (url: string, changes: Partial<Job>) => ({ url, ...changes }) as Job
     const fit = { score: 50 } as Job['fit']
@@ -20,6 +34,20 @@ describe('scoring panel', () => {
       job('scored', { has_text: true, fit }),
     ]
     expect(scorable(jobs).map((j) => j.url)).toEqual(['new'])
+  })
+
+  it('puts the best chances first, keeping the table order within each', () => {
+    const job = (url: string, changes: Partial<Job>) => ({
+      url, title: 'Software Engineer', level: 'not stated', level_reason: '', years: null,
+      for_graduates: false, ...changes,
+    }) as Job
+    const jobs = [
+      job('3 years', { has_text: true, fit: null, years: 3 }),
+      job('senior', { has_text: true, fit: null, level: 'senior' }),
+      job('junior', { has_text: true, fit: null, level: 'junior' }),
+      job('1 year', { has_text: true, fit: null, years: 1 }),
+    ]
+    expect(scorable(jobs).map((j) => j.url)).toEqual(['junior', '1 year', '3 years', 'senior'])
   })
 
   it('counts every token of a batch, cached ones included', () => {

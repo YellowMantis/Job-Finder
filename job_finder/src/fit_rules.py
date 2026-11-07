@@ -24,13 +24,14 @@ from pydantic import BaseModel
 WEIGHTS = {"core": 4, "must": 2, "nice": 1}
 POINTS = {"yes": 1.0, "partial": 0.5, "no": 0.0}
 
-# If a posting asks for at least this many more years than you have, the score
-# is halved. Halving (rather than capping at a fixed number) keeps those jobs
-# in a sensible order among themselves.
+# If a posting asks for more years than you have, the score is lowered: by a
+# quarter when it asks 2 more (postings often ask for more than they need), by
+# half when it asks 3 or more. Lowering by a share (rather than capping at a
+# fixed number) keeps those jobs in a sensible order among themselves.
 YEARS_GAP_FOR_PENALTY = 2
-YEARS_PENALTY = 0.5
+YEARS_PENALTIES = [(3, 0.5, "Halved"), (2, 0.75, "Lowered by a quarter")]  # (gap, factor, note)
 
-MAX_REQUIREMENTS = 8
+MAX_REQUIREMENTS = 8  # a safety net: the AI is asked for at most 6
 
 # Requirements containing these words are personality traits, which a CV can't
 # prove either way, so they are left out of the score.
@@ -54,6 +55,11 @@ class FitReview(BaseModel):
     # True if the employer or the role serves military or defence customers.
     # The candidate excludes such jobs; word rules on company names miss many.
     defence_related: bool
+    # How likely this CV gets an interview: the AI's overall judgement, which
+    # sees more than the requirement list (transferable skills, what the role
+    # really needs). A few levels rather than a number: steadier between runs.
+    chance: Literal["apply first", "worth sending", "long shot"]
+    chance_reason: str  # one short sentence
 
 
 class CvFacts(BaseModel):
@@ -76,7 +82,7 @@ Do this:
 1. years_required: the number of years of experience the posting asks for, as a
    whole number. Use 0 if it doesn't say. Do not list years of experience again
    as a requirement.
-2. List the posting's requirements, most important first, at most 8, each in a few
+2. List the posting's requirements, most important first, at most 6, each in a few
    words. The first requirement is always the core discipline of the role, with
    importance "core", for example "Software test automation" or "Mechanical
    engineering". After it, list only
@@ -85,24 +91,43 @@ Do this:
    personality traits and soft skills such as teamwork, communication, motivation
    or attention to detail.
    For the others, importance is "must" for things the posting requires and
-   "nice" for things it calls an advantage or a plus.
+   "nice" for things it calls an advantage or a plus. When there are more than 6,
+   keep the ones that matter most and leave out minor nice-to-haves.
 3. For each requirement, look only in the CANDIDATE CV section. In evidence, copy
-   the words from the CV that show it, exactly as written there. If the CV has
+   the fewest words from the CV that show it, exactly as written there: a short
+   phrase, at most about 12 words, not a whole line. If the CV has
    nothing, write "not in CV". Never copy evidence from the posting.
-   match is "yes" only when the CV clearly shows it, "partial" when the CV shows
-   something related but weaker or in a different area, and "no" when the CV does
-   not show it.
+   match is "yes" when the CV shows it in a job, a project, the degree or the skills
+   list; "partial" when the CV shows the same kind of thing with another tool or in
+   another area (for example Java for "C#", or test scripts for "test automation");
+   and "no" when the CV shows nothing like it. For the core discipline, "yes" when
+   the CV has work or projects of that kind, even if they were small or academic.
    For degrees: Software Engineering, Computer Science and Computer Engineering
    count as the same field. A bachelor's degree does not meet a requirement for a
    master's or a PhD.
 4. work_mode: "remote", "hybrid" or "on-site" only if the posting says so, otherwise
    "not stated".
-5. summary: one plain sentence giving the main reason this is or isn't a fit.
+5. summary: one short plain sentence, at most about 20 words, giving the main reason
+   this is or isn't a fit.
 6. defence_related: true if the employer or this role serves military or defence
    customers: weapons, armed forces, military standards (MIL-STD), defence
    electronics, intelligence or homeland-security systems. Ordinary cybersecurity
    products for businesses are not defence. This only labels the employer's
-   industry; it never changes the score."""
+   industry; it never changes the score.
+7. chance: judge as a recruiter screening candidates would: would this CV get
+   an interview for this job? Postings ask for more than they really need, and a
+   recent graduate with related projects is often called for roles asking up to
+   about 2 years. Count transferable skills.
+   Missing some of the listed tools or domain knowledge is normal for a recent
+   graduate and alone never makes a posting less than "apply first".
+   "apply first": the role is open to the candidate's level (graduate, junior, or
+   up to about 2 years asked) and the CV has work or projects in its core area.
+   "worth sending": one of those two is a stretch: it asks about 3 years, or the
+   CV touches its core area only lightly.
+   "long shot": it needs experience or a field the CV clearly lacks, for example a
+   senior role, 4+ years, a PhD, or a different engineering discipline.
+   chance_reason: one short sentence, at most about 15 words, saying why.
+   This is your overall judgement; it does not change the score."""
 
 
 def _words(text):
@@ -123,7 +148,8 @@ def _evidence_is_in_cv(evidence, cv_words):
 
 
 def check_and_score(cv_text, professional_years, years_required, requirements,
-                    work_mode, summary, reviewer, defence_related=False):
+                    work_mode, summary, reviewer, defence_related=False,
+                    chance=None, chance_reason=""):
     """Apply the code checks to a review and calculate its score.
 
     Every review goes through here, whichever provider wrote it, so all
@@ -151,6 +177,8 @@ def check_and_score(cv_text, professional_years, years_required, requirements,
     result = {"years_required": years_required, "requirements": checked,
               "work_mode": work_mode, "summary": summary, "notes": [], "model": reviewer,
               "defence_related": defence_related}
+    if chance:  # reviews made before the AI judged the chance have none
+        result.update(chance=chance, chance_reason=chance_reason)
 
     # With fewer than two requirements there is nothing meaningful to score.
     # Better to say so than to show a confident-looking number.
@@ -170,14 +198,22 @@ def check_and_score(cv_text, professional_years, years_required, requirements,
             "match": match,
         })
 
-    earned = sum(WEIGHTS[r["importance"]] * POINTS[r["match"]] for r in checked)
-    possible = sum(WEIGHTS[r["importance"]] for r in checked)
-    score = round(100 * earned / possible)
-
-    if years_required > 0 and gap >= YEARS_GAP_FOR_PENALTY:
-        score = round(score * YEARS_PENALTY)
-        result["notes"].append(f"Halved: asks for {years_required}+ years, "
-                               f"CV shows about {professional_years}.")
-
-    result["score"] = score
+    result["score"], note = score_of(checked, years_required, professional_years)
+    if note:
+        result["notes"].append(note)
     return result
+
+
+def score_of(requirements, years_required, professional_years):
+    """The percentage for checked requirements (the years line included), and
+    the note saying why it was lowered, if it was. Also used to work out
+    saved reviews again when these rules change (migrations.py)."""
+    earned = sum(WEIGHTS[r["importance"]] * POINTS[r["match"]] for r in requirements)
+    possible = sum(WEIGHTS[r["importance"]] for r in requirements)
+    score = round(100 * earned / possible)
+    if years_required > 0:
+        for gap, factor, label in YEARS_PENALTIES:
+            if years_required - professional_years >= gap:
+                return round(score * factor), (f"{label}: asks for {years_required}+ years, "
+                                               f"CV shows about {professional_years}.")
+    return score, None

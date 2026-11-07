@@ -48,6 +48,16 @@ def test_claude_code_reply_is_read(monkeypatch):
     assert calls[0]["input"] == "the CV" and "the CV" not in command
 
 
+def test_claude_code_uses_the_chosen_model_or_its_default(monkeypatch):
+    reply = json.dumps({"is_error": False, "structured_output": {}, "usage": {}})
+    calls = run_claude_replying(monkeypatch, stdout=reply)
+    claude_code.ClaudeCode("sonnet").ask("", "", {})
+    claude_code.ClaudeCode().ask("", "", {})
+    chosen, default = calls[0]["command"], calls[1]["command"]
+    assert chosen[chosen.index("--model") + 1] == "sonnet"
+    assert "--model" not in default
+
+
 def test_claude_code_missing_is_explained(monkeypatch):
     monkeypatch.setattr(claude_code, "find_claude", lambda: None)
     with pytest.raises(ProviderError, match="isn't installed"):

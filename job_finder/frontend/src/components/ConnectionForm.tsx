@@ -22,6 +22,15 @@ const WAYS: { way: Way; title: string; hint: string }[] = [
     hint: 'Ollama or LM Studio. Free and private, but small models score less accurately.' },
 ]
 
+// Claude Code's models, largest first. Reading postings and quoting a CV is
+// a fairly simple task, so a smaller model uses much less of your plan.
+const CLAUDE_MODELS = [
+  { model: '', label: "Claude Code's default (its largest)" },
+  { model: 'opus', label: 'Opus: most careful, uses the most' },
+  { model: 'sonnet', label: 'Sonnet: careful, uses much less' },
+  { model: 'haiku', label: 'Haiku: quickest, uses the least' },
+]
+
 const errorText = (problem: unknown, fallback: string) =>
   problem instanceof ApiError ? problem.message : fallback
 
@@ -112,6 +121,14 @@ export function ConnectionForm(props: Props) {
             : <span className="error-text">Not found. Install Claude Code and sign in first.</span>)}
           <p className="muted small">The check only looks for the program on this computer and
             sends nothing anywhere.</p>
+          <label className="claude-model">Model{' '}
+            <select value={draft.claudeModel}
+              onChange={(event) => change({ claudeModel: event.target.value })}>
+              {CLAUDE_MODELS.map(({ model, label }) => <option key={model} value={model}>{label}</option>)}
+            </select>
+          </label>
+          <p className="muted small">To compare, score a few jobs again with another model and
+            see what each batch used in the scoring panel.</p>
         </div>
       )}
 

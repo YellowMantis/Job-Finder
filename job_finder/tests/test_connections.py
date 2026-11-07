@@ -188,6 +188,13 @@ def test_a_claude_api_connection_needs_a_model():
     assert "Choose a model" in connections.check({"name": "x", "kind": "anthropic"})
 
 
+def test_a_claude_code_connection_can_choose_a_model(safe):
+    connections.add({"name": "Claude Code", "kind": "claude", "model": "haiku"})
+    assert connections.active_provider().model == "haiku"
+    assert connections.check({"name": "x", "kind": "claude"}) is None      # the default
+    assert "must be one of" in connections.check({"name": "x", "kind": "claude", "model": "gpt"})
+
+
 # ---- Calibrating against a Claude plan's /usage % ----------------------------------------
 
 def test_calibration_learns_percent_per_thousand_tokens(client, tmp_path, monkeypatch):

@@ -239,6 +239,12 @@ td a:hover { text-decoration: underline; }
 .badge.fit.high { background: var(--good-soft); color: var(--good); }
 .badge.fit.middle { background: #fdf0d9; color: #8a5a00; }
 .badge.fit.low { background: #eef0f3; color: var(--muted); }
+.badge.chance { white-space: nowrap; }
+.badge.chance.good { background: var(--good-soft); color: var(--good); }
+.badge.chance.try { background: #fdf0d9; color: #8a5a00; }
+.badge.chance.long { background: #eef0f3; color: var(--muted); }
+/* A guess from the rules, not the AI's judgement: lighter, with a dashed edge. */
+.badge.chance.guess { background: transparent; border: 1px dashed currentColor; }
 
 .fit-box {
   margin-top: 18px;
@@ -385,6 +391,8 @@ td.wrap-narrow { white-space: normal; min-width: 110px; max-width: 190px; }
 .home-current { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .home-current input { width: 220px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-weight: 600; }
 .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.earlier-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.earlier-list .button.chosen { border-color: var(--accent); }
 .hide-choices { display: flex; gap: 8px; align-items: center; color: var(--muted); }
 
 /* ---- A Claude session's usage ---- */

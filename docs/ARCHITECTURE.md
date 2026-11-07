@@ -297,7 +297,10 @@ format (`--json-schema`). Your CV and up to 10 job descriptions go in through st
 input; ten structured reviews come back. Each session has a fixed start-up cost, so
 batching ten jobs shares it. A measured batch of 10 took 44 seconds and about 19,000
 tokens (~$0.22 at pay-per-use prices; on a subscription it counts towards usage limits
-instead). Every request, by any provider, is recorded in `data/scoring_log.json` with its
+instead), most of it the answers. The connection can choose the model (`--model opus`,
+`sonnet` or `haiku`); left empty, Claude Code uses its largest. The task (read a posting,
+quote the CV) doesn't need the largest, and a smaller model uses much less of the plan, so
+the estimate for the next run only counts past batches made with the current model. Every request, by any provider, is recorded in `data/scoring_log.json` with its
 tokens and seconds; the scoring panel shows the last batch, today's totals and an estimate for
 the next run from them. Results are saved to `data/fits.json`, one per job, stamped with a
 fingerprint of the CV they were made for.
@@ -327,12 +330,18 @@ same question can get 45 one time and 70 the next, with no way to tell which is 
 
 **What the AI does** (whichever provider, using the instructions in `SYSTEM_PROMPT`):
 
-- Lists up to 8 requirements from the posting. The first is always the **core** of the role
+- Lists up to 6 requirements from the posting (the code accepts up to 8 as a safety net),
+  each with the fewest words from the CV that show it, to keep answers short: they are the
+  costly part of a request. The first is always the **core** of the role
   (for example "software test automation" or "mechanical engineering"); the others are
   marked **must** (required) or **nice** (an advantage).
 - For each requirement, copies the words from your CV that show it, or writes "not in CV",
-  and judges the match: **yes**, **partial** or **no**.
+  and judges the match: **yes** (shown in a job, a project, the degree or the skills list),
+  **partial** (the same kind of thing with another tool or in another area) or **no**. For
+  the core, work or projects of that kind count as yes even if small or academic: a strict
+  reading gave a graduate "yes" on the core 4 times in 212 reviews.
 - Reads how many years of experience the posting asks for, and the work mode if stated.
+- Judges the **chance** of an interview (see "The chance" below). It never changes the score.
 
 **What the code then does** (`check_and_score`, the same for every reviewer):
 
@@ -353,8 +362,11 @@ weights:  core = 4,  must = 2,  nice = 1
 points:   yes = 1,   partial = 0.5,   no = 0
 ```
 
-5. **Halves the score** if the posting asks for at least two more years than you have.
-   (Halving rather than capping keeps those jobs in a sensible order among themselves.)
+5. **Lowers the score** if the posting asks for more years than you have: by a quarter at
+   two more (postings often ask for more than they need), by half at three or more.
+   (Lowering by a share rather than capping keeps those jobs in a sensible order among
+   themselves.) Saved scores were worked out again when this changed from halving at two
+   more (data version 3), from their saved requirements, without asking the AI again.
 6. **Refuses to score** if fewer than two requirements are left, showing "?" instead of a
    number that would look confident but mean nothing.
 
@@ -379,6 +391,24 @@ points:   yes = 1,   partial = 0.5,   no = 0
 
 Without it, a production-engineering job scored 50% for a software graduate simply because
 the candidate speaks English. Being in the wrong field matters more than missing one skill.
+
+### The chance: where to start
+
+Fit asks whether your CV matches the requirements; the Chance column asks whether a CV like
+yours gets called, which is what decides the order to apply in. The table opens sorted by it,
+and by fit within each level.
+
+- **Scored jobs:** the AI judges it in the same request as the fit (about 20 more tokens a
+  job), as a recruiter would: **apply first** (the role is open to your level and your CV has
+  work or projects in its core area), **worth sending** (one of the two is a stretch) or
+  **long shot** (senior, 4+ years, a PhD or another field), with a one-line reason. Missing
+  some tools alone never lowers it. Three levels rather than a number, because levels hold
+  steady between runs: in a check on 13 jobs, 12 got the same level twice.
+- **Other jobs** (unscored, or scored before the AI was asked) get a guess from rules in
+  `logic/chance.ts`, shown with "?": a long shot for senior, internship and PhD titles or 4+
+  years asked; apply first for graduate postings, up to 2 years or a junior title; otherwise
+  worth sending, raised for roles that often take people starting out (QA, integration,
+  support...) or a fit of 50%+, and lowered for a fit under 20%.
 
 ### Its honest limits
 
@@ -417,6 +447,7 @@ They talk over HTTP at addresses starting with `/api/`:
 | `POST /api/cv/years` | Saves your corrected years of experience |
 | `POST /api/fit/start`, `GET /api/fit/status`, `POST /api/fit/stop` | Start scoring the jobs the page sends; how far it has got; stop after the batch under way |
 | `GET /api/fit/log` | The latest scoring batches: jobs, tokens, seconds, price equivalent |
+| `GET /api/reviews`, `POST /api/reviews/use` | A job's earlier fit reviews (other models, earlier runs); making one the current score again |
 | `POST /api/hide` | Hides a job yourself, with a reason (closed, not interested), or brings it back |
 | `POST /api/filters` | Keeps the table's filters, so the app opens the way you left it |
 | `POST /api/applied` | Records or removes "applied" for one job, keeping its title, company and apply link |
@@ -512,6 +543,7 @@ frontend/src/
   api/client.ts       the only code that calls the back end
   logic/jobs.ts       filtering, sorting and cell values, as plain functions
   logic/scoring.ts    the scoring panel's rules (what can be scored, estimates, progress)
+  logic/chance.ts     "Chance": the AI's judgement, or a guess from years, level, kind of role and fit
   logic/skills.ts     "Missing skills": the skills scored jobs ask for that the CV doesn't show
   logic/connections.ts  the AI connection forms' rules
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)
@@ -615,7 +647,9 @@ uploaded.
 | `postings.json` | `update_jobs` | Job descriptions | job link |
 | `fits.json` | `score_jobs` | Fit reviews | job link (+ CV fingerprint inside) |
 | `applied.json` | `applied.py` | The jobs you applied to: date, title, company, apply link (kept after the listing closes) | job link |
-| `hidden_by_you.json` | `hidden_by_you.py` | Jobs you hid yourself: reason and date (forgotten once no longer listed) | job link |
+| `earlier_reviews.json` | `earlier_reviews.py` | Fit reviews replaced by a newer one, up to 10 per job, so models can be compared | job link |
+| `hidden_by_you.json` | `earlier_reviews.py` | Keeps a job's replaced fit reviews; the table shows the latest, the panel the others | `keep`, `for_job`, `swap` |
+| `hidden_by_you.py` | Jobs you hid yourself: reason and date (forgotten once no longer listed) | job link |
 | `filters.json` | `save_filters` | The table's filters as you last left them | – |
 | `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list) | job link |
 | `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended: later jobs get a "New" badge | – |

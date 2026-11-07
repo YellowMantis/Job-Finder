@@ -32,6 +32,7 @@ from flask import Flask, jsonify, request, send_from_directory
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import applied  # noqa: E402
+import earlier_reviews  # noqa: E402
 import hidden_by_you  # noqa: E402
 import migrations  # noqa: E402
 import new_jobs  # noqa: E402
@@ -125,7 +126,8 @@ def status():
     try:
         provider = connections.active_provider()
         scorer = {"id": provider.connection_id, "name": provider.label,
-                  "kind": provider.id, "batch_size": provider.batch_size}
+                  "kind": provider.id, "batch_size": provider.batch_size,
+                  "model": getattr(provider, "model", "")}
     except ProviderError:
         scorer = None  # no AI connection yet: jobs can be filtered and tracked, not scored
     preferences = load_preferences()
@@ -430,6 +432,8 @@ def score_jobs(wanted_urls, again=False):
                 for url, fit in reviews.items():
                     fit["cv"] = current_cv
                     fit["scored"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    if url in fits:  # scored again: the latest is shown, the old one kept
+                        earlier_reviews.keep(url, fits[url])
                     fits[url] = fit
                 write_json(FITS_PATH, fits)  # saved after every batch, so stopping loses little
                 fit_progress["done"] += len(batch)
@@ -443,6 +447,31 @@ def score_jobs(wanted_urls, again=False):
         fit_progress["error"] = f"Scoring stopped: {error}"
     finally:
         fit_progress["running"] = False
+
+
+@app.get("/api/reviews")
+def job_reviews():
+    """A job's earlier fit reviews for the loaded CV, newest first: what other
+    models (or earlier runs) scored it before its current review."""
+    return jsonify(earlier_reviews.for_job(request.args.get("url", ""), cv_id()))
+
+
+@app.post("/api/reviews/use")
+def use_review():
+    """Make an earlier review the job's current one; the current one is kept
+    among the earlier reviews. The review is named by when it was scored."""
+    if fit_progress["running"]:
+        # Scoring saves its own copy of the reviews after each batch, which
+        # would undo this change.
+        return jsonify({"error": "Wait until scoring has finished."}), 409
+    body = request.get_json()
+    fits = read_json(FITS_PATH, {})
+    chosen = earlier_reviews.swap(body["url"], body["scored"], fits.get(body["url"]))
+    if chosen is None:
+        return jsonify({"error": "That review isn't there anymore."}), 404
+    fits[body["url"]] = chosen
+    write_json(FITS_PATH, fits)
+    return jsonify(chosen)
 
 
 @app.post("/api/fit/start")

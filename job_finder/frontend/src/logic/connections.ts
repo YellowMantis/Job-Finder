@@ -16,11 +16,12 @@ export type Draft = {
   service: string // for 'service': groq, openai, openrouter or custom
   baseUrl: string // for a custom service
   model: string
+  claudeModel: string // for 'claude': opus, sonnet, haiku, or "" for Claude Code's default
   local: LocalChoice | null
 }
 
 export const emptyDraft: Draft = {
-  way: 'claude', service: 'anthropic', baseUrl: '', model: '', local: null,
+  way: 'claude', service: 'anthropic', baseUrl: '', model: '', claudeModel: '', local: null,
 }
 
 // A saved connection, back in the form's terms (for editing it).
@@ -38,12 +39,12 @@ export function draftOf(connection: Connection): Draft {
     return { ...emptyDraft, way: 'service', service: connection.service,
       baseUrl: connection.base_url, model: connection.model }
   }
-  return { ...emptyDraft, way: 'claude' }
+  return { ...emptyDraft, way: 'claude', claudeModel: connection.model ?? '' }
 }
 
 // What the back end needs (connections.check), from the form.
 export function fieldsOf(draft: Draft, name: string): ConnectionFields {
-  if (draft.way === 'claude') return { name, kind: 'claude' }
+  if (draft.way === 'claude') return { name, kind: 'claude', model: draft.claudeModel }
   if (draft.way === 'local') {
     const local = draft.local ?? { runner: 'ollama', model: '' }
     return local.runner === 'ollama'

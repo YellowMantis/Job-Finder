@@ -11,7 +11,11 @@ const saved = (changes: Partial<Connection>): Connection => ({
 describe('the add-a-connection form', () => {
   it('turns each way into what the back end expects', () => {
     expect(fieldsOf({ ...emptyDraft, way: 'claude' }, 'Claude Code'))
-      .toEqual({ name: 'Claude Code', kind: 'claude' })
+      .toEqual({ name: 'Claude Code', kind: 'claude', model: '' })
+    // Claude Code's model has its own field, so a service's model never leaks into it.
+    expect(fieldsOf({ ...emptyDraft, way: 'claude', model: 'gpt-x', claudeModel: 'sonnet' }, 'C'))
+      .toEqual({ name: 'C', kind: 'claude', model: 'sonnet' })
+    expect(draftOf(saved({ kind: 'claude', model: 'haiku' })).claudeModel).toBe('haiku')
     expect(fieldsOf({ ...emptyDraft, way: 'service', service: 'groq', model: 'big' }, 'G'))
       .toEqual({ name: 'G', kind: 'api', service: 'groq', model: 'big' })
     // A model on this PC: Ollama has its own kind, LM Studio speaks the OpenAI format.

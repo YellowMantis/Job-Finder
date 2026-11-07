@@ -20,7 +20,7 @@ import { useProgress } from './hooks/useProgress'
 import {
   passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
 } from './logic/jobs'
-import { scorable } from './logic/scoring'
+import { batchesFor, scorable } from './logic/scoring'
 
 type Message = { text: string; isError: boolean } | null
 
@@ -37,7 +37,7 @@ function App() {
   const [dataVersion, setDataVersion] = useState(0) // goes up whenever the data is reloaded
   const [appliedVersion, setAppliedVersion] = useState(0) // goes up when one is removed there
   const [filters, setFilters] = useState<Filters | null>(null) // set once status arrives
-  const [sort, setSort] = useState<Sort>({ key: 'fit', descending: true })
+  const [sort, setSort] = useState<Sort>({ key: 'chance', descending: true }) // where to start first
   const [tab, setTab] = useState<'jobs' | 'skills' | 'applied' | 'hidden'>('jobs')
   const [openUrl, setOpenUrl] = useState<string | null>(null) // the job in the side panel
   const [error, setError] = useState('') // the page can't work at all
@@ -139,11 +139,11 @@ function App() {
     () => (filters ? sortJobs(jobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
     [jobs, filters, sort, newSince])
 
-  // Clicking the sorted column again reverses it; fit starts best first.
+  // Clicking the sorted column again reverses it; fit and chance start best first.
   function changeSort(key: SortKey) {
     setSort((current) => ({
       key,
-      descending: current.key === key ? !current.descending : key === 'fit',
+      descending: current.key === key ? !current.descending : key === 'fit' || key === 'chance',
     }))
   }
 
@@ -191,6 +191,17 @@ function App() {
       })
     } catch {
       setMessage({ text: 'Could not hide it. Is the back end running?', isError: true })
+    }
+  }
+
+  // Make an earlier review a job's current score, then show it.
+  async function useReview(url: string, scored: string) {
+    try {
+      await api.useReview(url, scored)
+      showData(await fetchData())
+    } catch (problem) {
+      setMessage({ text: problem instanceof ApiError ? problem.message : 'Could not change it.',
+        isError: true })
     }
   }
 
@@ -314,8 +325,8 @@ function App() {
         {status.cv && status.scorer && (
           <ScoringPanel candidates={scorable(shown)} shownCount={shown.length}
             progress={fit.progress} providerName={status.scorer.name}
-            // Only this connection's batches: another AI's would distort the estimate.
-            log={log.filter((batch) => batch.connection === status.scorer!.id)}
+            // Only this connection's batches with its model: another's would distort the estimate.
+            log={batchesFor(log, status.scorer.id, status.scorer.model)}
             batchSize={status.scorer.batch_size} onStart={startScoring}
             onStop={() => api.stopFit().then(fit.check).catch(() => {})}
             connections={connections} onSwitch={switchConnection}
@@ -372,6 +383,7 @@ function App() {
       {openJob && (
         <JobPanel job={openJob} onClose={closePanel} scoring={fit.progress?.running ?? false}
           onHide={(reason) => hideJob(openJob, reason)}
+          onUseReview={(scored) => useReview(openJob.url, scored)}
           onScore={status.cv && status.scorer
             ? (again) => startScoring([openJob], again) : undefined} />
       )}

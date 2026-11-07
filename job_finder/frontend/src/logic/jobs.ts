@@ -3,6 +3,7 @@
 // tested on its own (jobs.test.ts).
 
 import type { Job } from '../api/types'
+import { chanceOf, chanceRank, type Chance } from './chance'
 
 // ---- Values worked out from a job ---------------------------------------------
 
@@ -75,6 +76,7 @@ export type Filters = {
   maxAgeDays: number // 0 means any age
   minFit: number // 0 means any; jobs without a score always pass, they aren't known to fit badly
   maxYears: number | null // null means any; postings that don't say always pass
+  minChance: Chance | null // null means any; 'try' keeps good and worth a try
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
@@ -85,7 +87,7 @@ export type Filters = {
 // The filters to start from: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
   search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, minFit: 0,
-  maxYears: null, needText: false, maxKm, hideApplied: false, onlyNew: false,
+  maxYears: null, minChance: null, needText: false, maxKm, hideApplied: false, onlyNew: false,
   flexibleAnywhere: false,
 })
 
@@ -104,6 +106,7 @@ export function passesFilters(job: Job, filters: Filters, newSince: string | nul
     (!filters.onlyNew || isNew(job, newSince)) &&
     (scoreOf(job) === null || scoreOf(job)! >= filters.minFit) &&
     (filters.maxYears === null || job.years === null || job.years <= filters.maxYears) &&
+    (!filters.minChance || chanceRank(chanceOf(job).chance) >= chanceRank(filters.minChance)) &&
     (!filters.hideApplied || !job.applied) &&
     (!search || `${job.title} ${job.company}`.toLowerCase().includes(search)) &&
     (!filters.companies.length || filters.companies.includes(job.company)) &&
@@ -120,13 +123,15 @@ export function passesFilters(job: Job, filters: Filters, newSince: string | nul
 // ---- Sorting ------------------------------------------------------------------
 
 export type SortKey =
-  | 'fit' | 'title' | 'company' | 'field' | 'years' | 'place' | 'distance' | 'mode' | 'age'
+  | 'fit' | 'chance' | 'title' | 'company' | 'field' | 'years' | 'place' | 'distance' | 'mode' | 'age'
   | 'applied'
 export type Sort = { key: SortKey; descending: boolean }
 
 // What each column sorts by. null means "no value": those rows always go last.
 const sortValue: Record<SortKey, (job: Job) => string | number | null> = {
   fit: scoreOf,
+  // Within the same chance, the better fit first (unscored jobs after scored ones).
+  chance: (job) => chanceRank(chanceOf(job).chance) * 1000 + (scoreOf(job) ?? -1),
   title: (job) => job.title,
   company: (job) => job.company,
   field: (job) => job.field,

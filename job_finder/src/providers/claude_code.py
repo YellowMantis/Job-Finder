@@ -38,6 +38,11 @@ class ClaudeCode(Provider):
     reviewer_prefix = "Claude"
     batch_size = CLAUDE_BATCH_SIZE
 
+    def __init__(self, model=""):
+        # "opus", "sonnet" or "haiku": Claude Code's names for its latest
+        # models. "" leaves the choice to Claude Code, which picks its largest.
+        self.model = model
+
     def ask(self, system_prompt, prompt, schema):
         """The prompt goes in through standard input rather than the command
         line, because Windows limits a command line to about 32,000 characters."""
@@ -50,6 +55,8 @@ class ClaudeCode(Provider):
                    "--tools", "",                     # no tools: it can only answer
                    "--no-session-persistence",        # don't save this as a chat
                    "--json-schema", json.dumps(schema)]
+        if self.model:
+            command += ["--model", self.model]
         # Run in an empty temporary folder, so nothing in your files can be picked up.
         started = time.monotonic()
         with tempfile.TemporaryDirectory() as empty_folder:

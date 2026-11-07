@@ -15,7 +15,8 @@ CV = "B.Sc. in Computer Science. Wrote Python automation on Linux."
 def review(job_id, **changes):
     """One review in the shape the AI must answer with."""
     return {"job_id": job_id, "years_required": 0, "work_mode": "hybrid", "summary": "ok",
-            "defence_related": False,
+            "defence_related": False, "chance": "apply first",
+            "chance_reason": "Close to the CV",
             "requirements": [
                 {"requirement": "Python", "importance": "core", "evidence": "Python automation",
                  "match": "yes"},
@@ -67,6 +68,14 @@ def test_reviews_are_matched_to_their_jobs_and_scored():
     assert result["job-0"]["summary"] == "first"
     assert result["job-0"]["score"] == 100
     assert result["job-0"]["model"] == "Fake (fake-1)"   # signed by the provider
+
+
+def test_the_ai_judges_the_chance_beside_the_score():
+    provider = FakeProvider({"reviews": [review(1, chance="long shot",
+                                                chance_reason="Needs 5 years")]})
+    result = scoring.review_batch(provider, CV, 1, jobs(1))["job-0"]
+    assert (result["chance"], result["chance_reason"]) == ("long shot", "Needs 5 years")
+    assert result["score"] == 100   # the chance never changes the score
 
 
 def test_the_prompt_numbers_every_posting():
@@ -221,3 +230,33 @@ def test_an_api_runs_several_batches_at_once_and_scores_them_all(app_with):
     assert most[0] > 1                      # batches overlapped
     assert app.fit_progress["done"] == 25   # and every job was scored once
     assert app.fit_progress["error"] == ""
+
+
+def test_scoring_again_keeps_the_earlier_review_and_it_can_be_used_again(app_with, tmp_path):
+    import earlier_reviews
+    app = app_with(FakeProvider(answer_all))
+    cv = app.cv_id()
+    old = {"score": 62, "model": "Claude (claude-opus-5-5)", "cv": cv, "scored": "2026-10-14 01:00"}
+    (tmp_path / "fits.json").write_text(json.dumps({"job-1": old}), encoding="utf-8")
+
+    app.score_jobs({"job-1"}, again=True)
+
+    fits = json.loads((tmp_path / "fits.json").read_text(encoding="utf-8"))
+    assert fits["job-1"]["scored"] != old["scored"]                # the latest is the current one
+    assert earlier_reviews.for_job("job-1", cv) == [old]           # the old one is kept
+    assert earlier_reviews.for_job("job-1", "another-cv") == []    # never shown for another CV
+
+    client = app.app.test_client()
+    assert client.get("/api/reviews?url=job-1").get_json() == [old]
+    assert client.post("/api/reviews/use", json={"url": "job-1", "scored": old["scored"]}).status_code == 200
+    fits_after = json.loads((tmp_path / "fits.json").read_text(encoding="utf-8"))
+    assert fits_after["job-1"] == old                              # swapped back in
+    assert earlier_reviews.for_job("job-1", cv) == [fits["job-1"]]  # and the newer one kept
+
+
+def test_an_earlier_review_cant_be_chosen_while_scoring(app_with):
+    app = app_with(FakeProvider())
+    app.fit_progress["running"] = True
+    answer = app.app.test_client().post("/api/reviews/use", json={"url": "job-1", "scored": "x"})
+    assert answer.status_code == 409
+    app.fit_progress["running"] = False
