@@ -55,7 +55,8 @@ export type Job = {
   years: number | null // years of experience the posting asks for; null if unknown
   for_graduates: boolean // the posting is aimed at recent graduates
   first_seen: string // when it first appeared in your list, "2026-10-25T15:24:07"; "" if in the first one
-  hidden: string | null // why your preferences hide it, or null if shown
+  hidden: string | null // why it is hidden (your preferences, or you hid it), or null if shown
+  hidden_by_you: boolean // you hid it yourself
 }
 
 // GET /api/jobs
@@ -71,8 +72,11 @@ export type AppliedJob = {
   listed: boolean // false: no longer in the listings, so probably closed
 }
 
-// GET /api/hidden: one row per hidden job.
-export type HiddenJob = { title: string; company: string; reason: string }
+// GET /api/hidden: one row per hidden job; the ones you hid yourself first.
+export type HiddenJob = { url: string; title: string; company: string; reason: string; by_you: boolean }
+
+// Why you hide a job yourself.
+export type HideReason = 'closed' | 'not interested'
 
 // The CV currently loaded (data/cv_info.json).
 export type CvInfo = {

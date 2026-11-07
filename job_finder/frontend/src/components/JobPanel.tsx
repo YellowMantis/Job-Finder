@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
-import type { Fit, Job, Match } from '../api/types'
+import type { Fit, HideReason, Job, Match } from '../api/types'
 import { ageInDays, ageLabel, distanceText, fitClass, placeOf } from '../logic/jobs'
 
 type Props = {
@@ -10,15 +10,18 @@ type Props = {
   // Missing when there is nothing to score with (no CV or no AI).
   onScore?: (again: boolean) => void
   scoring: boolean // a scoring run is under way
+  onHide: (reason: HideReason) => void // e.g. the posting turned out to be closed
 }
 
 // The panel that slides in when you click a position: its fit review and the
 // full posting text, which is fetched now, for this one job.
-export function JobPanel({ job, onClose, onScore, scoring }: Props) {
+export function JobPanel({ job, onClose, onScore, scoring, onHide }: Props) {
   // The last text loaded, and which job it belongs to. While another job's text
   // is still arriving, the one shown doesn't match, so the panel says "Loading".
   const [loaded, setLoaded] = useState<{ url: string; text: string } | null>(null)
   const text = loaded?.url === job.url ? loaded.text : null
+  // Hide asks why first: the two reasons appear beside it. Folded again for another job.
+  const [hiding, setHiding] = useState<string | null>(null) // the job being asked about
 
   useEffect(() => {
     if (!job.has_text) return
@@ -55,6 +58,19 @@ export function JobPanel({ job, onClose, onScore, scoring }: Props) {
             onClick={() => onScore(Boolean(job.fit))}>
             {scoring ? 'Scoring…' : job.fit ? 'Score again' : 'Score this job'}
           </button>
+        )}
+        {hiding === job.url ? (
+          <span className="hide-choices">
+            Hide because it's
+            <button className="button secondary" onClick={() => onHide('closed')}>Closed</button>
+            <button className="button secondary" onClick={() => onHide('not interested')}>
+              Not interested
+            </button>
+            <button className="link-button" onClick={() => setHiding(null)}>Cancel</button>
+          </span>
+        ) : (
+          <button className="link-button" onClick={() => setHiding(job.url)}
+            title="Take it out of the table. The Hidden tab can bring it back">Hide…</button>
         )}
       </div>
 

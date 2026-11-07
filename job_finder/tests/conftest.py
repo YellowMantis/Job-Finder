@@ -20,13 +20,16 @@ import pytest  # noqa: E402
 @pytest.fixture(autouse=True)
 def data_files_in_a_test_folder(tmp_path, monkeypatch):
     """Asking for the app's status records a visit, updates record when jobs
-    first appeared (new_jobs.py), and ticking Applied saves the job
-    (applied.py). In every test those files go to the test's own empty
+    first appeared (new_jobs.py), ticking Applied saves the job
+    (applied.py), and so does hiding one (hidden_by_you.py). In every test those files go to the test's own empty
     folder, never to your real data."""
     import applied
+    import hidden_by_you
     import new_jobs
     import pipeline
     monkeypatch.setattr(new_jobs, "FIRST_SEEN_PATH", tmp_path / "first_seen.json")
     monkeypatch.setattr(new_jobs, "VISITS_PATH", tmp_path / "visits.json")
     monkeypatch.setattr(applied, "APPLIED_PATH", tmp_path / "applied.json")
     monkeypatch.setattr(pipeline, "APPLIED_PATH", tmp_path / "applied.json")
+    monkeypatch.setattr(hidden_by_you, "HIDDEN_BY_YOU_PATH", tmp_path / "hidden_by_you.json")
+    monkeypatch.setattr(pipeline, "HIDDEN_BY_YOU_PATH", tmp_path / "hidden_by_you.json")

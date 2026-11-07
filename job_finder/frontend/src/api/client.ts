@@ -4,8 +4,8 @@
 import type { Filters } from '../logic/jobs'
 import type {
   AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo,
-  DetectAnswer, FitProgress, HiddenJob, Job, JobsAnswer, Place, Preferences, PreferencesAnswer,
-  Status, Suggestions, TestAnswer, UpdateProgress,
+  DetectAnswer, FitProgress, HiddenJob, HideReason, Job, JobsAnswer, Place, Preferences,
+  PreferencesAnswer, Status, Suggestions, TestAnswer, UpdateProgress,
 } from './types'
 
 // The back end answered with an error; message is its explanation.
@@ -32,6 +32,9 @@ export const api = {
   saveFilters: (filters: Filters) => post<Filters>('/api/filters', filters),
   jobs: () => request<JobsAnswer>('/api/jobs'),
   hidden: () => request<HiddenJob[]>('/api/hidden'),
+  // Hide a job yourself, with a reason; null brings it back.
+  hide: (url: string, reason: HideReason | null) =>
+    post<{ ok: boolean }>('/api/hide', { url, reason }),
   // One job's posting text, fetched when its side panel opens.
   posting: (url: string) =>
     request<{ text: string }>(`/api/posting?url=${encodeURIComponent(url)}`),

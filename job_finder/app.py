@@ -32,6 +32,7 @@ from flask import Flask, jsonify, request, send_from_directory
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import applied  # noqa: E402
+import hidden_by_you  # noqa: E402
 import migrations  # noqa: E402
 import new_jobs  # noqa: E402
 import updates  # noqa: E402
@@ -176,9 +177,26 @@ def posting_text():
 
 @app.get("/api/hidden")
 def hidden():
-    """The jobs your preferences hide: just the three columns the Hidden tab shows."""
-    return jsonify([{"title": row["title"], "company": row["company"], "reason": row["hidden"]}
-                    for row in jobs_for_display(cv_id()) if row["hidden"]])
+    """The hidden jobs: the columns the Hidden tab shows, and whether you hid
+    each one yourself (those can be brought back from there). Yours come first."""
+    rows = [row for row in jobs_for_display(cv_id()) if row["hidden"]]
+    rows.sort(key=lambda row: not row["hidden_by_you"])
+    return jsonify([{"url": row["url"], "title": row["title"], "company": row["company"],
+                     "reason": row["hidden"], "by_you": row["hidden_by_you"]} for row in rows])
+
+
+@app.post("/api/hide")
+def hide_job():
+    """Hide a job yourself, with a reason ("closed" or "not interested"), or
+    with reason None bring it back."""
+    body = request.get_json()
+    if body.get("reason") is None:
+        hidden_by_you.unhide(body["url"])
+    elif body["reason"] in hidden_by_you.REASONS:
+        hidden_by_you.hide(body["url"], body["reason"])
+    else:
+        return jsonify({"error": "The reason must be closed or not interested."}), 400
+    return jsonify({"ok": True})
 
 
 @app.get("/api/preferences")

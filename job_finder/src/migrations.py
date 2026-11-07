@@ -30,7 +30,7 @@ BACKUPS_DIR = DATA_DIR / "backups"
 # up: it can always be downloaded again.
 DATA_FILES = ["jobs.json", "postings.json", "fits.json", "applied.json", "preferences.json",
               "connections.json", "cv_info.json", "scoring_log.json", "missing_postings.json",
-              "company_boards.json"]
+              "company_boards.json", "hidden_by_you.json"]
 
 
 def _read(name, default):

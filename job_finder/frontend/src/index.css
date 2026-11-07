@@ -384,7 +384,8 @@ td.wrap-narrow { white-space: normal; min-width: 110px; max-width: 190px; }
 .tag { padding: 3px 10px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); font-size: 12.5px; }
 .home-current { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .home-current input { width: 220px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-weight: 600; }
-.panel-actions { display: flex; gap: 8px; align-items: center; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hide-choices { display: flex; gap: 8px; align-items: center; color: var(--muted); }
 
 /* ---- A Claude session's usage ---- */
 .session-usage { margin-top: 6px; }

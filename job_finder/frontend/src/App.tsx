@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError, api } from './api/client'
 import type {
-  AppliedJob, BatchRecord, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
+  AppliedJob, BatchRecord, HideReason, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
   Status, UpdateProgress,
 } from './api/types'
 import { AppliedJobs } from './components/AppliedJobs'
@@ -177,6 +177,32 @@ function App() {
     }
   }
 
+  // Hide a job yourself: it leaves the table at once, and the Hidden tab lists
+  // it with an Undo.
+  async function hideJob(job: Job, reason: HideReason) {
+    try {
+      await api.hide(job.url, reason)
+      setJobs((all) => all.filter((j) => j.url !== job.url))
+      setHiddenCount((count) => count + 1)
+      setOpenUrl(null)
+      setMessage({
+        text: `Hidden: ${job.title} (${reason}). The Hidden tab can bring it back.`,
+        isError: false,
+      })
+    } catch {
+      setMessage({ text: 'Could not hide it. Is the back end running?', isError: true })
+    }
+  }
+
+  async function unhideJob(url: string) {
+    try {
+      await api.hide(url, null)
+      showData(await fetchData()) // its row comes back, worked out afresh
+    } catch {
+      setMessage({ text: 'Could not bring it back. Is the back end running?', isError: true })
+    }
+  }
+
   // A new CV: scores made for the previous one no longer apply, so reload.
   async function uploadCv(file: File) {
     try {
@@ -336,7 +362,7 @@ function App() {
         ) : (
           // Rendered (and so fetched) only while this tab is open. The key makes
           // it fetch again after the data reloads, e.g. after a new CV.
-          <HiddenJobs key={dataVersion} />
+          <HiddenJobs key={dataVersion} onUnhide={unhideJob} />
         )}
         <footer className="credit">
           Job Finder {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
@@ -345,6 +371,7 @@ function App() {
       )}
       {openJob && (
         <JobPanel job={openJob} onClose={closePanel} scoring={fit.progress?.running ?? false}
+          onHide={(reason) => hideJob(openJob, reason)}
           onScore={status.cv && status.scorer
             ? (again) => startScoring([openJob], again) : undefined} />
       )}

@@ -15,7 +15,8 @@ function job(changes: Partial<Job> = {}): Job {
     field: 'software', industry: '', company_size: 'l', city: 'תל אביב-יפו', location: '',
     distance_km: 40, updated: '2026-10-10', data_level: '', level: 'not stated',
     level_reason: '', industries: {}, has_text: true, apply_url: '', source: '',
-    work_mode: '', fit: null, applied: null, years: null, first_seen: '', for_graduates: false, hidden: null,
+    work_mode: '', fit: null, applied: null, years: null, first_seen: '', for_graduates: false,
+    hidden: null, hidden_by_you: false,
     ...changes,
   }
 }

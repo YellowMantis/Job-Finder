@@ -16,9 +16,11 @@ from applied import APPLIED_PATH
 from career_sites import _normalise, comeet_id, fetch_posting
 from companies import company_points, load_companies, locate_cities, nearest_km, place_points
 from download import download_data
+from hidden_by_you import HIDDEN_BY_YOU_PATH
 from job_boards import (FEED_KEYS, ashby_jobs, greenhouse_jobs, lever_jobs, merge_board_jobs,
                         smartrecruiters_jobs)
 from jobs import label_listings, load_listings
+import hidden_by_you
 import new_jobs
 import snapshot
 from preferences import hidden_reason, load_preferences
@@ -203,6 +205,7 @@ def update_jobs(progress):
     jobs, board_postings, companies = collect_listings(progress)
     write_json(JOBS_PATH, jobs)
     new_jobs.record_first_seen(jobs)
+    hidden_by_you.forget_gone({job["url"] for job in jobs})
     OLD_EXCLUDED_PATH.unlink(missing_ok=True)
     by_name = {company["name"]: company for company in companies}
     # Kept for updates from the snapshot later: which companies have job boards.
@@ -219,6 +222,7 @@ def update_from_snapshot(progress):
     if shared is not None:  # None: unchanged since last time
         write_json(JOBS_PATH, shared["jobs"])
         new_jobs.record_first_seen(shared["jobs"])
+        hidden_by_you.forget_gone({job["url"] for job in shared["jobs"]})
         write_json(BOARDS_PATH, shared["companies"])
     jobs = read_json(JOBS_PATH, [])
     return _summary(jobs, fetch_texts(jobs, read_json(BOARDS_PATH, {}), progress))
@@ -288,6 +292,7 @@ def jobs_for_display(cv_id=None):
     postings = read_json(POSTINGS_PATH, {})
     fits = read_json(FITS_PATH, {})
     applied = read_json(APPLIED_PATH, {})
+    yours = read_json(HIDDEN_BY_YOU_PATH, {})  # the jobs you hid yourself
     first_seen = new_jobs.first_seen()
     preferences = load_preferences()
     chosen = preferences["home"]  # None until the first-run setup is done
@@ -351,8 +356,13 @@ def jobs_for_display(cv_id=None):
             row["for_graduates"] = (for_graduates(job["title"], posting["text"])
                                     or row["years"] == 0)
 
-        # A job you applied to stays in the table whatever your preferences
-        # say, so it doesn't seem to vanish once it gets older than they allow.
-        row["hidden"] = None if row["applied"] else hidden_reason(row, preferences)
+        # A job you hid yourself is hidden, whatever else. A job you applied to
+        # stays in the table whatever your preferences say, so it doesn't seem
+        # to vanish once it gets older than they allow.
+        row["hidden_by_you"] = job["url"] in yours
+        if row["hidden_by_you"]:
+            row["hidden"] = hidden_by_you.reason_text(yours[job["url"]])
+        else:
+            row["hidden"] = None if row["applied"] else hidden_reason(row, preferences)
         rows.append(row)
     return rows
