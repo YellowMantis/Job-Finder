@@ -139,6 +139,9 @@ td { border-bottom: 1px solid #eef0f3; }
 tbody tr:last-child td { border-bottom: 0; }
 .jobs-table tbody tr { cursor: pointer; }
 .jobs-table tbody tr:hover { background: var(--accent-soft); }
+/* The job opened last: marked after its panel closes, to find it again. */
+.jobs-table tbody tr.last-opened { background: var(--accent-soft); }
+.jobs-table tbody tr.last-opened td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .num { text-align: right; }
 .muted { color: var(--muted); }
 

@@ -40,6 +40,9 @@ function App() {
   const [sort, setSort] = useState<Sort>({ key: 'chance', descending: true }) // where to start first
   const [tab, setTab] = useState<'jobs' | 'skills' | 'applied' | 'hidden'>('jobs')
   const [openUrl, setOpenUrl] = useState<string | null>(null) // the job in the side panel
+  // The job opened last stays marked in the table after its panel closes, so
+  // after visiting its website you can find it again, e.g. to tick Applied.
+  const [lastOpened, setLastOpened] = useState<string | null>(null)
   const [error, setError] = useState('') // the page can't work at all
   const [message, setMessage] = useState<Message>(null) // news or a problem, page still works
   const [log, setLog] = useState<BatchRecord[]>([]) // recent scoring batches
@@ -272,6 +275,10 @@ function App() {
   // useCallback keeps the same function between redraws, so the panel's Esc
   // listener isn't removed and added again every time.
   const closePanel = useCallback(() => setOpenUrl(null), [])
+  const openPanel = (job: Job) => {
+    setOpenUrl(job.url)
+    setLastOpened(job.url)
+  }
 
   if (error) return <main><p className="message error">{error}</p></main>
   if (status?.startup_problem) return <main><p className="message error">{status.startup_problem}</p></main>
@@ -363,9 +370,9 @@ function App() {
             <FilterBar jobs={jobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
             {tab === 'jobs' ? (
               <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
-                onOpen={(job) => setOpenUrl(job.url)} onApplied={markApplied} />
+                lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />
             ) : (
-              <SkillGaps jobs={shown} onOpen={(job) => setOpenUrl(job.url)} />
+              <SkillGaps jobs={shown} onOpen={openPanel} />
             )}
           </>
         ) : tab === 'applied' ? (

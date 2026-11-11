@@ -11,6 +11,7 @@ type Props = {
   newSince: string | null // jobs that appeared after this get a "New" badge
   sort: Sort
   onSort: (key: SortKey) => void
+  lastOpened: string | null // the job opened last, marked until another is opened
   onOpen: (job: Job) => void
   onApplied: (job: Job, applied: boolean) => void
 }
@@ -34,7 +35,7 @@ const COLUMNS: { key: SortKey | null; label: string; numeric?: boolean; hint?: s
 
 // The positions table. It only displays: the rows, the order and what happens
 // on a click all come from App, through the props above.
-export function JobsTable({ jobs, newSince, sort, onSort, onOpen, onApplied }: Props) {
+export function JobsTable({ jobs, newSince, sort, onSort, lastOpened, onOpen, onApplied }: Props) {
   return (
     <div className="table-wrap">
       <table className="jobs-table">
@@ -55,8 +56,8 @@ export function JobsTable({ jobs, newSince, sort, onSort, onOpen, onApplied }: P
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <JobRow key={job.url} job={job} isNew={isNew(job, newSince)} onOpen={onOpen}
-              onApplied={onApplied} />
+            <JobRow key={job.url} job={job} isNew={isNew(job, newSince)}
+              opened={job.url === lastOpened} onOpen={onOpen} onApplied={onApplied} />
           ))}
         </tbody>
       </table>
@@ -65,15 +66,16 @@ export function JobsTable({ jobs, newSince, sort, onSort, onOpen, onApplied }: P
   )
 }
 
-type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job; isNew: boolean }
+type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job; isNew: boolean; opened: boolean }
 
-function JobRow({ job, isNew, onOpen, onApplied }: RowProps) {
+function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
   const mode = modeOf(job)
   // Clicks on the link and the tick box must not also open the side panel.
   const stop = (event: MouseEvent) => event.stopPropagation()
 
   return (
-    <tr className={job.applied ? 'is-applied' : undefined} onClick={() => onOpen(job)}>
+    <tr className={[job.applied && 'is-applied', opened && 'last-opened'].filter(Boolean).join(' ') || undefined}
+      onClick={() => onOpen(job)}>
       <td className="num"><FitBadge job={job} /></td>
       <td><ChanceBadge job={job} /></td>
       <td className="wrap">
