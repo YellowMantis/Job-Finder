@@ -8,7 +8,8 @@ import { chanceOf, chanceRank, type Chance } from './chance'
 // ---- Values worked out from a job ---------------------------------------------
 
 // Where the job is: the company site's answer if we have it, else the listing's city.
-export const placeOf = (job: Job) => job.location || job.city
+// Every job is in Israel, so a trailing ", Israel" only makes the column wrap.
+export const placeOf = (job: Job) => (job.location || job.city).replace(/,\s*Israel$/i, '')
 
 export const levelLabel = (job: Job) =>
   ({ junior: 'Junior', senior: 'Senior' } as Record<string, string>)[job.level] ?? 'Level not stated'

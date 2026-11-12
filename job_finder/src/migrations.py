@@ -18,11 +18,13 @@ To change the data's shape: write the migration, add it to MIGRATIONS with
 the next number, and add a test with data in the old shape.
 """
 
+import hashlib
 import json
 import re
 import shutil
 from datetime import datetime
 
+import cv_library
 from fit_rules import score_of
 from settings import DATA_DIR
 
@@ -114,8 +116,20 @@ def _to_version_3():
                                         for url, reviews in earlier.items()})
 
 
+def _to_version_4():
+    """CVs are now kept in a list you can switch between (cv_library.py): the
+    CV loaded before becomes the first one in it."""
+    text_path = DATA_DIR / "cv.txt"
+    if not text_path.exists():
+        return
+    cv = hashlib.sha1(text_path.read_bytes()).hexdigest()[:12]  # as app.cv_id
+    if cv_library.info(cv) is None:
+        info = _read("cv_info.json", {"name": "CV", "uploaded": ""})
+        cv_library.add(cv, DATA_DIR / "cv.pdf", text_path.read_text(encoding="utf-8"), info)
+
+
 # Version number -> the migration that brings the data up to that version.
-MIGRATIONS = {1: _to_version_1, 2: _to_version_2, 3: _to_version_3}
+MIGRATIONS = {1: _to_version_1, 2: _to_version_2, 3: _to_version_3, 4: _to_version_4}
 CURRENT_VERSION = max(MIGRATIONS)
 
 
@@ -147,6 +161,30 @@ def mark_current():
     """A brand-new data folder is written in today's shape: record that."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     _write("data_version.json", {"version": CURRENT_VERSION})
+
+
+def forget_cv_in_backups(cv, name):
+    """Deleting a CV with its scores: remove them from the backups too, since
+    reviews quote the CV. A backup's CV details go if they name that CV."""
+    if not BACKUPS_DIR.exists():
+        return
+    for folder in BACKUPS_DIR.iterdir():
+        if not folder.is_dir():
+            continue
+        fits = folder / "fits.json"
+        if fits.exists():
+            kept = {url: review for url, review in json.loads(fits.read_text(encoding="utf-8")).items()
+                    if review.get("cv") != cv}
+            fits.write_text(json.dumps(kept, indent=2, ensure_ascii=False), encoding="utf-8")
+        earlier = folder / "earlier_reviews.json"
+        if earlier.exists():
+            reviews = json.loads(earlier.read_text(encoding="utf-8"))
+            kept = {url: [r for r in rs if r.get("cv") != cv] for url, rs in reviews.items()}
+            earlier.write_text(json.dumps({url: rs for url, rs in kept.items() if rs},
+                                          indent=2, ensure_ascii=False), encoding="utf-8")
+        info = folder / "cv_info.json"
+        if info.exists() and json.loads(info.read_text(encoding="utf-8")).get("name") == name:
+            info.unlink()
 
 
 def _back_up(version):

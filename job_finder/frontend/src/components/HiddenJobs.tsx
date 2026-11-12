@@ -26,9 +26,7 @@ export function HiddenJobs({ onUnhide }: Props) {
   return (
     <section>
       <p className="note">
-        Hidden by your preferences (level, posting age and industries), or by you, with the
-        reason for each. They are kept, not deleted, and are never scored. Undo brings back a
-        job you hid.
+        Hidden by your preferences or by you. They are kept, not deleted, and never scored.
       </p>
       <div className="table-wrap">
         <table>

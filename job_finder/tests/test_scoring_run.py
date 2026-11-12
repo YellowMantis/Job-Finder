@@ -260,3 +260,13 @@ def test_an_earlier_review_cant_be_chosen_while_scoring(app_with):
     answer = app.app.test_client().post("/api/reviews/use", json={"url": "job-1", "scored": "x"})
     assert answer.status_code == 409
     app.fit_progress["running"] = False
+
+
+def test_earlier_reviews_are_capped_per_cv_so_one_cv_never_pushes_out_another():
+    import earlier_reviews
+    earlier_reviews.keep("job", {"cv": "aaaaaaaaaaaa", "scored": "first"})
+    for number in range(earlier_reviews.MOST_PER_CV + 2):
+        earlier_reviews.keep("job", {"cv": "bbbbbbbbbbbb", "scored": str(number)})
+
+    assert len(earlier_reviews.for_job("job", "bbbbbbbbbbbb")) == earlier_reviews.MOST_PER_CV
+    assert earlier_reviews.for_job("job", "aaaaaaaaaaaa") == [{"cv": "aaaaaaaaaaaa", "scored": "first"}]

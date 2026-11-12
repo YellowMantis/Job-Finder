@@ -3,7 +3,7 @@
 
 import type { Filters } from '../logic/jobs'
 import type {
-  AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo,
+  AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo, SavedCv,
   DetectAnswer, Fit, FitProgress, HiddenJob, HideReason, Job, JobsAnswer, Place, Preferences,
   PreferencesAnswer, Status, Suggestions, TestAnswer, UpdateProgress,
 } from './types'
@@ -62,6 +62,10 @@ export const api = {
   setYears: (years: number) => post<CvInfo>('/api/cv/years', { years }),
   // The CV exactly as an AI receives it: without your name and contact details.
   cvSent: () => request<{ text: string }>('/api/cv/sent'),
+  useCv: (id: string) => post<CvInfo>('/api/cv/use', { id }),
+  // withScores: also delete the fit reviews made for it; otherwise they are kept
+  deleteCv: (id: string, withScores: boolean) =>
+    request<{ cvs: SavedCv[] }>(`/api/cv/${id}${withScores ? '?scores=delete' : ''}`, { method: 'DELETE' }),
 
   // Scoring runs in the background: start it, ask how it's going, stop it.
   // again: also redo jobs that already have a score (for example with another AI).

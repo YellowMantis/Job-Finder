@@ -45,15 +45,31 @@ export function ScoringPanel(props: Props) {
 
   return (
     <section className="scoring">
-      <p className="scoring-status">
-        <strong>Fit scores</strong>{' '}
-        {available === 0
-          ? `Nothing to score among the ${shownCount} jobs in the table below: every one with ` +
-            'posting text already has a score for this CV. Change the filters to see others.'
-          : `${available} of the ${shownCount} jobs in the table below can be scored ` +
-            '(they have posting text and no score for this CV). Good chances are scored ' +
-            "first, then in the table's order."}
-      </p>
+      <div className="scoring-head">
+        <h2 className="scoring-title">Fit scores</h2>
+        <span className="muted"
+          title={available === 0
+            ? 'Every job in the table with posting text already has a score for this CV. ' +
+              'Change the filters to see others.'
+            : 'Jobs in the table below with posting text and no score for this CV. ' +
+              "Strong chances are scored first, then in the table's order."}>
+          {available === 0
+            ? `All ${shownCount} jobs in the table are scored`
+            : `${available} of ${shownCount} jobs in the table can be scored`}
+        </span>
+        <div className="scoring-with">
+          <label>
+            Score with{' '}
+            <select value={connections?.active ?? ''} disabled={progress?.running}
+              onChange={(event) => onSwitch(event.target.value)}>
+              {(connections?.connections ?? []).map((connection) => (
+                <option key={connection.id} value={connection.id}>{connection.name}</option>
+              ))}
+            </select>
+          </label>
+          <button className="link-button" onClick={onManage}>Manage</button>
+        </div>
+      </div>
 
       {progress?.running ? (
         <div className="scoring-actions">
@@ -79,45 +95,35 @@ export function ScoringPanel(props: Props) {
             </button>
           )}
           {guess && (
-            <span className="muted">
+            <span className="muted" title="Judging by your past batches. You can stop after any batch.">
               ≈ {formatTokens(guess.tokens)} tokens
               {perThousand !== undefined && ` (≈ ${sessionPercent(guess.tokens, perThousand)}% of a session)`}
-              {guess.seconds !== null && `, ≈ ${formatDuration(guess.seconds)}`}, judging by
-              your past batches
+              {guess.seconds !== null && ` · ≈ ${formatDuration(guess.seconds)}`}
             </span>
           )}
         </div>
       )}
 
-      <div className="scoring-with">
-        <label>
-          Score with{' '}
-          <select value={connections?.active ?? ''} disabled={progress?.running}
-            onChange={(event) => onSwitch(event.target.value)}>
-            {(connections?.connections ?? []).map((connection) => (
-              <option key={connection.id} value={connection.id}>{connection.name}</option>
-            ))}
-          </select>
-        </label>
-        <button className="link-button" onClick={onManage}>Manage AI connections</button>
-      </div>
-
-      <p className="scoring-usage muted small">
-        Scored by {providerName}.{' '}
-        {last
-          ? <>Last batch: {last.jobs} jobs · {formatTokens(tokensOf(last))} tokens
-            {last.seconds !== undefined && ` · ${formatDuration(last.seconds)}`} · {last.time}. </>
-          : 'No batches scored yet. '}
-        Today: {today.batches} batch(es), {today.jobs} jobs, {formatTokens(today.tokens)} tokens
-        {today.costUsd > 0 &&
-          ` (≈ $${today.costUsd.toFixed(2)} if paid per use; on a subscription it counts towards ` +
-          'its usage limits instead, which Claude Code shows with /usage)'}
-        . You can stop after any batch.
-      </p>
-      {active?.kind === 'claude' && (
-        <SessionUsage tokens={session.tokens} jobs={session.jobs} perThousand={perThousand}
-          connectionId={active.id} onCalibrated={onCalibrated} />
-      )}
+      {/* The numbers behind the estimate: there when you want them, folded away otherwise. */}
+      <details className="scoring-details">
+        <summary>Usage</summary>
+        <p className="scoring-usage muted small">
+          Scored by {providerName}.{' '}
+          {last
+            ? <>Last batch: {last.jobs} jobs · {formatTokens(tokensOf(last))} tokens
+              {last.seconds !== undefined && ` · ${formatDuration(last.seconds)}`} · {last.time}. </>
+            : 'No batches scored yet. '}
+          Today: {today.batches} batch(es), {today.jobs} jobs, {formatTokens(today.tokens)} tokens
+          {today.costUsd > 0 &&
+            ` (≈ $${today.costUsd.toFixed(2)} if paid per use; on a subscription it counts towards ` +
+            'its usage limits instead, which Claude Code shows with /usage)'}
+          . You can stop after any batch.
+        </p>
+        {active?.kind === 'claude' && (
+          <SessionUsage tokens={session.tokens} jobs={session.jobs} perThousand={perThousand}
+            connectionId={active.id} onCalibrated={onCalibrated} />
+        )}
+      </details>
     </section>
   )
 }

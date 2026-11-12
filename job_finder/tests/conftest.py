@@ -22,9 +22,11 @@ def data_files_in_a_test_folder(tmp_path, monkeypatch):
     """Asking for the app's status records a visit, updates record when jobs
     first appeared (new_jobs.py), ticking Applied saves the job
     (applied.py), and so does hiding one (hidden_by_you.py) or scoring
-    one again (earlier_reviews.py). In every test those files go to the test's own empty
+    one again (earlier_reviews.py), and uploading a CV keeps it (cv_library.py).
+    In every test those files go to the test's own empty
     folder, never to your real data."""
     import applied
+    import cv_library
     import earlier_reviews
     import hidden_by_you
     import new_jobs
@@ -35,4 +37,7 @@ def data_files_in_a_test_folder(tmp_path, monkeypatch):
     monkeypatch.setattr(pipeline, "APPLIED_PATH", tmp_path / "applied.json")
     monkeypatch.setattr(hidden_by_you, "HIDDEN_BY_YOU_PATH", tmp_path / "hidden_by_you.json")
     monkeypatch.setattr(earlier_reviews, "EARLIER_REVIEWS_PATH", tmp_path / "earlier_reviews.json")
+    monkeypatch.setattr(cv_library, "CVS_DIR", tmp_path / "cvs")
+    import migrations
+    monkeypatch.setattr(migrations, "BACKUPS_DIR", tmp_path / "backups")
     monkeypatch.setattr(pipeline, "HIDDEN_BY_YOU_PATH", tmp_path / "hidden_by_you.json")

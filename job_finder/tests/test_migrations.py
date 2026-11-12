@@ -109,3 +109,20 @@ def test_scores_halved_for_3_years_asked_are_lowered_by_a_quarter_instead(folder
     assert fits["five"]["score"] == 38   # 3+ years short: still halved
     assert fits["none"]["score"] == 80
     assert read(folder, "earlier_reviews.json")["three"][0]["score"] == 56
+
+
+def test_the_cv_loaded_before_becomes_the_first_in_your_list(folder):
+    import cv_library
+    write(folder, "data_version.json", {"version": 3})
+    (folder / "cv.txt").write_text("Python developer", encoding="utf-8")
+    (folder / "cv.pdf").write_bytes(b"%PDF-1.4 a CV")
+    write(folder, "cv_info.json", {"name": "backend.pdf", "uploaded": "2026-10-14 01:17",
+                                   "professional_years": 1})
+
+    assert migrations.run() is None
+
+    [saved] = cv_library.listing()
+    assert saved["name"] == "backend.pdf"
+    assert cv_library.info(saved["id"])["professional_years"] == 1
+    pdf, text = cv_library.files(saved["id"])
+    assert pdf.read_bytes() == b"%PDF-1.4 a CV"

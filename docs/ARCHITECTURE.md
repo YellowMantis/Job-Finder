@@ -557,7 +557,8 @@ frontend/src/
 
 | Component | What it shows |
 |---|---|
-| `CvDropZone` | The CV box, the years of experience you can correct, and what the AI receives |
+| `CvDropZone` | The CV box: a big drop area until a CV is loaded, then one line with your saved CVs to switch between, the years of experience you can correct, and what the AI receives |
+| `CvList` | Settings → Your CVs: switch to a saved CV, take it off the list (its scores are kept), or delete it with its scores |
 | `FilterBar` | Search, tick-box lists, age, distance and the other filters |
 | `MultiSelect`, `CheckboxList` | Tick-box lists, as a drop-down and as a plain list |
 | `ScoringPanel` | How many jobs to score and what that will probably use; the progress bar; stop; usage so far |
@@ -621,8 +622,20 @@ with a numbered **migration** in `migrations.py`: a small function that upgrades
 previous version, with a test that starts from data in the old shape. When the app starts
 (`start_up()` in `app.py`), `migrations.run()` reads `data_version.json`, backs up the data
 files to `data/backups/`, and runs each missing migration in order, recording the version as
-it goes. Data saved by a *newer* app (an older version installed over it) is left untouched,
+it goes (version 4 put the CV loaded before into the new list of CVs). Data saved by a *newer* app (an older version installed over it) is left untouched,
 and the page asks for the latest version instead.
+
+### Several CVs
+
+Every CV you upload is kept in `cvs/<fingerprint>/` (`cv_library.py`); the one in use is also
+copied to `cv.pdf`, `cv.txt` and `cv_info.json`, so the rest of the app reads it as before.
+Each fit review carries the fingerprint of the CV it was made for, and a job holds one current
+review in `fits.json`; reviews it replaces move to `earlier_reviews.json`. Switching CV
+(`use_cv`) or uploading one used before calls `earlier_reviews.switch_to`, which makes each
+job's latest review for that CV the current one again, so its scores are back without asking
+the AI. A CV's text must be identical for that: an edited CV is a new CV. Taking a CV off the
+list keeps its reviews; deleting it with its scores removes them everywhere, backups included.
+Switching or deleting is refused while scoring runs, so a run never mixes two CVs.
 
 ### New versions reach users
 
@@ -649,14 +662,14 @@ uploaded.
 | `postings.json` | `update_jobs` | Job descriptions | job link |
 | `fits.json` | `score_jobs` | Fit reviews | job link (+ CV fingerprint inside) |
 | `applied.json` | `applied.py` | The jobs you applied to: date, title, company, apply link (kept after the listing closes) | job link |
-| `earlier_reviews.json` | `earlier_reviews.py` | Fit reviews replaced by a newer one, up to 10 per job, so models can be compared | job link |
-| `hidden_by_you.json` | `earlier_reviews.py` | Keeps a job's replaced fit reviews; the table shows the latest, the panel the others | `keep`, `for_job`, `swap` |
-| `hidden_by_you.py` | Jobs you hid yourself: reason and date (forgotten once no longer listed) | job link |
+| `earlier_reviews.json` | `earlier_reviews.py` | Fit reviews replaced by a newer one (another model, or another of your CVs), up to 10 per job and CV, so models can be compared and switching CV brings a CV's reviews back | job link |
+| `hidden_by_you.json` | `hidden_by_you.py` | Jobs you hid yourself: reason and date (forgotten once no longer listed) | job link |
 | `filters.json` | `save_filters` | The table's filters as you last left them | – |
 | `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list) | job link |
 | `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended: later jobs get a "New" badge | – |
-| `cv.pdf`, `cv.txt` | `upload_cv` | Your CV and its extracted text | – |
-| `cv_info.json` | `upload_cv`, `set_years` | CV name, size, years of experience | – |
+| `cv.pdf`, `cv.txt` | `upload_cv`, `use_cv` | The CV in use and its extracted text | – |
+| `cv_info.json` | `upload_cv`, `use_cv`, `set_years` | The CV in use: name, size, years of experience | – |
+| `cvs/` | `cv_library.py` | Every CV you uploaded, one folder each (`cv.pdf`, `cv.txt`, `info.json`), named by its fingerprint | CV fingerprint |
 | `scoring_log.json` | `scoring.py` | Every AI request: when, which connection, jobs, tokens, seconds | – |
 | `missing_postings.json` | `fetch_texts` | Postings looked for and not found, and when | job link |
 | `snapshot_etag.json` | `snapshot.py` | Which snapshot was downloaded last, so an unchanged one isn't downloaded again | – |
@@ -686,6 +699,7 @@ A **cache** is a saved result you reuse instead of recomputing. Two are central:
 | Your identity reaching an AI | The AI service stores your name, phone number and address with your CV | `cv_privacy.for_ai()` removes the name line, the header's contact lines, and any email, phone number, link or mention of your name, on your PC, before any AI request. The AI is told they were removed on purpose, so they never count against you. "See what the AI receives" in the CV box shows the exact text |
 | Hijacked packages | A package or GitHub Action is taken over and a new version carries malware | Python packages are pinned to exact versions, the page's by `package-lock.json` with checksums, and GitHub Actions by commit, so nothing changes without a reviewed update (Dependabot) |
 | Leaked secrets | Your API key or CV ends up on GitHub | Keys are kept in the system's password safe, never in a file; your data folder (`job_finder/data/`) is in `.gitignore` |
+| A deleted CV left behind | You delete a CV, but copies of it stay on the PC | "Delete with its scores" removes the CV's folder, its reviews (which quote the CV) from `fits.json` and `earlier_reviews.json`, and from every backup in `backups/`. A CV's folder name comes only from its fingerprint (12 hex characters, checked), so a request can't reach other folders |
 | Details in error messages | A service's error reply repeats part of a key, and the page shows it | Text from outside the app goes through `outside_text()` (`providers/base.py`) before it is shown: one short line, with anything key-like hidden. Other errors say what kind of problem it was, not the raw details |
 | Overloading other sites | Being blocked by career sites | One-second pause between requests; only new postings are fetched |
 
@@ -742,7 +756,9 @@ one computer. A hosted service would need both.
 | `snapshot.py` | The shared snapshot of every listing: building, writing and downloading it | `build`, `download` |
 | `places.py`, `places_il.json` | Finding a town by name, in English or Hebrew | `search` |
 | `boards.json` | Job boards techmap doesn't know about, or knows out of date, each verified by `tools/find_boards.py` | – |
-| `migrations.py` | Upgrades your data when a new version changes its shape, after a backup | `run` |
+| `cv_library.py` | Your saved CVs: keeping each upload, listing them, taking one off the list | `add`, `listing`, `files`, `remove` |
+| `earlier_reviews.py` | Keeps a job's replaced fit reviews; the table shows the latest, the panel the others; switching CV brings that CV's back | `keep`, `for_job`, `swap`, `switch_to`, `forget` |
+| `migrations.py` | Upgrades your data when a new version changes its shape, after a backup; removes a deleted CV's reviews from the backups | `run`, `forget_cv_in_backups` |
 | `updates.py` | Asks GitHub whether a newer version is out, and installs it when you choose | `check`, `install` |
 
 ### `job_finder/frontend/` (the page)

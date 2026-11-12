@@ -34,8 +34,13 @@ const fit = (score: number | null, work_mode = 'not stated') => ({
 
 describe('values shown in the table', () => {
   it("prefers the company site's location to the listing's city", () => {
-    expect(placeOf(job({ location: 'Haifa, Israel' }))).toBe('Haifa, Israel')
+    expect(placeOf(job({ location: 'Haifa' }))).toBe('Haifa')
     expect(placeOf(job())).toBe('תל אביב-יפו')
+  })
+
+  it('leaves out the country, since every job is in Israel', () => {
+    expect(placeOf(job({ location: 'Tel Aviv-Jaffa, Israel' }))).toBe('Tel Aviv-Jaffa')
+    expect(placeOf(job({ location: 'Tel Aviv/ Netanya,Israel' }))).toBe('Tel Aviv/ Netanya')
   })
 
   it("prefers the site's work mode to the review's reading", () => {

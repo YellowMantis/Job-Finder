@@ -42,6 +42,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(app, "CV_PDF_PATH", tmp_path / "cv.pdf")
     monkeypatch.setattr(app, "CV_TEXT_PATH", tmp_path / "cv.txt")
     monkeypatch.setattr(app, "CV_INFO_PATH", tmp_path / "cv_info.json")
+    monkeypatch.setattr(app, "FITS_PATH", tmp_path / "fits.json")
     return app.app.test_client(), tmp_path
 
 
@@ -155,3 +156,105 @@ def test_filters_are_kept_for_next_time(client, monkeypatch):
     assert test_client.get("/api/status").get_json()["filters"] == {
         "minFit": 40, "modes": ["hybrid", "remote"]}
     assert test_client.post("/api/filters", json=[1, 2]).status_code == 400
+
+
+# ---- Several CVs ----------------------------------------------------------------------
+
+def review_for(cv, score):
+    return {"cv": cv, "score": score, "scored": f"2026-11-0{score % 9 + 1} 10:00"}
+
+
+def current_cv(test_client):
+    return test_client.get("/api/status").get_json()["cv_id"]
+
+
+def test_every_cv_you_upload_is_kept_in_your_list(client):
+    test_client, _ = client
+    upload(test_client, make_pdf("Python developer"), name="backend.pdf")
+    upload(test_client, make_pdf("Machine learning engineer"), name="ai.pdf")
+
+    names = [cv["name"] for cv in test_client.get("/api/status").get_json()["cvs"]]
+    assert sorted(names) == ["ai.pdf", "backend.pdf"]
+
+
+def test_switching_back_to_a_cv_brings_back_its_scores_and_years(client):
+    test_client, folder = client
+    upload(test_client, make_pdf("Python developer"), name="backend.pdf")
+    backend = current_cv(test_client)
+    test_client.post("/api/cv/years", json={"years": 2})
+    upload(test_client, make_pdf("Machine learning engineer"), name="ai.pdf")
+    ai = current_cv(test_client)
+    # The job was scored for the backend CV, then again for the AI CV: the
+    # backend review was moved to the earlier reviews.
+    (folder / "fits.json").write_text(json.dumps({"job": review_for(ai, 40)}), encoding="utf-8")
+    import earlier_reviews
+    earlier_reviews.keep("job", review_for(backend, 70))
+
+    answer = test_client.post("/api/cv/use", json={"id": backend})
+
+    assert answer.get_json()["name"] == "backend.pdf"
+    assert answer.get_json()["professional_years"] == 2
+    assert current_cv(test_client) == backend
+    fits = json.loads((folder / "fits.json").read_text(encoding="utf-8"))
+    assert fits["job"]["score"] == 70
+    assert [r["score"] for r in earlier_reviews.for_job("job", ai)] == [40]  # kept, not lost
+
+
+def test_a_cv_removed_from_the_list_gets_its_scores_back_when_uploaded_again(client):
+    test_client, folder = client
+    upload(test_client, make_pdf("Python developer"), name="backend.pdf")
+    backend = current_cv(test_client)
+    upload(test_client, make_pdf("Machine learning engineer"), name="ai.pdf")
+    import earlier_reviews
+    earlier_reviews.keep("job", review_for(backend, 70))
+    test_client.delete(f"/api/cv/{backend}")
+    assert [cv["name"] for cv in test_client.get("/api/status").get_json()["cvs"]] == ["ai.pdf"]
+
+    upload(test_client, make_pdf("Python developer"), name="backend.pdf")
+
+    fits = json.loads((folder / "fits.json").read_text(encoding="utf-8"))
+    assert fits["job"]["score"] == 70
+
+
+def test_deleting_a_cv_with_its_scores_leaves_nothing_of_it(client, monkeypatch):
+    test_client, folder = client
+    upload(test_client, make_pdf("Python developer"), name="backend.pdf")
+    backend = current_cv(test_client)
+    (folder / "fits.json").write_text(json.dumps({"job": review_for(backend, 70)}), encoding="utf-8")
+    import earlier_reviews
+    earlier_reviews.keep("job", review_for(backend, 60))
+
+    import migrations
+    backup = folder / "backups" / "before-version-4"
+    backup.mkdir(parents=True)
+    (backup / "fits.json").write_text(json.dumps({"job": review_for(backend, 50),
+                                                  "other": review_for("cccccccccccc", 30)}), encoding="utf-8")
+    (backup / "cv_info.json").write_text(json.dumps({"name": "backend.pdf"}), encoding="utf-8")
+    monkeypatch.setattr(migrations, "BACKUPS_DIR", folder / "backups")
+
+    answer = test_client.delete(f"/api/cv/{backend}?scores=delete")
+
+    assert answer.get_json()["cvs"] == []
+    assert json.loads((folder / "fits.json").read_text(encoding="utf-8")) == {}
+    assert earlier_reviews.for_job("job", backend) == []
+    # Nor in the backups made before data upgrades: reviews quote the CV.
+    assert list(json.loads((backup / "fits.json").read_text(encoding="utf-8"))) == ["other"]
+    assert not (backup / "cv_info.json").exists()
+    assert not (folder / "cv.txt").exists()   # it was the CV in use: none is loaded now
+    assert test_client.get("/api/status").get_json()["cv"] is None
+
+
+def test_no_switching_while_scoring(client, monkeypatch):
+    import app
+    test_client, _ = client
+    upload(test_client, make_pdf("Python developer"))
+    monkeypatch.setitem(app.fit_progress, "running", True)
+    answer = test_client.post("/api/cv/use", json={"id": current_cv(test_client)})
+    assert answer.status_code == 409
+
+
+def test_an_unknown_cv_cannot_be_used_or_reach_other_folders(client):
+    test_client, _ = client
+    assert test_client.post("/api/cv/use", json={"id": "../../secret"}).status_code == 404
+    assert test_client.delete("/api/cv/..secret").status_code == 404
+    assert test_client.delete("/api/cv/..%2F..%2Fsecret").status_code >= 400  # never reaches the app

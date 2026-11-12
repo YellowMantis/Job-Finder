@@ -35,6 +35,9 @@ and refining it to make it as useful as possible.
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored
   what it did, line by line.
+- **Several CVs.** Keep a CV per direction (backend, AI, QA…) and switch between them: each
+  keeps its own scores, so switching back costs no AI use. Remove a CV from the list, or delete
+  it with every score made for it.
 - **Missing skills.** The skills your scored jobs ask for most that your CV doesn't show,
   counted across the jobs in the table, with the jobs behind each one. No extra AI use: it reads
   the reviews you already have.
@@ -83,6 +86,8 @@ and Linux it opens the download page. Your data stays either way.
 - **The AI never learns who you are.** Your name, email, phone number, address and links are
   removed from your CV before it's sent to any AI. The CV box shows exactly what the AI receives.
   With a model on your own PC, your CV doesn't leave the computer at all.
+- **Deleting means deleted.** "Delete with its scores" (Settings → Your CVs) removes the CV and
+  every score made for it from your PC, including the backups the app keeps before upgrades.
 - **Keys stay in your system's password safe** (Windows Credential Manager, macOS Keychain),
   never in a file, and are only ever sent to their own service.
 - **Only the app can use the app.** It listens on your own computer only, and refuses any

@@ -16,6 +16,7 @@ The page asks this file for data at addresses starting with /api/.
 import hashlib
 import json
 import os
+import shutil
 import sys
 import threading
 import webbrowser
@@ -32,6 +33,7 @@ from flask import Flask, jsonify, request, send_from_directory
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import applied  # noqa: E402
+import cv_library  # noqa: E402
 import earlier_reviews  # noqa: E402
 import hidden_by_you  # noqa: E402
 import migrations  # noqa: E402
@@ -131,7 +133,8 @@ def status():
     except ProviderError:
         scorer = None  # no AI connection yet: jobs can be filtered and tracked, not scored
     preferences = load_preferences()
-    return jsonify({"cv": read_json(CV_INFO_PATH, None), "jobs_updated": updated,
+    return jsonify({"cv": read_json(CV_INFO_PATH, None), "cvs": cv_library.listing(),
+                    "cv_id": cv_id(), "jobs_updated": updated,
                     "home": (preferences["home"] or {}).get("name", ""), "default_max_km": RADIUS_KM,
                     "default_fields": preferences["fields"], "credit": TECHMAP_CREDIT,
                     "scorer": scorer,
@@ -327,18 +330,77 @@ def upload_cv():
     if not text:
         return jsonify({"error": "No text found in that PDF. Is it a scanned image?"}), 400
 
-    # The same CV again (identical text) keeps the years you corrected; a
-    # different CV has its years read afresh when it is first scored.
+    # A CV uploaded before (identical text, even if since removed from the
+    # list) keeps the years you corrected; a new one has its years read
+    # afresh when it is first scored.
     same_cv = CV_TEXT_PATH.exists() and CV_TEXT_PATH.read_text(encoding="utf-8") == text
-    previous = read_json(CV_INFO_PATH, {}) if same_cv else {}
-
     CV_TEXT_PATH.write_text(text, encoding="utf-8")
+    previous = cv_library.info(cv_id()) or (read_json(CV_INFO_PATH, {}) if same_cv else {})
+
     info = {"name": file.filename, "characters": len(text),
             "uploaded": datetime.now().strftime("%Y-%m-%d %H:%M")}
     if "professional_years" in previous:
         info["professional_years"] = previous["professional_years"]
     write_json(CV_INFO_PATH, info)
+    cv_library.add(cv_id(), CV_PDF_PATH, text, info)
+    _bring_back_reviews()
     return jsonify(info)
+
+
+def _save_cv_info(info):
+    """Save the details of the CV in use, here and in the list of saved CVs."""
+    write_json(CV_INFO_PATH, info)
+    if cv_id():
+        cv_library.save_info(cv_id(), info)
+
+
+def _bring_back_reviews():
+    """The CV in use changed: show the scores made for it earlier, if any."""
+    fits = read_json(FITS_PATH, {})
+    if earlier_reviews.switch_to(cv_id(), fits):
+        write_json(FITS_PATH, fits)
+
+
+@app.post("/api/cv/use")
+def use_cv():
+    """Switch to another saved CV. Its scores, if it has any, come back."""
+    if fit_progress["running"]:
+        return jsonify({"error": "Wait for scoring to finish, or stop it, before switching CV."}), 409
+    try:
+        saved = cv_library.files(request.get_json().get("id"))
+    except KeyError:
+        saved = None
+    if saved is None:
+        return jsonify({"error": "That CV isn't in your list anymore."}), 404
+    pdf, text = saved
+    if pdf.exists():  # kept since version 4; older data may have only the text
+        shutil.copyfile(pdf, CV_PDF_PATH)
+    shutil.copyfile(text, CV_TEXT_PATH)
+    write_json(CV_INFO_PATH, cv_library.info(cv_id()))
+    _bring_back_reviews()
+    return jsonify(read_json(CV_INFO_PATH, None))
+
+
+@app.delete("/api/cv/<cv>")
+def delete_cv(cv):
+    """Take a CV off your list. With ?scores=delete, its fit reviews are
+    deleted too; otherwise they are kept, for if you upload it again."""
+    if fit_progress["running"]:
+        return jsonify({"error": "Wait for scoring to finish, or stop it, first."}), 409
+    try:
+        name = (cv_library.info(cv) or {}).get("name")
+        cv_library.remove(cv)
+    except KeyError:
+        return jsonify({"error": "No such CV."}), 404
+    if request.args.get("scores") == "delete":
+        fits = read_json(FITS_PATH, {})
+        write_json(FITS_PATH, {url: review for url, review in fits.items() if review.get("cv") != cv})
+        earlier_reviews.forget(cv)
+        migrations.forget_cv_in_backups(cv, name)  # reviews quote the CV: none may stay behind
+    if cv == cv_id():  # the CV in use: none is loaded now, until you choose or drop one
+        for path in (CV_PDF_PATH, CV_TEXT_PATH, CV_INFO_PATH):
+            path.unlink(missing_ok=True)
+    return jsonify({"cvs": cv_library.listing()})
 
 
 def cv_for_ai():
@@ -369,7 +431,7 @@ def suggest_preferences():
 
     info = read_json(CV_INFO_PATH, {})
     info["professional_years"] = suggestions.professional_years
-    write_json(CV_INFO_PATH, info)
+    _save_cv_info(info)
 
     suggested = {**load_preferences(), "levels": scoring.level_for(suggestions.professional_years)}
     if suggestions.fields:
@@ -388,7 +450,7 @@ def set_years():
     if info is None:
         return jsonify({"error": "Drop your CV first."}), 400
     info["professional_years"] = years
-    write_json(CV_INFO_PATH, info)
+    _save_cv_info(info)
     return jsonify(info)
 
 
@@ -407,7 +469,7 @@ def score_jobs(wanted_urls, again=False):
         info = read_json(CV_INFO_PATH, {})
         if "professional_years" not in info:
             info.update(scoring.read_cv_facts(provider, cv_text))
-            write_json(CV_INFO_PATH, info)
+            _save_cv_info(info)
         years = info["professional_years"]
 
         fits = read_json(FITS_PATH, {})

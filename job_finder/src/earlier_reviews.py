@@ -3,9 +3,11 @@
   {job link: [review, review, ...]}   oldest first, each as fits.json keeps it
 
 fits.json holds each job's current review, the one the table shows: the latest.
-When a job is scored again (for example with another model), the review it
-replaces moves here instead of being lost, so the job's panel can show what
-each model scored, and one of them can be made the current review again.
+When a job is scored again (for example with another model, or for another
+of your CVs), the review it replaces moves here instead of being lost, so the
+job's panel can show what each model scored, one of them can be made the
+current review again, and switching back to an earlier CV brings its reviews
+back (switch_to).
 
 Saved one change at a time, for the reason given in applied.py.
 """
@@ -17,7 +19,7 @@ import threading
 from settings import DATA_DIR
 
 EARLIER_REVIEWS_PATH = DATA_DIR / "earlier_reviews.json"
-MOST_PER_JOB = 10  # older ones are dropped; enough to compare several models
+MOST_PER_CV = 10  # per job and CV; older ones are dropped. Enough to compare several models
 _lock = threading.Lock()
 
 
@@ -38,7 +40,10 @@ def keep(url, review):
     """Keep a review that is being replaced."""
     with _lock:
         earlier = _read()
-        earlier[url] = (earlier.get(url, []) + [review])[-MOST_PER_JOB:]
+        reviews = earlier.get(url, []) + [review]
+        same_cv = [r for r in reviews if r.get("cv") == review.get("cv")]
+        too_old = same_cv[:-MOST_PER_CV]  # oldest first, so these are the oldest
+        earlier[url] = [r for r in reviews if not any(r is old for old in too_old)]
         _write(earlier)
 
 
@@ -63,3 +68,37 @@ def swap(url, scored, current):
             earlier[url].append(current)
         _write(earlier)
         return chosen
+
+
+def switch_to(cv, fits):
+    """Make each job's latest review for this CV its current one again, when
+    the current one was made for another CV (which is kept here instead).
+    Changes fits (fits.json's content) in place; returns how many jobs changed."""
+    changed = 0
+    with _lock:
+        earlier = _read()
+        for url, reviews in earlier.items():
+            current = fits.get(url)
+            if current and current.get("cv") == cv:
+                continue
+            mine = [review for review in reviews if review.get("cv") == cv]
+            if not mine:
+                continue
+            latest = mine[-1]
+            earlier[url] = [review for review in reviews if review is not latest]
+            if current:
+                earlier[url].append(current)
+            fits[url] = latest
+            changed += 1
+        if changed:
+            _write(earlier)
+    return changed
+
+
+def forget(cv):
+    """Delete every earlier review made for this CV."""
+    with _lock:
+        earlier = _read()
+        kept = {url: [review for review in reviews if review.get("cv") != cv]
+                for url, reviews in earlier.items()}
+        _write({url: reviews for url, reviews in kept.items() if reviews})

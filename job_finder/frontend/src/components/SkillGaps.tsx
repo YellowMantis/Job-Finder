@@ -24,19 +24,19 @@ export function SkillGaps({ jobs, onOpen }: Props) {
 
   return (
     <section>
-      <p className="note">
-        From the fit reviews of the {reviewed} scored job{reviewed === 1 ? '' : 's'} in the table
-        (the filters apply). Each skill counts the jobs that ask for it where your CV doesn't show
-        it. If you do have one, add it to your CV. Years of experience and degrees aren't counted.
+      <p className="note" title={"Each skill counts the jobs that ask for it where your CV doesn't show it. " +
+        "If you do have one, add it to your CV. Years of experience and degrees aren't counted."}>
+        Skills the {reviewed} scored job{reviewed === 1 ? '' : 's'} in the table ask for and your CV
+        doesn't show. Click a skill to see its jobs.
       </p>
       <div className="table-wrap">
         <table className="skills-table">
           <thead>
             <tr>
               <th>Skill</th>
-              <th className="num">Jobs missing it</th>
-              <th className="num">Required in</th>
-              <th className="num">Your CV shows it in</th>
+              <th className="centred">Jobs missing it</th>
+              <th className="centred">Required in</th>
+              <th className="centred">Your CV shows it in</th>
             </tr>
           </thead>
           <tbody>
@@ -44,12 +44,15 @@ export function SkillGaps({ jobs, onOpen }: Props) {
               <Fragment key={skill}>
                 <tr className="sortable" onClick={() => setOpen(open === skill ? null : skill)}>
                   <td>{open === skill ? '▾' : '▸'} {skill}</td>
-                  <td className="num">
-                    <span className="skill-bar" style={{ width: `${(60 * missing.length) / most}px` }} />
+                  <td className="centred">
+                    {/* A track of fixed width, so the numbers line up whatever the bar's length. */}
+                    <span className="skill-track">
+                      <span className="skill-bar" style={{ width: `${(60 * missing.length) / most}px` }} />
+                    </span>
                     {missing.length}
                   </td>
-                  <td className="num">{required}</td>
-                  <td className="num muted">{met}</td>
+                  <td className="centred">{required}</td>
+                  <td className="centred muted">{met}</td>
                 </tr>
                 {open === skill && missing.map((gap) => (
                   <tr key={gap.job.url} className="skill-job" onClick={() => onOpen(gap.job)}>

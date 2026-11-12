@@ -89,9 +89,18 @@ export type CvInfo = {
   professional_years?: number
 }
 
+// A CV in your list of saved CVs
+export type SavedCv = {
+  id: string // its fingerprint, which its fit reviews carry
+  name: string
+  uploaded: string
+}
+
 // GET /api/status
 export type Status = {
-  cv: CvInfo | null
+  cv: CvInfo | null // the CV in use
+  cv_id: string | null
+  cvs: SavedCv[] // every saved CV, the most recently uploaded first
   jobs_updated: string | null
   home: string
   default_max_km: number

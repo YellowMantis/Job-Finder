@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError, api } from './api/client'
 import type {
   AppliedJob, BatchRecord, HideReason, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
-  Status, UpdateProgress,
+  SavedCv, Status, UpdateProgress,
 } from './api/types'
 import { AppliedJobs } from './components/AppliedJobs'
 import { ConnectionsSettings } from './components/ConnectionsSettings'
 import { CvDropZone } from './components/CvDropZone'
+import { CvList } from './components/CvList'
 import { FilterBar } from './components/FilterBar'
 import { HiddenJobs } from './components/HiddenJobs'
 import { JobPanel } from './components/JobPanel'
@@ -222,10 +223,33 @@ function App() {
     try {
       await api.uploadCv(file)
       showData(await fetchData())
-      setMessage({ text: 'CV saved. Score the shown jobs to see how they fit it.', isError: false })
+      setMessage({ text: 'CV saved and added to your CVs. Jobs scored for it before show their ' +
+        'scores; score the others to see how they fit it.', isError: false })
     } catch (problem) {
       const text = problem instanceof ApiError ? problem.message : 'The CV could not be uploaded.'
       setMessage({ text, isError: true })
+    }
+  }
+
+  // Another saved CV: the table shows the scores made for it.
+  async function useCv(cv: SavedCv) {
+    try {
+      await api.useCv(cv.id)
+      showData(await fetchData())
+      setMessage({ text: `Now using ${cv.name}. Jobs scored for it show their scores.`, isError: false })
+    } catch (problem) {
+      setMessage({ text: problem instanceof ApiError ? problem.message : 'Could not switch CV.', isError: true })
+    }
+  }
+
+  async function deleteCv(cv: SavedCv, withScores: boolean) {
+    try {
+      await api.deleteCv(cv.id, withScores)
+      showData(await fetchData())
+      setMessage({ text: withScores ? `Deleted ${cv.name} and its scores.`
+        : `Removed ${cv.name} from your list. Its scores come back if you upload it again.`, isError: false })
+    } catch (problem) {
+      setMessage({ text: problem instanceof ApiError ? problem.message : 'Not deleted.', isError: true })
     }
   }
 
@@ -289,15 +313,14 @@ function App() {
       <header className="top">
         <div>
           <h1>Job Finder</h1>
-          <p className="subtitle">
-            {status.setup_needed ? 'Set up in three short steps' : <>Positions across Israel · {status.home ? `distances from ${status.home}` : 'no home chosen: set it in Settings'}</>}
-            {!status.setup_needed &&
-              (status.jobs_updated ? ` · listings updated ${status.jobs_updated}` : ' · no listings yet')}
-          </p>
+          {/* Only when there is something to do; otherwise the header stays clean. */}
+          {status.setup_needed
+            ? <p className="subtitle">Set up in three short steps</p>
+            : !status.home && <p className="subtitle">No home chosen: set it in Settings to see distances</p>}
         </div>
         {/* Hidden during the first-run setup, so it is finished before anything else. */}
         {!status.setup_needed && <div className="actions">
-          <button className="button secondary" onClick={() => setView(view === 'jobs' ? 'settings' : 'jobs')}>
+          <button className="button secondary" onClick={() => { setMessage(null); setView(view === 'jobs' ? 'settings' : 'jobs') }}>
             {view === 'jobs' ? 'Settings' : '← Back to positions'}
           </button>
           {update.progress?.running && (
@@ -306,8 +329,9 @@ function App() {
               {update.progress.total ? ` ${update.progress.done} of ${update.progress.total}…` : '…'}
             </span>
           )}
-          <button className="button secondary" onClick={startUpdate}
-            disabled={update.progress?.running}>
+          <button className="button light" onClick={startUpdate}
+            disabled={update.progress?.running}
+            title={status.jobs_updated ? `Last updated ${status.jobs_updated}` : 'No listings yet'}>
             {update.progress?.running ? 'Updating…' : 'Update listings'}
           </button>
         </div>}
@@ -322,12 +346,15 @@ function App() {
           onFinished={setupFinished} />
       ) : view === 'settings' ? (
         <main className="settings">
+          {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
+          <CvList cvs={status.cvs} inUse={status.cv_id} onUse={useCv} onDelete={deleteCv} />
           {preferences && <PreferencesForm answer={preferences} onSaved={preferencesSaved} />}
           {connections && <ConnectionsSettings info={connections} onChange={connectionsChanged} />}
         </main>
       ) : (
       <main>
-        <CvDropZone cv={status.cv} onUpload={uploadCv} onYears={saveYears} />
+        <CvDropZone cv={status.cv} onUpload={uploadCv} onYears={saveYears}
+          saved={{ cvs: status.cvs, inUse: status.cv_id, onUse: useCv }} />
         {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
         {status.cv && status.scorer && (
           <ScoringPanel candidates={scorable(shown)} shownCount={shown.length}
