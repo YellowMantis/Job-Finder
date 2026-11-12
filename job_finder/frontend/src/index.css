@@ -94,8 +94,18 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
   background: var(--accent-soft);
   transition: border-color 0.15s, background 0.15s;
 }
-.cv-bar.dragging { border-color: var(--accent); background: var(--accent-soft); }
-.cv-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.cv-bar { position: relative; }
+.cv-bar.dragging { border-color: var(--accent); border-style: dashed; }
+/* While a file is dragged over the line: say what dropping it does. */
+.cv-drop-note {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  border-radius: var(--radius); background: rgba(232, 240, 250, 0.94);
+  color: var(--accent); font-weight: 600; pointer-events: none;
+}
+.cv-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.cv-add { padding: 5px 12px; }
+/* Years and what the AI receives sit at the right; the CV and adding one, together at the left. */
+.cv-bar-row .cv-years { margin-left: auto; }
 .cv-name { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
 .cv-name strong { color: var(--text); }
 .cv-icon {
@@ -103,7 +113,6 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
   border-radius: var(--radius-small); background: var(--accent); color: #fff;
 }
 .cv-label { font-size: var(--text-small); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.cv-replace { margin-left: auto; }
 .cv-choice {
   padding: 5px 8px; border: 1px solid var(--accent-line); border-radius: var(--radius-small);
   background: var(--surface); font: inherit; font-weight: 600; color: var(--text); cursor: pointer;
@@ -270,7 +279,6 @@ td a.apply-chip:hover { background: var(--accent); color: #fff; text-decoration:
   cursor: pointer;
   user-select: none;
 }
-.multi-button::after { content: "▾"; position: absolute; right: 9px; color: var(--muted); }
 .multi.active .multi-button, .filters select.active {
   border-color: var(--accent); color: var(--accent); font-weight: 600;
 }
@@ -477,3 +485,15 @@ td.wrap-narrow { white-space: normal; min-width: 150px; max-width: 220px; }
 .skills-table tr.sortable { cursor: pointer; }
 .skills-table .skill-job { cursor: pointer; background: var(--accent-soft); font-size: var(--text-small); }
 .skills-table .skill-job td { padding-left: 28px; }
+
+/* Every drop-down draws the same arrow, with room around it, instead of the
+   system's own (which sits tight against the edge and differs per system).
+   Last in the file, so it wins over the drop-downs' own padding. */
+select:not([multiple]), .multi-button {
+  appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23647184' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  cursor: pointer;
+}

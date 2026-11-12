@@ -35,7 +35,10 @@ export function CvDropZone({ cv, onUpload, onYears, saved }: Props) {
 
   const dropHandlers = {
     onDragOver: (event: DragEvent) => { event.preventDefault(); setDragging(true) },
-    onDragLeave: () => setDragging(false),
+    // Moving over the box's own buttons also counts as leaving it: only a real exit does.
+    onDragLeave: (event: DragEvent) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false)
+    },
     onDrop: drop,
   }
   const chooser = (
@@ -80,6 +83,11 @@ export function CvDropZone({ cv, onUpload, onYears, saved }: Props) {
             </select>
           ) : <strong>{cv.name}</strong>}
         </span>
+        <button className="button secondary cv-add" onClick={() => fileInput.current?.click()}
+          title="Your CVs are kept: switch between them here, or remove them in Settings.">
+          + Add a CV
+        </button>
+        <span className="muted small">or drop a PDF here</span>
         <label className="cv-years">
           Years of paid work
           {/* Saved when you leave the box, not on every keystroke. The key makes
@@ -95,11 +103,8 @@ export function CvDropZone({ cv, onUpload, onYears, saved }: Props) {
           title="Your name, contact details and links are removed before your CV is sent to an AI.">
           {sent === null ? 'See what the AI receives' : 'Hide it'}
         </button>
-        <button className="button secondary cv-replace" onClick={() => fileInput.current?.click()}
-          title="Or drop a PDF on this line. Your CVs are kept: switch or remove them in Settings.">
-          Add a CV
-        </button>
       </div>
+      {dragging && <div className="cv-drop-note">Drop the PDF to add it to your CVs</div>}
       {sent !== null && <pre className="cv-sent-text">{sent}</pre>}
     </section>
   )
