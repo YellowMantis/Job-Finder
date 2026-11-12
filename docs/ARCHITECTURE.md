@@ -341,7 +341,6 @@ same question can get 45 one time and 70 the next, with no way to tell which is 
   the core, work or projects of that kind count as yes even if small or academic: a strict
   reading gave a graduate "yes" on the core 4 times in 212 reviews.
 - Reads how many years of experience the posting asks for, and the work mode if stated.
-- Judges the **chance** of an interview (see "The chance" below). It never changes the score.
 
 **What the code then does** (`check_and_score`, the same for every reviewer):
 
@@ -392,25 +391,13 @@ points:   yes = 1,   partial = 0.5,   no = 0
 Without it, a production-engineering job scored 50% for a software graduate simply because
 the candidate speaks English. Being in the wrong field matters more than missing one skill.
 
-### The chance: where to start
+### Why there is no "Chance" column any more
 
-Fit asks whether your CV matches the requirements; the Chance column asks whether a CV like
-yours gets called, which is what decides the order to apply in. The table opens sorted by it,
-and by fit within each level.
-
-- **Scored jobs:** the AI judges it in the same request as the fit (about 20 more tokens a
-  job), as a recruiter would: **strong chance** (the role is open to your level and your CV
-  has work or projects in its core area), **fair chance** (one of the two is a stretch) or
-  **long shot** (senior, 4+ years, a PhD or another field), with a one-line reason. Missing
-  some tools alone never lowers it. Three levels rather than a number, because levels hold
-  steady between runs: in a check on 13 jobs, 12 got the same level twice.
-- **Other jobs** (unscored, or scored before the AI was asked) get a guess from rules in
-  `logic/chance.ts`, shown with a dashed edge: a long shot for senior, internship and PhD
-  titles or 4+ years asked; a strong chance for graduate postings, up to 2 years or a junior
-  title; otherwise a fair chance, raised for roles that often take people starting out (QA,
-  integration, support...) or a fit of 50%+, and lowered for a fit under 20%. The AI answers
-  in the words "apply first", "worth sending" and "long shot", which the page shows as these
-  three levels.
+Versions up to 0.7.0 had one: the AI's guess whether a CV like yours gets called, and for
+unscored jobs a guess from rules (years asked, level, kind of role). The rules couldn't tell
+one field from another, so a hardware job asking 2 years showed a strong chance to a software
+graduate, and fit already answers the useful part. It was removed in version 0.7.1. Older reviews in
+fits.json may still carry "chance" and "chance_reason"; nothing reads them.
 
 ### Its honest limits
 
@@ -545,7 +532,6 @@ frontend/src/
   api/client.ts       the only code that calls the back end
   logic/jobs.ts       filtering, sorting and cell values, as plain functions
   logic/scoring.ts    the scoring panel's rules (what can be scored, estimates, progress)
-  logic/chance.ts     "Chance": the AI's judgement, or a guess from years, level, kind of role and fit
   logic/skills.ts     "Missing skills": the skills scored jobs ask for that the CV doesn't show
   logic/connections.ts  the AI connection forms' rules
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)

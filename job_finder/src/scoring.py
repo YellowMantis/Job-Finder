@@ -169,5 +169,5 @@ def review_batch(provider, cv_text, professional_years, jobs):
             cv_text, professional_years, review.years_required,
             [item.model_dump() for item in review.requirements],
             review.work_mode, review.summary, f"{provider.reviewer_prefix} ({model})",
-            review.defence_related, review.chance, review.chance_reason)
+            review.defence_related)
     return reviews

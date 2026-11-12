@@ -44,15 +44,11 @@ and refining it to make it as useful as possible.
 - **The AI you already have.** Claude Code (with your Claude plan), the Claude API, any service
   with your own key (OpenAI, Groq, OpenRouter…), or a model on your own PC (Ollama, LM Studio).
   Score a batch or a single job, see what each run used, and stop at any time. Pick a smaller
-  Claude model to use less of your plan, and the jobs you're likeliest to apply to are scored first.
+  Claude model to use less of your plan, and jobs are scored in the table's order.
   Score a job again with another model and the job shows both, to compare.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden. Found a
   posting closed, or not for you? Hide it yourself, and undo that any time.
-- **Where to start.** A Chance column says whether you have a strong chance, a fair chance or a
-  long shot, with the reason on hover. For scored jobs the AI judges it as a recruiter
-  would; other jobs get a guess (with a dashed edge) from the years asked, the level and the
-  kind of role. The table opens with the best chances first, the best fit first within each.
 - **Postings for graduates are marked.** Hybrid and remote jobs can be kept beyond your distance.
 - **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
 - **Track applications** with one tick per job. The Applied tab counts and lists every job you

@@ -3,7 +3,6 @@ import type { Job } from '../api/types'
 import {
   ageInDays, ageLabel, distanceText, isNew, modeOf, placeOf, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
-import { ChanceBadge } from './ChanceBadge'
 import { FitBadge } from './FitBadge'
 
 type Props = {
@@ -19,8 +18,6 @@ type Props = {
 // Short values are centred under their heading; text reads best from the left.
 const COLUMNS: { key: SortKey | null; label: string; centred?: boolean; hint?: string }[] = [
   { key: 'fit', label: 'Fit', centred: true },
-  { key: 'chance', label: 'Chance', centred: true,
-    hint: 'How realistic it is as a first job: years asked, level, kind of role and fit. Hover a badge for why.' },
   { key: 'title', label: 'Position' },
   { key: 'company', label: 'Company' },
   { key: 'field', label: 'Field' },
@@ -78,7 +75,6 @@ function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
     <tr className={[job.applied && 'is-applied', opened && 'last-opened'].filter(Boolean).join(' ') || undefined}
       onClick={() => onOpen(job)}>
       <td className="centred"><FitBadge job={job} /></td>
-      <td className="centred"><ChanceBadge job={job} /></td>
       <td className="wrap">
         {job.title}
         {job.level === 'junior' && <> <span className="badge junior">Junior</span></>}

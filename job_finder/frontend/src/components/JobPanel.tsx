@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { Fit, HideReason, Job, Match } from '../api/types'
-import { CHANCE_LABELS, aiChance } from '../logic/chance'
 import { ageInDays, ageLabel, distanceText, fitClass, placeOf } from '../logic/jobs'
 import { modelName } from '../logic/scoring'
 
@@ -136,7 +135,6 @@ const IMPORTANCE: Record<string, string> = { core: ' (core of the role)', nice: 
 
 // The score, its summary, and every requirement with the evidence from your CV.
 function FitReview({ fit }: { fit: Fit }) {
-  const chance = aiChance(fit)
   return (
     <section className="fit-box">
       <h3>
@@ -145,12 +143,6 @@ function FitReview({ fit }: { fit: Fit }) {
           : <span className={`badge fit ${fitClass(fit.score)}`}>{fit.score}%</span>}
         {' '}fit
       </h3>
-      {chance && (
-        <p>
-          <span className={`badge chance ${chance}`}>{CHANCE_LABELS[chance]}</span>{' '}
-          {fit.chance_reason}
-        </p>
-      )}
       <p>{fit.summary}</p>
       {fit.notes.length > 0 && <p className="fit-notes">{fit.notes.join(' ')}</p>}
       <ul className="requirements">

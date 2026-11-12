@@ -303,12 +303,6 @@ td a.apply-chip:hover { background: var(--accent); color: #fff; text-decoration:
 .badge.fit.high { background: var(--good-soft); color: var(--good); }
 .badge.fit.middle { background: var(--warn-soft); color: var(--warn); }
 .badge.fit.low { background: var(--neutral-soft); color: var(--muted); }
-.badge.chance { white-space: nowrap; }
-.badge.chance.good { background: var(--good-soft); color: var(--good); }
-.badge.chance.try { background: var(--warn-soft); color: var(--warn); }
-.badge.chance.long { background: var(--neutral-soft); color: var(--muted); }
-/* A guess from the rules, not the AI's judgement: lighter, with a dashed edge. */
-.badge.chance.guess { background: transparent; border: 1px dashed currentColor; }
 
 .fit-box {
   margin-top: 18px;

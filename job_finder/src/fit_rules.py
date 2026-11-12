@@ -55,11 +55,6 @@ class FitReview(BaseModel):
     # True if the employer or the role serves military or defence customers.
     # The candidate excludes such jobs; word rules on company names miss many.
     defence_related: bool
-    # How likely this CV gets an interview: the AI's overall judgement, which
-    # sees more than the requirement list (transferable skills, what the role
-    # really needs). A few levels rather than a number: steadier between runs.
-    chance: Literal["apply first", "worth sending", "long shot"]
-    chance_reason: str  # one short sentence
 
 
 class CvFacts(BaseModel):
@@ -113,21 +108,7 @@ Do this:
    customers: weapons, armed forces, military standards (MIL-STD), defence
    electronics, intelligence or homeland-security systems. Ordinary cybersecurity
    products for businesses are not defence. This only labels the employer's
-   industry; it never changes the score.
-7. chance: judge as a recruiter screening candidates would: would this CV get
-   an interview for this job? Postings ask for more than they really need, and a
-   recent graduate with related projects is often called for roles asking up to
-   about 2 years. Count transferable skills.
-   Missing some of the listed tools or domain knowledge is normal for a recent
-   graduate and alone never makes a posting less than "apply first".
-   "apply first": the role is open to the candidate's level (graduate, junior, or
-   up to about 2 years asked) and the CV has work or projects in its core area.
-   "worth sending": one of those two is a stretch: it asks about 3 years, or the
-   CV touches its core area only lightly.
-   "long shot": it needs experience or a field the CV clearly lacks, for example a
-   senior role, 4+ years, a PhD, or a different engineering discipline.
-   chance_reason: one short sentence, at most about 15 words, saying why.
-   This is your overall judgement; it does not change the score."""
+   industry; it never changes the score."""
 
 
 def _words(text):
@@ -148,8 +129,7 @@ def _evidence_is_in_cv(evidence, cv_words):
 
 
 def check_and_score(cv_text, professional_years, years_required, requirements,
-                    work_mode, summary, reviewer, defence_related=False,
-                    chance=None, chance_reason=""):
+                    work_mode, summary, reviewer, defence_related=False):
     """Apply the code checks to a review and calculate its score.
 
     Every review goes through here, whichever provider wrote it, so all
@@ -177,8 +157,6 @@ def check_and_score(cv_text, professional_years, years_required, requirements,
     result = {"years_required": years_required, "requirements": checked,
               "work_mode": work_mode, "summary": summary, "notes": [], "model": reviewer,
               "defence_related": defence_related}
-    if chance:  # reviews made before the AI judged the chance have none
-        result.update(chance=chance, chance_reason=chance_reason)
 
     # With fewer than two requirements there is nothing meaningful to score.
     # Better to say so than to show a confident-looking number.

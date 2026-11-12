@@ -15,8 +15,7 @@ CV = "B.Sc. in Computer Science. Wrote Python automation on Linux."
 def review(job_id, **changes):
     """One review in the shape the AI must answer with."""
     return {"job_id": job_id, "years_required": 0, "work_mode": "hybrid", "summary": "ok",
-            "defence_related": False, "chance": "apply first",
-            "chance_reason": "Close to the CV",
+            "defence_related": False,
             "requirements": [
                 {"requirement": "Python", "importance": "core", "evidence": "Python automation",
                  "match": "yes"},
@@ -68,14 +67,6 @@ def test_reviews_are_matched_to_their_jobs_and_scored():
     assert result["job-0"]["summary"] == "first"
     assert result["job-0"]["score"] == 100
     assert result["job-0"]["model"] == "Fake (fake-1)"   # signed by the provider
-
-
-def test_the_ai_judges_the_chance_beside_the_score():
-    provider = FakeProvider({"reviews": [review(1, chance="long shot",
-                                                chance_reason="Needs 5 years")]})
-    result = scoring.review_batch(provider, CV, 1, jobs(1))["job-0"]
-    assert (result["chance"], result["chance_reason"]) == ("long shot", "Needs 5 years")
-    assert result["score"] == 100   # the chance never changes the score
 
 
 def test_the_prompt_numbers_every_posting():

@@ -1,15 +1,11 @@
 // The scoring panel's rules as plain functions (tested in scoring.test.ts).
 
 import type { BatchRecord, Job } from '../api/types'
-import { chanceOf, chanceRank } from './chance'
 
 // Jobs that can be scored: they have posting text, and no score for this CV
-// yet. A score stays valid whichever AI connection made it. The best chances
-// come first, so a small batch is spent on jobs you'd most likely apply to;
-// within a level, the table's order is kept.
-export const scorable = (jobs: Job[]) => jobs
-  .filter((job) => job.has_text && !job.fit)
-  .sort((a, b) => chanceRank(chanceOf(b).chance) - chanceRank(chanceOf(a).chance))
+// yet. A score stays valid whichever AI connection made it. They keep the
+// table's order, so what you see first is scored first.
+export const scorable = (jobs: Job[]) => jobs.filter((job) => job.has_text && !job.fit)
 
 // The batches made with this connection, and with its current model when one
 // is chosen: an estimate from another model's batches would mislead. Batches

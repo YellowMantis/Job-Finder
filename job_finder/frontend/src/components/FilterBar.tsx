@@ -3,7 +3,6 @@ import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
 } from '../logic/jobs'
-import type { Chance } from '../logic/chance'
 import { MultiSelect } from './MultiSelect'
 
 type Props = {
@@ -28,12 +27,6 @@ const FITS = [
   { fit: 40, label: 'Fit 40%+' },
   { fit: 60, label: 'Fit 60%+' },
   { fit: 80, label: 'Fit 80%+' },
-]
-
-const CHANCES = [
-  { chance: '', label: 'Chance: any' },
-  { chance: 'try', label: 'Fair chance or better' },
-  { chance: 'good', label: 'Strong chance only' },
 ]
 
 // "" stands for any (a select's values are text).
@@ -79,12 +72,6 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
         <select value={filters.minFit} className={inUse(filters.minFit > 0)} title="Hides jobs scored below this. Jobs without a score stay"
           onChange={(event) => set({ minFit: Number(event.target.value) })}>
           {FITS.map(({ fit, label }) => <option key={fit} value={fit}>{label}</option>)}
-        </select>
-
-        <select value={filters.minChance ?? ''} className={inUse(filters.minChance !== null)}
-          title="How realistic each job is as a first job. Hover a Chance badge for why"
-          onChange={(event) => set({ minChance: (event.target.value || null) as Chance | null })}>
-          {CHANCES.map(({ chance, label }) => <option key={chance} value={chance}>{label}</option>)}
         </select>
 
         <label className="range">

@@ -28,9 +28,6 @@ export type Fit = {
   scored: string // when, "2026-10-14 21:05"
   cv: string // fingerprint of the CV it was scored against
   defence_related?: boolean
-  // The AI's judgement of the interview chance; missing in older reviews.
-  chance?: 'apply first' | 'worth sending' | 'long shot'
-  chance_reason?: string
 }
 
 // One table row (pipeline.jobs_for_display, without the posting text).

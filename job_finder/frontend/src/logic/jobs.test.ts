@@ -23,7 +23,7 @@ function job(changes: Partial<Job> = {}): Job {
 
 const noFilters: Filters = {
   search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, minFit: 0,
-  maxYears: null, minChance: null, needText: false, maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
+  maxYears: null, needText: false, maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
   flexibleAnywhere: false,
 }
 
@@ -155,13 +155,6 @@ describe('sorting', () => {
     const jobs = [job({ url: 'a', fit: fit(40) }), job({ url: 'b' }), job({ url: 'c', fit: fit(90) })]
     const sorted = sortJobs(jobs, { key: 'fit', descending: true })
     expect(sorted.map((j) => j.url)).toEqual(['c', 'a', 'b'])
-  })
-
-  it('sorts by chance, and by fit within the same chance', () => {
-    const jobs = [job({ url: 'try', years: 3 }), job({ url: 'good 30', years: 1, fit: fit(30) }),
-      job({ url: 'good unscored', years: 1 }), job({ url: 'good 80', years: 1, fit: fit(80) })]
-    expect(sortJobs(jobs, { key: 'chance', descending: true }).map((j) => j.url))
-      .toEqual(['good 80', 'good 30', 'good unscored', 'try'])
   })
 
   it('keeps unknown distances last in either direction', () => {

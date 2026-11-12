@@ -36,18 +36,9 @@ describe('scoring panel', () => {
     expect(scorable(jobs).map((j) => j.url)).toEqual(['new'])
   })
 
-  it('puts the best chances first, keeping the table order within each', () => {
-    const job = (url: string, changes: Partial<Job>) => ({
-      url, title: 'Software Engineer', level: 'not stated', level_reason: '', years: null,
-      for_graduates: false, ...changes,
-    }) as Job
-    const jobs = [
-      job('3 years', { has_text: true, fit: null, years: 3 }),
-      job('senior', { has_text: true, fit: null, level: 'senior' }),
-      job('junior', { has_text: true, fit: null, level: 'junior' }),
-      job('1 year', { has_text: true, fit: null, years: 1 }),
-    ]
-    expect(scorable(jobs).map((j) => j.url)).toEqual(['junior', '1 year', '3 years', 'senior'])
+  it("keeps the table's order", () => {
+    const job = (url: string) => ({ url, has_text: true, fit: null }) as Job
+    expect(scorable([job('b'), job('a'), job('c')]).map((j) => j.url)).toEqual(['b', 'a', 'c'])
   })
 
   it('counts every token of a batch, cached ones included', () => {

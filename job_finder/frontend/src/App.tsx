@@ -38,7 +38,7 @@ function App() {
   const [dataVersion, setDataVersion] = useState(0) // goes up whenever the data is reloaded
   const [appliedVersion, setAppliedVersion] = useState(0) // goes up when one is removed there
   const [filters, setFilters] = useState<Filters | null>(null) // set once status arrives
-  const [sort, setSort] = useState<Sort>({ key: 'chance', descending: true }) // where to start first
+  const [sort, setSort] = useState<Sort>({ key: 'fit', descending: true }) // the best fit first
   const [tab, setTab] = useState<'jobs' | 'skills' | 'applied' | 'hidden'>('jobs')
   const [openUrl, setOpenUrl] = useState<string | null>(null) // the job in the side panel
   // The job opened last stays marked in the table after its panel closes, so
@@ -143,11 +143,11 @@ function App() {
     () => (filters ? sortJobs(jobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
     [jobs, filters, sort, newSince])
 
-  // Clicking the sorted column again reverses it; fit and chance start best first.
+  // Clicking the sorted column again reverses it; fit starts best first.
   function changeSort(key: SortKey) {
     setSort((current) => ({
       key,
-      descending: current.key === key ? !current.descending : key === 'fit' || key === 'chance',
+      descending: current.key === key ? !current.descending : key === 'fit',
     }))
   }
 

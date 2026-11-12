@@ -116,7 +116,3 @@ def test_fewer_than_two_requirements_gives_no_score():
     assert result["notes"]
 
 
-def test_an_older_review_has_no_chance():
-    # Reviews made before the AI judged the chance: the page guesses it instead.
-    assert "chance" not in score([req("Python", "core", "yes", "Python and Bash automation"),
-                                  req("Linux", "must", "yes", "automation on Linux")])
