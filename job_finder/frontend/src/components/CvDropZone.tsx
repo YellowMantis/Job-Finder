@@ -83,11 +83,6 @@ export function CvDropZone({ cv, onUpload, onYears, saved }: Props) {
             </select>
           ) : <strong>{cv.name}</strong>}
         </span>
-        <button className="button secondary cv-add" onClick={() => fileInput.current?.click()}
-          title="Your CVs are kept: switch between them here, or remove them in Settings.">
-          + Add a CV
-        </button>
-        <span className="muted small">or drop a PDF here</span>
         <label className="cv-years">
           Years of paid work
           {/* Saved when you leave the box, not on every keystroke. The key makes
@@ -99,7 +94,12 @@ export function CvDropZone({ cv, onUpload, onYears, saved }: Props) {
               if (event.target.value !== '' && Number.isInteger(years) && years >= 0) onYears(years)
             }} />
         </label>
-        <button className="link-button" onClick={showSent}
+        <button className="button secondary cv-add" onClick={() => fileInput.current?.click()}
+          title="Your CVs are kept: switch between them here, or remove them in Settings.">
+          + Add a CV
+        </button>
+        <span className="muted small">or drop a PDF here</span>
+        <button className="link-button cv-sent-link" onClick={showSent}
           title="Your name, contact details and links are removed before your CV is sent to an AI.">
           {sent === null ? 'See what the AI receives' : 'Hide it'}
         </button>

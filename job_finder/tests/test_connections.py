@@ -193,6 +193,15 @@ def test_a_claude_code_connection_can_choose_a_model(safe):
     assert connections.active_provider().model == "haiku"
     assert connections.check({"name": "x", "kind": "claude"}) is None      # the default
     assert "must be one of" in connections.check({"name": "x", "kind": "claude", "model": "gpt"})
+    assert connections.check({"name": "x", "kind": "claude", "model": "fable"}) is None
+
+
+@pytest.mark.parametrize("service", ["gemini", "mistral", "deepseek"])
+def test_the_newer_services_are_known_by_their_address(safe, service):
+    connections.add({"name": "x", "kind": "api", "service": service, "model": "m"}, "key-123")
+    provider = connections.active_provider()
+    assert provider.base_url == connections.SERVICES[service][1]
+    assert provider.base_url.startswith("https://")
 
 
 # ---- Calibrating against a Claude plan's /usage % ----------------------------------------
@@ -230,3 +239,15 @@ def test_calibration_needs_a_recent_batch_and_a_sensible_percent(client, tmp_pat
                                                 json={"percent": 5}).get_json()["error"]
     assert client.post(f"/api/connections/{claude_id}/calibrate",
                        json={"percent": 250}).status_code == 400
+
+
+def test_two_alike_connections_get_different_names(safe):
+    fields = {"name": "Groq: llama", "kind": "api", "service": "groq", "model": "llama"}
+    first = connections.add(fields, "key-1")
+    second = connections.add(fields, "key-2")
+    connections.add(fields, "key-3")
+    assert [c["name"] for c in connections.load()["connections"]] == [
+        "Groq: llama", "Groq: llama (2)", "Groq: llama (3)"]
+    connections.update(second, fields)      # saving it again keeps its own name
+    connections.update(first, fields)
+    assert connections.load()["connections"][1]["name"] == "Groq: llama (2)"

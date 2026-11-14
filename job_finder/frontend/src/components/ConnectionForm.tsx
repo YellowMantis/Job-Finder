@@ -10,14 +10,13 @@ type Props = {
   editing: Connection | null // null: adding a new one
   onSaved: (answer: ConnectionsAnswer) => void
   onCancel: () => void
-  showName?: boolean // the first-run setup names the connection itself
   ways?: Way[] // which ways to offer (the setup offers Claude Code separately)
 }
 
 const WAYS: { way: Way; title: string; hint: string }[] = [
   { way: 'claude', title: 'Claude Code', hint: 'Uses your Claude plan. Reads postings most carefully.' },
   { way: 'service', title: 'An AI service with your key',
-    hint: 'OpenAI, Groq, OpenRouter… Some have free tiers. Pick a large model.' },
+    hint: 'OpenAI, Gemini, Groq, OpenRouter… Some have free tiers. Pick a large model.' },
   { way: 'local', title: 'A model on this PC',
     hint: 'Ollama or LM Studio. Free and private, but small models score less accurately.' },
 ]
@@ -25,11 +24,27 @@ const WAYS: { way: Way; title: string; hint: string }[] = [
 // Claude Code's models, largest first. Reading postings and quoting a CV is
 // a fairly simple task, so a smaller model uses much less of your plan.
 const CLAUDE_MODELS = [
-  { model: '', label: "Claude Code's default (its largest)" },
-  { model: 'opus', label: 'Opus: most careful, uses the most' },
+  { model: '', label: "Claude Code's default" },
+  { model: 'fable', label: 'Fable: the most capable, uses the most' },
+  { model: 'opus', label: 'Opus: very careful, uses a lot' },
   { model: 'sonnet', label: 'Sonnet: careful, uses much less' },
   { model: 'haiku', label: 'Haiku: quickest, uses the least' },
 ]
+
+// A line under the service: what it offers, and where to get a key.
+const SERVICE_NOTES: Record<string, string> = {
+  anthropic: 'Claude models, paid per use. Get a key at platform.claude.com.',
+  openai: 'GPT models, paid per use. Get a key at platform.openai.com.',
+  gemini: "Google's models. Has a free tier with daily limits (smaller models). " +
+    'Get a key at aistudio.google.com.',
+  groq: 'Open models such as Llama, very fast. Has a free tier with daily limits. ' +
+    'Get a key at console.groq.com.',
+  openrouter: "One key for many companies' models (GPT, Gemini, Claude, Llama…); a few are " +
+    'free. Get a key at openrouter.ai.',
+  mistral: "Mistral's models. Get a key at console.mistral.ai.",
+  deepseek: "DeepSeek's models, at low prices. Get a key at platform.deepseek.com.",
+  custom: 'Any service that speaks the OpenAI format: enter its address, ending in /v1.',
+}
 
 const errorText = (problem: unknown, fallback: string) =>
   problem instanceof ApiError ? problem.message : fallback
@@ -37,11 +52,10 @@ const errorText = (problem: unknown, fallback: string) =>
 // Add (or change) one AI connection: choose how to reach the AI, choose a
 // model from the service's own list, save it (which tests it first).
 export function ConnectionForm(props: Props) {
-  const { info, editing, onSaved, onCancel, showName = true } = props
+  const { info, editing, onSaved, onCancel } = props
   const ways = WAYS.filter(({ way }) => (props.ways ?? ['claude', 'service', 'local']).includes(way))
   const [draft, setDraft] = useState<Draft>(
     editing ? draftOf(editing) : { ...emptyDraft, way: ways[0].way })
-  const [name, setName] = useState(editing?.name ?? '') // '' means "use the suggestion"
   const [key, setKey] = useState('') // '' when editing means "keep the saved key"
   const [models, setModels] = useState<string[] | null>(null) // the service's list, once loaded
   const [found, setFound] = useState<DetectAnswer | null>(null) // what "look on this PC" found
@@ -49,7 +63,10 @@ export function ConnectionForm(props: Props) {
   const [busy, setBusy] = useState('') // what is being done right now, for the buttons
   const [error, setError] = useState('')
 
-  const finalName = name.trim() || suggestedName(draft, info.services)
+  // Named after its service and model. A saved one keeps its name until either changes.
+  const named = suggestedName(draft, info.services)
+  const finalName = editing && named === suggestedName(draftOf(editing), info.services)
+    ? editing.name : named
   const fields = fieldsOf(draft, finalName)
   // Requests about this connection: the saved key is used unless a new one is typed.
   const target = { ...(editing ? { id: editing.id } : {}), fields, ...(key ? { key } : {}) }
@@ -142,6 +159,8 @@ export function ConnectionForm(props: Props) {
               <option value="custom">Another service (enter its address)</option>
             </select>
           </label>
+          {SERVICE_NOTES[draft.service] &&
+            <p className="muted small">{SERVICE_NOTES[draft.service]}</p>}
           {draft.service === 'custom' && (
             <label>Address
               <input type="url" placeholder="https://…/v1" value={draft.baseUrl}
@@ -185,13 +204,6 @@ export function ConnectionForm(props: Props) {
             onChoose={(local) => change({ local })} />}
           {!found && draft.local && <p>Chosen: {suggestedName(draft, info.services)}</p>}
         </div>
-      )}
-
-      {showName && (
-        <label className="form-step">Name (how it appears in "Score with")
-          <input value={name} placeholder={suggestedName(draft, info.services)}
-            onChange={(event) => setName(event.target.value)} />
-        </label>
       )}
 
       {error && <p className="message error">{error}</p>}

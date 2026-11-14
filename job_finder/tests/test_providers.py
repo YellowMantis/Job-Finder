@@ -186,6 +186,16 @@ def test_api_lists_its_models(monkeypatch):
     assert sent[0]["headers"] == {"Authorization": f"Bearer {KEY}"}
 
 
+def test_the_model_list_has_only_models_that_can_chat(monkeypatch):
+    # Gemini lists its models as "models/<name>", alongside picture, speech and
+    # search models; only the chat models are offered, by the name it is asked with.
+    api_replying(monkeypatch, (200, {"data": [
+        {"id": "models/gemini-3.8-flash"}, {"id": "models/gemini-embedding-001"},
+        {"id": "models/gemini-2.5-flash-image"}, {"id": "whisper-1"}, {"id": "tts-1"},
+        {"id": "gpt-5"}]}))
+    assert groq().list_models() == ["gemini-3.8-flash", "gpt-5"]
+
+
 def test_a_local_service_needs_no_key(monkeypatch):
     sent = api_replying(monkeypatch, (200, OK_REPLY))
     openai_compatible.OpenAICompatible("LM Studio", "http://localhost:1234/v1", "local-model",

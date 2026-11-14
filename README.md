@@ -42,7 +42,8 @@ and refining it to make it as useful as possible.
   counted across the jobs in the table, with the jobs behind each one. No extra AI use: it reads
   the reviews you already have.
 - **The AI you already have.** Claude Code (with your Claude plan), the Claude API, any service
-  with your own key (OpenAI, Groq, OpenRouter…), or a model on your own PC (Ollama, LM Studio).
+  with your own key (OpenAI, Google Gemini, Groq, OpenRouter, Mistral, DeepSeek…), or a model on
+  your own PC (Ollama, LM Studio). Gemini and Groq have free tiers.
   Score a batch or a single job, see what each run used, and stop at any time. Pick a smaller
   Claude model to use less of your plan, and jobs are scored in the table's order.
   Score a job again with another model and the job shows both, to compare.

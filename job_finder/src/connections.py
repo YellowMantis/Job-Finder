@@ -1,7 +1,7 @@
 """Your AI connections: the AIs you added for scoring, and which one is in use.
 
 A connection is one way to reach an AI: Claude Code, a model on this PC
-through Ollama, or a service with your key (OpenAI, Groq, LM Studio...).
+through Ollama, or a service with your key (OpenAI, Gemini, Groq, LM Studio...).
 You can add several and switch between them at any time; each score records
 which connection made it.
 
@@ -40,15 +40,19 @@ KEYRING_SERVICE = "job-finder-" + hashlib.sha1(str(DATA_DIR.resolve()).encode())
 KINDS = {"claude": "Claude Code", "anthropic": "Claude API", "ollama": "Ollama on this PC",
          "api": "An AI service"}
 
-# Claude Code's names for its latest models; "" leaves the choice to Claude Code
-# (its largest). Reading a posting and quoting the CV doesn't need the largest.
-CLAUDE_MODELS = ["", "opus", "sonnet", "haiku"]
+# Claude Code's names for its latest models; "" leaves the choice to Claude Code.
+# Reading a posting and quoting the CV doesn't need the largest.
+CLAUDE_MODELS = ["", "fable", "opus", "sonnet", "haiku"]
 
-# Services that speak the OpenAI chat format: their name and address.
+# Services that speak the OpenAI chat format: their name and address (the page
+# lists them by name).
 SERVICES = {
     "openai": ("OpenAI", "https://api.openai.com/v1"),
+    "gemini": ("Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
     "groq": ("Groq", "https://api.groq.com/openai/v1"),
     "openrouter": ("OpenRouter", "https://openrouter.ai/api/v1"),
+    "mistral": ("Mistral", "https://api.mistral.ai/v1"),
+    "deepseek": ("DeepSeek", "https://api.deepseek.com"),
     "lmstudio": ("LM Studio", "http://localhost:1234/v1"),
 }
 
@@ -111,6 +115,7 @@ def add(fields, key=""):
     while f"c{number}" in taken:
         number += 1
     connection = {"id": f"c{number}", **_clean(fields)}
+    connection["name"] = _unique_name(data, connection["name"], connection["id"])
     if key:
         _store_key(connection["id"], key)
     data["connections"].append(connection)
@@ -124,6 +129,7 @@ def update(connection_id, fields, key=None):
     data = load()
     connection = _find(data, connection_id)
     connection.update(_clean(fields))
+    connection["name"] = _unique_name(data, connection["name"], connection_id)
     if key is not None:
         _store_key(connection_id, key) if key else _forget_key(connection_id)
     _save(data)
@@ -156,6 +162,16 @@ def calibrate(connection_id, percent, tokens):
     connection["calibration"] = {"percent_per_1k_tokens": round(percent / (tokens / 1000), 4),
                                  "percent": percent, "tokens": tokens}
     _save(data)
+
+
+def _unique_name(data, name, connection_id):
+    """The page names a connection after its service and model, so two alike
+    would share a name: the second becomes "Groq: llama (2)"."""
+    taken = {c["name"] for c in data["connections"] if c["id"] != connection_id}
+    number, unique = 2, name
+    while unique in taken:
+        unique, number = f"{name} ({number})", number + 1
+    return unique
 
 
 def _clean(fields):

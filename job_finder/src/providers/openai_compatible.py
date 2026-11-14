@@ -1,5 +1,6 @@
-"""Any AI service that speaks the OpenAI chat format: OpenAI itself, Groq,
-OpenRouter, or a model on your own PC through LM Studio or Ollama.
+"""Any AI service that speaks the OpenAI chat format: OpenAI itself, Google
+Gemini, Groq, OpenRouter, Mistral, DeepSeek, or a model on your own PC through
+LM Studio or Ollama.
 
 Requests go straight from your computer to the service you chose, with your
 own key (kept in your system's password safe, see connections.py), sent
@@ -13,12 +14,19 @@ instructions instead. Either way scoring.py checks the answer afterwards.
 """
 
 import json
+import re
 import time
 
 import httpx
 
 from providers.base import Provider, ProviderError, outside_text
 from settings import API_BATCH_SIZE
+
+
+# Models that can't hold a written conversation (pictures, speech, video,
+# search embeddings, moderation): left out of the list to choose from.
+NOT_FOR_CHAT = re.compile(r"embed|whisper|tts|dall-e|imagen|image|veo|lyria|audio|"
+                          r"transcribe|moderation|realtime|aqa", re.IGNORECASE)
 
 
 class OpenAICompatible(Provider):
@@ -38,9 +46,11 @@ class OpenAICompatible(Provider):
         self.reviewer_prefix = name  # reviews are signed "Groq (model)"
 
     def list_models(self):
-        """The models this service offers, for choosing from a list."""
+        """The models this service offers that can chat, for choosing from a list.
+        Gemini names them "models/gemini-..." in the list, but "gemini-..." when asked."""
         reply = self._request("GET", "/models")
-        return sorted(model["id"] for model in reply.get("data", []))
+        names = (model["id"].removeprefix("models/") for model in reply.get("data", []))
+        return sorted(name for name in names if not NOT_FOR_CHAT.search(name))
 
     def ask(self, system_prompt, prompt, schema):
         if not self.model:

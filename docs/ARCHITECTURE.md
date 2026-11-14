@@ -242,7 +242,7 @@ pattern**: each provider adapts one service to the same small interface.
 | `ClaudeCode` (`claude_code.py`) | `claude` | 10 | Uses your Claude plan; much more careful |
 | `AnthropicAPI` (`anthropic_api.py`) | `anthropic` | 5, three at a time | Claude with an API key (pay per token, separate from a plan). The answer's shape is enforced by a required "tool" whose input is our schema; the instructions are prompt-cached between batches |
 | `Ollama` (`ollama.py`) | `ollama` | 1 | Free and private, on your PC; weaker |
-| `OpenAICompatible` (`openai_compatible.py`) | `api` | 5 | Any service speaking the OpenAI chat format: OpenAI, Groq, OpenRouter, LM Studio, or a custom address |
+| `OpenAICompatible` (`openai_compatible.py`) | `api` | 5 | Any service speaking the OpenAI chat format: OpenAI, Google Gemini, Groq, OpenRouter, Mistral, DeepSeek, LM Studio, or a custom address. Its model list leaves out models that can't chat (pictures, speech, embeddings) |
 
 The API provider sends requests straight from your computer to the chosen service, with your
 own key, and never writes the key into a log or a message. It asks the service to follow the
@@ -270,7 +270,8 @@ To add a kind of service, write a provider class like these and use it in
 `connections.provider_for()`.
 
 **AI connections: several AIs, one click to switch.** A connection is one way to reach an
-AI, with a name you choose: "Claude Code", "Groq (free key)", "Ollama: llama3.1". You can add
+AI, named after its service and model: "Claude Code: sonnet", "Groq: llama-3.3-70b",
+"Ollama: llama3.1" (a second alike one becomes "... (2)"). You can add
 several; one is in use, and switching is one click (refused only while a scoring run is
 under way). The list is kept in `data/connections.json` **without keys**. Keys go into your
 system's password safe (Windows Credential Manager or macOS Keychain) through the `keyring`
@@ -297,8 +298,8 @@ format (`--json-schema`). Your CV and up to 10 job descriptions go in through st
 input; ten structured reviews come back. Each session has a fixed start-up cost, so
 batching ten jobs shares it. A measured batch of 10 took 44 seconds and about 19,000
 tokens (~$0.22 at pay-per-use prices; on a subscription it counts towards usage limits
-instead), most of it the answers. The connection can choose the model (`--model opus`,
-`sonnet` or `haiku`); left empty, Claude Code uses its largest. The task (read a posting,
+instead), most of it the answers. The connection can choose the model (`--model fable`,
+`opus`, `sonnet` or `haiku`); left empty, Claude Code uses its own default. The task (read a posting,
 quote the CV) doesn't need the largest, and a smaller model uses much less of the plan, so
 the estimate for the next run only counts past batches made with the current model. Every request, by any provider, is recorded in `data/scoring_log.json` with its
 tokens and seconds; the scoring panel shows the last batch, today's totals and an estimate for
@@ -553,7 +554,8 @@ frontend/src/
 | `AppliedJobs` | Every job you applied to, including ones no longer listed |
 | `HiddenJobs` | The jobs your preferences or you hide, with reasons; Undo for yours |
 | `SetupWizard` | The first-run setup in three steps |
-| `PreferencesForm`, `HomePicker` | Your preferences, and choosing your home town |
+| `PreferencesForm`, `HomePicker` | Your preferences, and choosing where you live (the chosen place shows inside the search box) |
+| `InfoTip` | A small drawn "i" beside a heading; its explanation shows on hover or click |
 | `ConnectionsSettings`, `ConnectionForm` | Your AI connections: the list, adding and changing one |
 | `UpdateBanner` | A newer version, its notes, and the button to install it |
 

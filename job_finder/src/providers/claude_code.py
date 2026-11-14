@@ -39,8 +39,8 @@ class ClaudeCode(Provider):
     batch_size = CLAUDE_BATCH_SIZE
 
     def __init__(self, model=""):
-        # "opus", "sonnet" or "haiku": Claude Code's names for its latest
-        # models. "" leaves the choice to Claude Code, which picks its largest.
+        # "fable", "opus", "sonnet" or "haiku": Claude Code's names for its
+        # latest models. "" leaves the choice to Claude Code.
         self.model = model
 
     def ask(self, system_prompt, prompt, schema):

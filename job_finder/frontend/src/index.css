@@ -104,8 +104,8 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
 }
 .cv-bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .cv-add { padding: 5px 12px; }
-/* Years and what the AI receives sit at the right; the CV and adding one, together at the left. */
-.cv-bar-row .cv-years { margin-left: auto; }
+/* The CV, its years and adding one sit together at the left; what the AI receives, at the right. */
+.cv-bar-row .cv-sent-link { margin-left: auto; }
 .cv-name { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
 .cv-name strong { color: var(--text); }
 .cv-icon {
@@ -451,8 +451,6 @@ td.wrap-narrow { white-space: normal; min-width: 150px; max-width: 220px; }
 .suggestion-summary p { margin: 0; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px !important; }
 .tag { padding: 3px 10px; border-radius: var(--pill); background: var(--surface); border: 1px solid var(--border); font-size: var(--text-small); }
-.home-current { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.home-current input { width: 220px; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-small); font: inherit; font-weight: 600; }
 .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .earlier-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .earlier-list .button.chosen { border-color: var(--accent); }
@@ -491,3 +489,21 @@ select:not([multiple]), .multi-button {
   background-position: right 11px center;
   cursor: pointer;
 }
+
+/* ---- A small "i" beside a heading, its explanation shown on hover or click ---- */
+.info-tip { position: relative; display: inline-block; vertical-align: middle; margin-left: 4px; }
+.info-tip-button {
+  display: block; padding: 0; border: none; background: none; color: var(--muted); cursor: help;
+}
+.info-tip-button svg { display: block; }
+.info-tip-button:hover, .info-tip.open .info-tip-button { color: var(--accent); }
+.info-tip-text {
+  position: absolute; left: -8px; top: calc(100% + 6px); z-index: 20; width: max-content; max-width: 280px;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-small);
+  background: var(--surface); box-shadow: 0 4px 14px rgba(28, 36, 48, 0.12);
+  color: var(--text); font-size: var(--text-small); font-weight: 400; line-height: 1.45;
+  visibility: hidden; opacity: 0; transition: opacity 0.12s;
+}
+.info-tip:hover .info-tip-text, .info-tip.open .info-tip-text { visibility: visible; opacity: 1; }
+/* The chosen town, shown inside the search box: dark like a value, not grey like a hint. */
+.home-picker input.has-home::placeholder { color: var(--text); font-weight: 600; opacity: 1; }

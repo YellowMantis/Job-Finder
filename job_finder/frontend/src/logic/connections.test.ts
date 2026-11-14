@@ -47,7 +47,10 @@ describe('the add-a-connection form', () => {
       .toMatchObject({ way: 'service', service: 'groq', model: 'big' })
   })
 
-  it('suggests a name from the choices', () => {
+  it('names a connection from its service and model', () => {
+    expect(suggestedName({ ...emptyDraft, way: 'claude' }, services)).toBe('Claude Code')
+    expect(suggestedName({ ...emptyDraft, way: 'claude', claudeModel: 'sonnet' }, services))
+      .toBe('Claude Code: sonnet')
     expect(suggestedName({ ...emptyDraft, way: 'service', service: 'groq', model: 'big' }, services))
       .toBe('Groq: big')
     expect(suggestedName({ ...emptyDraft, way: 'local', local: { runner: 'ollama', model: 'llama' } },

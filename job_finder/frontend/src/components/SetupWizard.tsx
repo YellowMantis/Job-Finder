@@ -104,7 +104,7 @@ export function SetupWizard(props: Props) {
               Other ways: an API key, or a model on this PC
             </button>
           ) : (
-            <ConnectionForm info={connections} editing={null} showName={false}
+            <ConnectionForm info={connections} editing={null}
               ways={['service', 'local']}
               onSaved={(answer) => { onConnections(answer); setStep(1) }}
               onCancel={() => setOtherWays(false)} />

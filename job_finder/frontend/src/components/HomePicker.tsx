@@ -5,9 +5,7 @@ import type { Place } from '../api/types'
 type Props = { home: Place | null; onChoose: (place: Place) => void }
 
 // Choose your home town by typing its name, in English or Hebrew. Nothing is
-// chosen for you. Its English name can then be written your way ("Kfar Kana"
-// rather than the list's "Kafr Kanna"): it's only a label, the position stays
-// the town's.
+// chosen for you. The chosen town shows in the box, in English and Hebrew.
 export function HomePicker({ home, onChoose }: Props) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Place[]>([])
@@ -24,19 +22,14 @@ export function HomePicker({ home, onChoose }: Props) {
   }, [query])
 
   const showing = query.trim().length >= 2 ? results : []
+  // The chosen town shows inside the box; typing there looks for another one.
+  const chosen = home ? `${home.name}${home.he ? ` · ${home.he}` : ''}` : ''
   return (
     <div className="home-picker">
-      {home && (
-        <p className="home-current">
-          <input aria-label="Your town's name" value={home.name} maxLength={100}
-            onChange={(event) => onChoose({ ...home, name: event.target.value })} />
-          {home.he && <span className="muted">{home.he}</span>}
-          <span className="muted small">(you can write the name your way)</span>
-        </p>
-      )}
-      <input type="search" value={query}
-        placeholder={home ? 'Choose another town: type it in English or Hebrew'
-          : 'Type your town in English or Hebrew'}
+      <input type="search" value={query} aria-label="Where you live"
+        className={home ? 'has-home' : undefined}
+        title={home ? 'Type to choose another place, in English or Hebrew' : undefined}
+        placeholder={home ? chosen : 'Type your city or village, in English or Hebrew'}
         onChange={(event) => setQuery(event.target.value)} />
       {showing.length > 0 && (
         <ul className="place-results">
@@ -50,7 +43,7 @@ export function HomePicker({ home, onChoose }: Props) {
         </ul>
       )}
       {query.trim().length >= 2 && showing.length === 0 && (
-        <p className="muted small">No town found yet. Try another spelling.</p>
+        <p className="muted small">No place found yet. Try another spelling.</p>
       )}
     </div>
   )

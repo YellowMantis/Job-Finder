@@ -3,6 +3,7 @@ import { ApiError, api } from '../api/client'
 import type { Preferences, PreferencesAnswer } from '../api/types'
 import { CheckboxList } from './CheckboxList'
 import { HomePicker } from './HomePicker'
+import { InfoTip } from './InfoTip'
 
 type Props = {
   answer: PreferencesAnswer // your preferences (or suggested ones) and the choices on offer
@@ -41,21 +42,22 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
   return (
     <section className="settings-section preferences">
       <h2>Your preferences</h2>
-      <p className="muted">Kept on this computer only. Jobs you don't want are hidden, not
-        deleted: change a preference and they come back.</p>
+      <p className="muted">Saved on this computer only. Postings that don't match your
+        preferences are hidden, not deleted, and come back if you change them.</p>
       {note}
 
-      <h3>Where you live</h3>
-      <p className="muted small">Distances are measured from here.</p>
+      <h3>Where you live <InfoTip>Distances to jobs are measured from this place.</InfoTip></h3>
       <HomePicker home={draft.home} onChoose={(home) => change({ home })} />
 
       <h3>Levels to show</h3>
       <CheckboxList selected={draft.levels} onChange={(levels) => change({ levels })}
         options={answer.levels.map((level) => ({ value: level, label: LEVEL_LABELS[level] ?? level }))} />
 
-      <h3>Fields you're interested in</h3>
-      <p className="muted small">Ticked in the Fields filter when the page opens; posting texts
-        are fetched for these fields.</p>
+      <h3>
+        Fields you're interested in{' '}
+        <InfoTip>Ticked in the Fields filter when the page opens. Full posting texts are
+          downloaded for these fields.</InfoTip>
+      </h3>
       <CheckboxList selected={draft.fields} onChange={(fields) => change({ fields })}
         options={answer.fields.map((field) => ({ value: field }))} />
 
@@ -65,8 +67,11 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
         {AGES.map(({ days, label }) => <option key={days} value={days}>{label}</option>)}
       </select>
 
-      <h3>Most years of experience asked</h3>
-      <p className="muted small">Hides postings that ask for more. Read from the posting text.</p>
+      <h3>
+        Most years of experience asked{' '}
+        <InfoTip>Postings that ask for more are hidden. The years are read from the
+          posting text.</InfoTip>
+      </h3>
       <select value={draft.max_years ?? ''}
         onChange={(event) => change({
           max_years: event.target.value === '' ? null : Number(event.target.value),

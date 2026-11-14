@@ -13,10 +13,10 @@ export type LocalChoice = { runner: 'ollama' | 'lmstudio'; model: string }
 // Everything the form holds.
 export type Draft = {
   way: Way
-  service: string // for 'service': groq, openai, openrouter or custom
+  service: string // for 'service': a key of the back end's services (openai, gemini...) or custom
   baseUrl: string // for a custom service
   model: string
-  claudeModel: string // for 'claude': opus, sonnet, haiku, or "" for Claude Code's default
+  claudeModel: string // for 'claude': fable, opus, sonnet, haiku, or "" for Claude Code's default
   local: LocalChoice | null
 }
 
@@ -56,9 +56,10 @@ export function fieldsOf(draft: Draft, name: string): ConnectionFields {
     ...(draft.service === 'custom' ? { base_url: draft.baseUrl } : {}) }
 }
 
-// A name to start from, e.g. "Groq: llama-3.3-70b"; you can change it.
+// The connection's name, from its service and model: "Groq: llama-3.3-70b",
+// "Claude Code: sonnet". (The back end adds "(2)" if one has it already.)
 export function suggestedName(draft: Draft, services: Record<string, string>) {
-  if (draft.way === 'claude') return 'Claude Code'
+  if (draft.way === 'claude') return draft.claudeModel ? `Claude Code: ${draft.claudeModel}` : 'Claude Code'
   if (draft.way === 'local') {
     if (!draft.local) return 'A model on this PC'
     const runner = draft.local.runner === 'ollama' ? 'Ollama' : 'LM Studio'
