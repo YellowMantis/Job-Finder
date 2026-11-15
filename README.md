@@ -4,9 +4,9 @@
 
 **One clear place to find the tech jobs in Israel that actually fit you.**
 
-<img width="1420" height="887" alt="Screenshot 2026-10-31 025021" src="https://github.com/user-attachments/assets/7679dcdd-b368-4b44-adcb-fc87873529bb" />
+<img width="1917" height="1001" alt="Screenshot 2026-11-15 171033" src="https://github.com/user-attachments/assets/5a9e28a8-502f-43f5-abf7-ad4d3b946fd7" />
 
-<img width="1418" height="883" alt="Screenshot 2026-10-31 025144" src="https://github.com/user-attachments/assets/f6093620-ed98-4d8e-a501-4e49395c9903" />
+<img width="1918" height="1019" alt="Screenshot 2026-11-15 171003" src="https://github.com/user-attachments/assets/47bc01b3-f1d4-4baf-a7d0-99e93777ef23" />
 
 
 Today it brings together thousands of open positions from hundreds of companies, shows how far
