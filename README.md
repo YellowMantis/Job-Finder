@@ -47,7 +47,9 @@ and refining it to make it as useful as possible.
   Score a batch or a single job, see what each run used, and stop at any time. Pick a smaller
   Claude model to use less of your plan. Jobs are scored in the table's order: unless you
   sort it yourself, those asking for the fewest years come first, then the newest.
-  Score a job again with another model and the job shows both, to compare.
+  Score a job again with another model and the job shows both, to compare. Models differ
+  (a quick free one tends to score higher than a careful one), so compare jobs scored by the
+  same model.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden. Found a
   posting closed, or not for you? Hide it yourself, and undo that any time.
@@ -101,6 +103,9 @@ Job Finder is in early development (version 0.x).
 - **Windows** is the main platform, built and tested.
 - **macOS and Linux** builds are made automatically but haven't been tried by many people yet.
 - The installer isn't code-signed yet, which is why Windows shows a warning.
+- AI connections tested with real accounts: Claude Code, Groq and Google Gemini. The other
+  services use the same format and should work; if one doesn't, please
+  [open an issue](https://github.com/YellowMantis/Job-Finder/issues).
 - Listings cover the companies that techmap tracks and that have public job boards, so some
   jobs are still missing.
 
