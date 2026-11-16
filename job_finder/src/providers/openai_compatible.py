@@ -100,19 +100,38 @@ class OpenAICompatible(Provider):
         schema_requested = (body or {}).get("response_format", {}).get("type") == "json_schema"
         if response.status_code == 400 and schema_requested:
             raise _ShapeNotSupported()
+        # The service's own reason is shown too: a refusal can be about the key,
+        # but also about a model this key may not use ("no longer available to
+        # new users"), which a guess of ours would get wrong.
         if response.status_code in (401, 403):
-            raise ProviderError(f"{self.name} refused the API key. Check the key in Settings.")
+            raise ProviderError(f"{self.name} refused the request: {_reason(response)} "
+                                "Check the key and the model in Settings.")
         if response.status_code == 404:
-            raise ProviderError(f'{self.name} doesn\'t know the model "{self.model}", or the '
-                                "address is wrong. Check the connection in Settings.")
+            raise ProviderError(f'{self.name} can\'t use the model "{self.model}": '
+                                f"{_reason(response)} Choose another model in Settings.")
         if response.status_code == 429:
             raise ProviderError("The service's rate or usage limit was reached. Wait a while, "
                                 "or score fewer jobs at a time.")
         if response.status_code >= 400:
-            # The service's own explanation, shortened, with anything key-like hidden.
-            raise ProviderError(f"The service answered with error {response.status_code}: "
-                                f"{outside_text(response.text)}")
+            raise ProviderError(f"{self.name} answered with error {response.status_code}: "
+                                f"{_reason(response)}")
         return response.json()
+
+
+def _reason(response):
+    """The explanation in a service's error reply, made safe to show: on one
+    line, shortened, anything key-like hidden. Services write it as
+    {"error": {"message": ...}} (Gemini inside a list) or {"error": "..."};
+    anything else is shown as it came."""
+    try:
+        reply = response.json()
+        reply = reply[0] if isinstance(reply, list) and reply else reply
+        error = reply.get("error", reply)
+        text = error.get("message") if isinstance(error, dict) else error
+    except (ValueError, AttributeError):
+        text = None
+    return outside_text(text if isinstance(text, str) and text.strip()
+                        else response.text or "no reason given.")
 
 
 class _ShapeNotSupported(Exception):

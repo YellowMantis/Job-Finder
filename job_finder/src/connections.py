@@ -237,12 +237,27 @@ def provider_for(connection, key=None):
         provider = AnthropicAPI(connection["model"],
                                 get_key(connection.get("id", "")) if key is None else key)
     else:
-        provider = OpenAICompatible(connection["name"], connection["base_url"], connection["model"],
+        provider = OpenAICompatible(service_name(connection), connection["base_url"],
+                                    connection["model"],
                                     get_key(connection["id"]) if key is None else key)
     provider.connection_id = connection.get("id", "")
     provider.label = connection["name"]
-    provider.reviewer_prefix = connection["name"]  # scores are signed "<name> (<model>)"
+    # Scores are signed "<service> (<model>)": "Groq (llama-3.3-70b)". The connection's
+    # name already holds the model ("Groq: llama-3.3-70b"), so it would say it twice.
+    provider.reviewer_prefix = service_name(connection)
     return provider
+
+
+def service_name(connection):
+    """Who a connection talks to, for messages and signatures: "Google Gemini",
+    "Claude Code", "Ollama". An address of one's own goes by the connection's name."""
+    if connection["kind"] != "api":
+        return KINDS[connection["kind"]].removesuffix(" on this PC")
+    address = connection.get("base_url", "").rstrip("/")
+    for name, known in SERVICES.values():
+        if address == known:
+            return name
+    return connection["name"].split(": ")[0]
 
 
 def active_provider():

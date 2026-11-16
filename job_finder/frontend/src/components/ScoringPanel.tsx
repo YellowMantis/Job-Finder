@@ -128,6 +128,17 @@ export function ScoringPanel(props: Props) {
           <SessionUsage tokens={session.tokens} jobs={session.jobs} perThousand={perThousand}
             connectionId={active.id} onCalibrated={onCalibrated} />
         )}
+        {/* Gemini reports the tokens each answer used, but not what is left of
+            your free quota: only your Google account shows that. A plain link,
+            opened in your browser; the app sends nothing to it. */}
+        {active?.kind === 'api' && active.service === 'gemini' && (
+          <p className="scoring-usage muted small">
+            Google doesn't tell apps how much of your free quota is left.{' '}
+            <a href="https://aistudio.google.com/rate-limit" target="_blank" rel="noopener noreferrer">
+              See it in Google AI Studio
+            </a>.
+          </p>
+        )}
       </details>
     </section>
   )

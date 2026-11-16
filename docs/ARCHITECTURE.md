@@ -285,8 +285,10 @@ Setting one up is meant to take no typing beyond the key: a service is picked fr
 (`/api/connections/test`). Looking on this computer for Claude Code, Ollama or LM Studio
 (`/api/connections/detect`) happens only when you ask for it, and sends nothing anywhere.
 
-**A score stays valid whoever made it.** Each review is signed with its connection and
-model ("Groq (free key) (llama-3.3-70b)"), shown in the badge's tooltip and the side panel.
+**A score stays valid whoever made it.** Each review is signed with its service and
+model ("Groq (llama-3.3-70b)", "Claude Code (sonnet)"), shown in the badge's tooltip and the
+side panel. Error messages also name the service and include its own reason, so a model a key
+may no longer use isn't mistaken for a wrong key.
 Switching connections never marks old scores as outdated or re-scores them; only a new CV
 does, because scores belong to a CV. Every request is logged with its connection, so the
 scoring panel's estimate and totals count only the connection in use.

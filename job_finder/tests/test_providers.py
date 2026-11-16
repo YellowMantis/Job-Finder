@@ -162,16 +162,36 @@ def test_api_falls_back_to_plain_json_when_the_schema_is_refused(monkeypatch):
 
 
 @pytest.mark.parametrize("status, message", [
-    (401, "refused the API key"),
-    (404, "doesn't know the model"),
+    (401, "refused the request: something went wrong"),
+    (404, "can't use the model"),
     (429, "limit was reached"),
-    (500, "error 500"),
+    (500, "error 500: something went wrong"),
 ])
 def test_api_errors_are_plain_and_never_show_the_key(monkeypatch, status, message):
     api_replying(monkeypatch, (status, "something went wrong"))
     with pytest.raises(ProviderError, match=message) as raised:
         groq().ask("", "", {})
     assert KEY not in str(raised.value)
+
+
+def test_api_errors_give_the_services_own_reason(monkeypatch):
+    # Gemini's real reply when a key may no longer use an older model: a list
+    # around the error. The reason, not a guess about the key, is what helps.
+    gemini_404 = [{"error": {"code": 404, "status": "NOT_FOUND", "message":
+                   "This model models/gemini-2.5-flash-lite is no longer available to new users."}}]
+
+    def fake_request(method, url, headers, json, timeout):
+        return httpx.Response(404, request=httpx.Request(method, url), json=gemini_404)
+    monkeypatch.setattr(openai_compatible.httpx, "request", fake_request)
+    gemini = openai_compatible.OpenAICompatible(
+        "Google Gemini", "https://generativelanguage.googleapis.com/v1beta/openai",
+        "gemini-2.5-flash-lite", "AIza_secret_test_key_456")
+    with pytest.raises(ProviderError) as raised:
+        gemini.ask("", "", {})
+    assert str(raised.value) == (
+        "Google Gemini can't use the model \"gemini-2.5-flash-lite\": This model "
+        "models/gemini-2.5-flash-lite is no longer available to new users. "
+        "Choose another model in Settings.")
 
 
 def test_api_without_a_model_says_what_to_do():

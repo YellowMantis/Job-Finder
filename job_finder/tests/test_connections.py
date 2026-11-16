@@ -68,8 +68,18 @@ def test_the_active_provider_uses_the_connection_and_its_key(safe):
     groq_id = connections.add(GROQ, KEY)
     provider = connections.active_provider()
     assert provider.api_key == KEY and provider.model == "big-model"
-    assert provider.reviewer_prefix == "Groq (free key)"   # scores are signed with its name
+    # Scores are signed with the service, the model follows: "Groq (big-model)".
+    assert provider.reviewer_prefix == "Groq" and provider.name == "Groq"
     assert provider.connection_id == groq_id
+
+
+def test_a_service_is_named_by_its_address_or_else_by_the_connection():
+    assert connections.service_name({"kind": "api", "name": "Google Gemini: gemini-x",
+                                     "base_url": connections.SERVICES["gemini"][1]}) == "Google Gemini"
+    assert connections.service_name({"kind": "api", "name": "My server: llama",
+                                     "base_url": "http://192.168.1.5:8000/v1"}) == "My server"
+    assert connections.service_name({"kind": "claude", "name": "Claude Code: sonnet"}) == "Claude Code"
+    assert connections.service_name({"kind": "ollama", "name": "Ollama: llama3.1"}) == "Ollama"
 
 
 def test_switching_connections(safe):
