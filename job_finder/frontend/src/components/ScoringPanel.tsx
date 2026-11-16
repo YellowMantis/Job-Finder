@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError, api } from '../api/client'
 import type { BatchRecord, ConnectionsAnswer, FitProgress, Job } from '../api/types'
+import { InfoTip } from './InfoTip'
 import {
   SESSION_HOURS, batchesLabel, dayOf, estimate, formatDuration, formatTokens, runProgress,
   sessionPercent, tokensOf, totalsFor, totalsSince,
@@ -46,13 +47,17 @@ export function ScoringPanel(props: Props) {
   return (
     <section className="scoring">
       <div className="scoring-head">
-        <h2 className="scoring-title">Fit scores</h2>
+        <h2 className="scoring-title">
+          Fit scores{' '}
+          <InfoTip>Jobs are scored from the top of the table down. Sorted by Fit, the
+            unscored ones come in order of fewest years asked, then newest. To choose
+            differently, sort the table by another column first, such as Distance.</InfoTip>
+        </h2>
         <span className="muted"
           title={available === 0
             ? 'Every job in the table with posting text already has a score for this CV. ' +
               'Change the filters to see others.'
-            : 'Jobs in the table below with posting text and no score for this CV. ' +
-              "They are scored in the table's order."}>
+            : 'Jobs in the table below with posting text and no score for this CV.'}>
           {available === 0
             ? `All ${shownCount} jobs in the table are scored`
             : `${available} of ${shownCount} jobs in the table can be scored`}

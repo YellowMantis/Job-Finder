@@ -139,11 +139,27 @@ const sortValue: Record<SortKey, (job: Job) => string | number | null> = {
   applied: (job) => job.applied,
 }
 
+// Rows with no value for the column, in a useful order instead of the file's:
+// with no fit yet, the jobs asking for the fewest years come first, then the
+// newest. They are the ones a fit run takes from the top, so this decides what
+// gets scored first when you haven't sorted the table yourself.
+function unscoredOrder(a: Job, b: Job) {
+  const age = (job: Job) => (job.updated ? ageInDays(job) : null) // no date: last
+  return lowestFirst(a.years, b.years) || lowestFirst(age(a), age(b))
+}
+
+// Smaller numbers first, unknown last.
+function lowestFirst(x: number | null, y: number | null) {
+  if (x === null || y === null) return Number(x === null) - Number(y === null)
+  return x - y
+}
+
 export function sortJobs(jobs: Job[], sort: Sort) {
   const value = sortValue[sort.key]
   return [...jobs].sort((a, b) => {
     const x = value(a)
     const y = value(b)
+    if (x === null && y === null) return sort.key === 'fit' ? unscoredOrder(a, b) : 0
     if (x === null || y === null) return Number(x === null) - Number(y === null)
     const order = typeof x === 'number' && typeof y === 'number'
       ? x - y

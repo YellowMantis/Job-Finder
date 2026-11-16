@@ -157,6 +157,19 @@ describe('sorting', () => {
     expect(sorted.map((j) => j.url)).toEqual(['c', 'a', 'b'])
   })
 
+  it('orders the unscored jobs by fewest years asked, then newest', () => {
+    const jobs = [
+      job({ url: 'scored', fit: fit(50), years: 9 }),
+      job({ url: '3y', years: 3, updated: '2026-11-01' }),
+      job({ url: '?', years: null, updated: '2026-11-10' }),
+      job({ url: '1y old', years: 1, updated: '2026-09-01' }),
+      job({ url: '1y new', years: 1, updated: '2026-11-05' }),
+      job({ url: '1y no date', years: 1, updated: '' }),
+    ]
+    expect(sortJobs(jobs, { key: 'fit', descending: true }).map((j) => j.url))
+      .toEqual(['scored', '1y new', '1y old', '1y no date', '3y', '?'])
+  })
+
   it('keeps unknown distances last in either direction', () => {
     const jobs = [job({ url: 'far', distance_km: 90 }), job({ url: '?', distance_km: null }),
       job({ url: 'near', distance_km: 10 })]

@@ -45,7 +45,8 @@ and refining it to make it as useful as possible.
   with your own key (OpenAI, Google Gemini, Groq, OpenRouter, Mistral, DeepSeek…), or a model on
   your own PC (Ollama, LM Studio). Gemini and Groq have free tiers.
   Score a batch or a single job, see what each run used, and stop at any time. Pick a smaller
-  Claude model to use less of your plan, and jobs are scored in the table's order.
+  Claude model to use less of your plan. Jobs are scored in the table's order: unless you
+  sort it yourself, those asking for the fewest years come first, then the newest.
   Score a job again with another model and the job shows both, to compare.
 - **Your preferences.** Choose the levels and fields you want, how recent a posting must be, and
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden. Found a
