@@ -24,7 +24,10 @@ jobs:
             file: job_finder/build/Job-Finder-Setup.exe
           - os: macos-latest
             file: job_finder/build/Job-Finder-mac.dmg
-          - os: ubuntu-latest
+          # The oldest Ubuntu GitHub offers, on purpose: a Linux build runs only
+          # where the C library (glibc) is as new as the one it was built with,
+          # so this one runs on Linux from 2022 on (glibc 2.35+).
+          - os: ubuntu-22.04
             file: job_finder/build/Job-Finder-linux.tar.gz
     runs-on: ${{ matrix.os }}
     steps:

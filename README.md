@@ -68,7 +68,9 @@ From the latest [Release](https://github.com/YellowMantis/Job-Finder/releases):
   "More info" and "Run anyway".
 - **macOS (beta):** open `Job-Finder-mac.dmg` and drag Job Finder into Applications. The first
   time, right-click it and choose Open (the app isn't notarised by Apple).
-- **Linux (beta):** unpack `Job-Finder-linux.tar.gz` and run `Job Finder` inside.
+- **Linux (beta):** unpack `Job-Finder-linux.tar.gz` and run `Job Finder` inside. It needs a
+  Linux from 2022 or newer (glibc 2.35+: Ubuntu 22.04, Debian 12, Fedora 36, Mint 21 or later).
+  `ldd --version` shows yours.
 
 Nothing else is needed: no Python, Node or Git. The first time, a short setup asks which AI
 should score the fit, takes your CV, suggests what to look for, asks where you live, and
