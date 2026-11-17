@@ -18,6 +18,8 @@ permissions:
 jobs:
   build:
     strategy:
+      # One system's build failing doesn't stop the others (see "release" below).
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -81,15 +83,25 @@ jobs:
           name: ${{ runner.os }}
           path: ${{ matrix.file }}
 
+  # Publishes even if the macOS build didn't happen: GitHub sometimes has no Mac
+  # free and cancels it, and Windows and Linux users shouldn't wait for that.
+  # "Re-run failed jobs" later builds it and adds it to the same Release.
+  # Windows and Linux must be there, or nothing is published.
   release:
     needs: build
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Collect the three builds
+      - name: Collect the builds
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           path: builds
           merge-multiple: true
+
+      - name: Make sure the Windows and Linux builds are there
+        run: |
+          ls builds
+          test -f builds/Job-Finder-Setup.exe && test -f builds/Job-Finder-linux.tar.gz
 
       - name: Publish the Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
