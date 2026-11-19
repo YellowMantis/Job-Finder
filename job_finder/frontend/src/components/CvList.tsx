@@ -1,4 +1,5 @@
 import type { SavedCv } from '../api/types'
+import { confirmAction } from '../logic/confirm'
 
 type Props = {
   cvs: SavedCv[]
@@ -11,15 +12,21 @@ type Props = {
 // list. Taking one off keeps its scores (they come back if you upload it
 // again); deleting it with its scores leaves nothing of it on this computer.
 export function CvList({ cvs, inUse, onUse, onDelete }: Props) {
-  function remove(cv: SavedCv) {
-    const ok = window.confirm(`Remove "${cv.name}" from your list? Its scores are kept, ` +
-      'and come back if you upload the same CV again.')
+  async function remove(cv: SavedCv) {
+    const ok = await confirmAction({
+      title: `Remove "${cv.name}" from your list?`,
+      text: 'Its scores are kept, and come back if you upload the same CV again.',
+      confirm: 'Remove',
+    })
     if (ok) onDelete(cv, false)
   }
 
-  function deleteAll(cv: SavedCv) {
-    const ok = window.confirm(`Delete "${cv.name}" and every score made for it from this ` +
-      'computer? This cannot be undone.')
+  async function deleteAll(cv: SavedCv) {
+    const ok = await confirmAction({
+      title: `Delete "${cv.name}" and its scores?`,
+      text: 'The CV and every score made for it are deleted from this computer. This cannot be undone.',
+      confirm: 'Delete', danger: true,
+    })
     if (ok) onDelete(cv, true)
   }
 

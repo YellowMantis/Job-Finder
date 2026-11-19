@@ -558,6 +558,7 @@ frontend/src/
 | `SetupWizard` | The first-run setup in three steps |
 | `PreferencesForm`, `HomePicker` | Your preferences, and choosing where you live (the chosen place shows inside the search box) |
 | `InfoTip` | A small drawn "i" beside a heading; its explanation shows on hover or click |
+| `ConfirmDialog` | The app's own "are you sure?" box, placed once in `App`; `logic/confirm.ts` asks it (before scoring and before removing or deleting) |
 | `ConnectionsSettings`, `ConnectionForm` | Your AI connections: the list, adding and changing one |
 | `UpdateBanner` | A newer version, its notes, and the button to install it |
 

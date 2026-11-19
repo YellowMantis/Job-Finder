@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ApiError, api } from '../api/client'
 import type { Connection, ConnectionsAnswer } from '../api/types'
+import { confirmAction } from '../logic/confirm'
 import { ConnectionForm } from './ConnectionForm'
 
 type Props = {
@@ -24,9 +25,12 @@ export function ConnectionsSettings({ info, onChange }: Props) {
     }
   }
 
-  function remove(connection: Connection) {
-    const ok = window.confirm(`Remove "${connection.name}"? Its key is deleted from your ` +
-      "password safe. Scores it made are kept.")
+  async function remove(connection: Connection) {
+    const ok = await confirmAction({
+      title: `Remove "${connection.name}"?`,
+      text: 'Its key is deleted from your password safe. Scores it made are kept.',
+      confirm: 'Remove', danger: true,
+    })
     if (ok) act(() => api.removeConnection(connection.id))
   }
 

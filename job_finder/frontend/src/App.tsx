@@ -5,6 +5,7 @@ import type {
   SavedCv, Status, UpdateProgress,
 } from './api/types'
 import { AppliedJobs } from './components/AppliedJobs'
+import { ConfirmHost } from './components/ConfirmDialog'
 import { ConnectionsSettings } from './components/ConnectionsSettings'
 import { CvDropZone } from './components/CvDropZone'
 import { CvList } from './components/CvList'
@@ -18,6 +19,7 @@ import { SetupWizard } from './components/SetupWizard'
 import { UpdateBanner } from './components/UpdateBanner'
 import { ScoringPanel } from './components/ScoringPanel'
 import { useProgress } from './hooks/useProgress'
+import { confirmAction } from './logic/confirm'
 import {
   passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
 } from './logic/jobs'
@@ -170,8 +172,11 @@ function App() {
   // Remove from the Applied tab. A job no longer listed can't be ticked again,
   // so that removal is asked about first.
   async function removeApplied(job: AppliedJob) {
-    if (!job.listed && !window.confirm('Remove this application from your history?\n\n' +
-      "The job isn't listed anymore, so it can't be added back.")) return
+    if (!job.listed && !(await confirmAction({
+      title: 'Remove this application from your history?',
+      text: "The job isn't listed anymore, so it can't be added back.",
+      confirm: 'Remove', danger: true,
+    }))) return
     try {
       setAppliedCount((await api.setApplied(job, false)).count)
       setJobs((all) => all.map((j) => (j.url === job.url ? { ...j, applied: null } : j)))
@@ -268,9 +273,17 @@ function App() {
     const scorer = status?.scorer
     if (!scorer) return
     const requests = Math.ceil(jobs.length / scorer.batch_size)
-    const ok = window.confirm(`Score ${jobs.length} job(s) with ${scorer.name}?\n\n` +
-      `That is ${requests} request(s) of up to ${scorer.batch_size} jobs. It counts towards ` +
-      "that service's usage limits (none for a model on this PC). You can stop after any batch.")
+    const count = plural(jobs.length, 'job')
+    const ok = await confirmAction({
+      title: `Score ${count} with ${scorer.name}?`,
+      text: `${requests === 1 ? 'One request' : `${requests} requests`} of up to ` +
+        `${plural(scorer.batch_size, 'job')}. ` +
+        (scorer.kind === 'ollama'
+          ? 'It runs on this PC, so there are no usage limits.'
+          : "It counts towards that service's usage limits.") +
+        ' You can stop after any batch.',
+      confirm: `Score ${count}`,
+    })
     if (!ok) return
     try {
       await api.startFit(jobs.map((job) => job.url), again)
@@ -421,8 +434,14 @@ function App() {
           onScore={status.cv && status.scorer
             ? (again) => startScoring([openJob], again) : undefined} />
       )}
+      <ConfirmHost />
     </>
   )
 }
 
 export default App
+
+// "1 job", "3 jobs".
+function plural(count: number, word: string) {
+  return `${count} ${word}${count === 1 ? '' : 's'}`
+}

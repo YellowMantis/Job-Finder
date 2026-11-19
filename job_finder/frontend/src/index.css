@@ -120,6 +120,22 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
 /* A button that deletes for good: red, so it isn't pressed by habit. */
 .button.secondary.danger { color: var(--bad); }
 .button.secondary.danger:hover { background: var(--bad-soft); filter: none; }
+.button.danger:not(.secondary) { background: var(--bad); }
+
+/* The app's own "are you sure?" box (ConfirmDialog.tsx). */
+.confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 20px 22px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(28, 36, 48, 0.25);
+}
+.confirm-dialog::backdrop { background: rgba(28, 36, 48, 0.35); }
+.confirm-dialog h2 { margin: 0 0 8px; font-size: var(--text-heading); }
+.confirm-dialog p { margin: 0; }
+.confirm-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .drop-title { margin: 0; font-weight: 600; font-size: var(--text-heading); }
 .drop-hint { margin: 2px 0 0; color: var(--muted); }
 
