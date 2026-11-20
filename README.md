@@ -81,6 +81,8 @@ and Linux it opens the download page. Your data stays either way.
 
 ## Privacy and security
 
+The full [privacy policy](docs/PRIVACY.md) explains what stays on your computer and what goes where.
+
 - **Everything stays on your computer.** There is no server of ours: your CV, preferences,
   scores and applications are files on your own PC, in `%LOCALAPPDATA%\Job Finder` (macOS:
   `~/Library/Application Support/Job Finder`, Linux: `~/.local/share/job-finder`). Installing a
