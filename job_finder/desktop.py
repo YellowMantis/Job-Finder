@@ -63,8 +63,8 @@ def wait_until_answering(port, seconds=15):
 def main():
     if already_running():
         ctypes.windll.user32.MessageBoxW(
-            None, "Job Finder is already open. Look for its window on the taskbar.",
-            "Job Finder", 0x40)  # 0x40: an "information" box
+            None, "Veri is already open. Look for its window on the taskbar.",
+            "Veri", 0x40)  # 0x40: an "information" box
         return
     port = free_port()
     # 127.0.0.1: only this computer can reach it. A daemon thread ends with the window.
@@ -72,11 +72,11 @@ def main():
                      daemon=True).start()
     wait_until_answering(port)
     start_up()  # bring the data up to date with this version; refresh old listings
-    webview.create_window("Job Finder", f"http://127.0.0.1:{port}",
+    webview.create_window("Veri", f"http://127.0.0.1:{port}",
                           width=1440, height=900, min_size=(960, 640))
     webview.start()  # returns when the window is closed
     # End now, even if an update or scoring run is still going in the
-    # background: otherwise Python waits for it, and Job Finder keeps running
+    # background: otherwise Python waits for it, and the app keeps running
     # without a window (and keeps its files locked against an update). Data is
     # saved all or nothing (pipeline.write_json), so stopping here is safe.
     os._exit(0)

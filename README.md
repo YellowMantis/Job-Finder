@@ -1,8 +1,8 @@
-# Job Finder
+# Veri – IL Tech Jobs
 
 [![Tests](https://github.com/YellowMantis/Job-Finder/actions/workflows/tests.yml/badge.svg)](https://github.com/YellowMantis/Job-Finder/actions/workflows/tests.yml)
 
-**One clear place to find the tech jobs in Israel that actually fit you.**
+**One clear place to find the tech jobs in Israel that actually fit you.** (Formerly called Job Finder.)
 
 <img width="1917" height="1001" alt="Screenshot 2026-11-15 171033" src="https://github.com/user-attachments/assets/5a9e28a8-502f-43f5-abf7-ad4d3b946fd7" />
 
@@ -63,10 +63,10 @@ and refining it to make it as useful as possible.
 From the latest [Release](https://github.com/YellowMantis/Job-Finder/releases):
 
 - **Windows:** download `Job-Finder-Setup.exe` and run it. It installs for you only (no
-  administrator rights), adds Job Finder to the Start menu, and can be removed like any app.
+  administrator rights), adds Veri to the Start menu, and can be removed like any app.
   Windows may warn about an unknown publisher, since the app isn't code-signed yet: choose
   "More info" and "Run anyway".
-- **macOS (beta):** open `Job-Finder-mac.dmg` and drag Job Finder into Applications. The first
+- **macOS (beta):** open `Job-Finder-mac.dmg` and drag Job Finder (Veri's program) into Applications. The first
   time, right-click it and choose Open (the app isn't notarised by Apple).
 - **Linux (beta):** unpack `Job-Finder-linux.tar.gz` and run `Job Finder` inside. It needs a
   Linux from 2022 or newer (glibc 2.35+: Ubuntu 22.04, Debian 12, Fedora 36, Mint 21 or later).
@@ -100,7 +100,7 @@ and Linux it opens the download page. Your data stays either way.
 
 ## Status
 
-Job Finder is in early development (version 0.x).
+Veri is in early development (version 0.x).
 
 - **Windows** is the main platform, built and tested.
 - **macOS and Linux** builds are made automatically but haven't been tried by many people yet.

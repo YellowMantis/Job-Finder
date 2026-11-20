@@ -325,7 +325,7 @@ function App() {
     <>
       <header className="top">
         <div>
-          <h1>Job Finder</h1>
+          <h1>Veri</h1>
           {/* Only when there is something to do; otherwise the header stays clean. */}
           {status.setup_needed
             ? <p className="subtitle">Set up in three short steps</p>
@@ -423,7 +423,7 @@ function App() {
           <HiddenJobs key={dataVersion} onUnhide={unhideJob} />
         )}
         <footer className="credit">
-          Job Finder {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
+          Veri {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
         </footer>
       </main>
       )}

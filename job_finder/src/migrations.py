@@ -145,7 +145,7 @@ def run():
         return None
     version = data_version()
     if version > CURRENT_VERSION:
-        return ("Your data was saved by a newer version of Job Finder. Install the latest "
+        return ("Your data was saved by a newer version of Veri. Install the latest "
                 "version to use it; nothing has been changed.")
     if version == CURRENT_VERSION:
         return None

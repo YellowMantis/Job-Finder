@@ -44,5 +44,5 @@ jobs:
           # A pre-release, so GitHub never reports it as the app's latest version.
           gh release view data > /dev/null 2>&1 || gh release create data --prerelease \
             --title "Job data (refreshed every 6 hours)" \
-            --notes "The shared snapshot of job listings that Job Finder downloads. Data: techmap by Michael Lugassy (ODbL)."
+            --notes "The shared snapshot of job listings that Veri downloads. Data: techmap by Michael Lugassy (ODbL)."
           gh release upload data job-data.json.gz --clobber

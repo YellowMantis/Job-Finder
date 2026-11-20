@@ -26,14 +26,14 @@ export function UpdateBanner({ current, update }: Props) {
   return (
     <section className="update-banner">
       {state === 'closing' ? (
-        <p><strong>Installing Job Finder {update.version}…</strong> This window closes now; the
+        <p><strong>Installing Veri {update.version}…</strong> This window closes now; the
           installer will offer to open the new version when it's done.</p>
       ) : state === 'opened' ? (
-        <p>The download page for Job Finder {update.version} opened in your browser.</p>
+        <p>The download page for Veri {update.version} opened in your browser.</p>
       ) : (
         <>
           <p>
-            <strong>Job Finder {update.version} is available</strong>
+            <strong>Veri {update.version} is available</strong>
             <span className="muted"> (you have {current}). Your data stays as it is.</span>
           </p>
           {update.notes && (

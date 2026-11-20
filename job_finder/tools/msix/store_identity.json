@@ -1,7 +1,7 @@
 {
-  "_about": "The app's identity in the Microsoft Store: Partner Center, the app, Product identity. Not secret. Until the name is reserved these are test values, which only install on a PC in Developer Mode.",
-  "name": "JobFinder.Test",
-  "publisher": "CN=JobFinderTest",
-  "publisher_display_name": "Job Finder",
-  "display_name": "Job Finder"
+  "_about": "The app's identity in the Microsoft Store: Partner Center, the app, Product identity. Not secret: Windows shows it in every installed package.",
+  "name": "YellowMantis.Veri-ILTechjobs",
+  "publisher": "CN=83916430-E0A0-481A-AE7F-7F7F94CD9A1D",
+  "publisher_display_name": "YellowMantis",
+  "display_name": "Veri – IL Tech Jobs"
 }

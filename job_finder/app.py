@@ -88,7 +88,7 @@ def only_this_apps_page():
     if (not _is_local(request.host)
             or (origin is not None and not _is_local(origin))
             or request.headers.get("Sec-Fetch-Site") == "cross-site"):
-        return jsonify({"error": "Refused: this request didn't come from Job Finder's own page."}), 403
+        return jsonify({"error": "Refused: this request didn't come from Veri's own page."}), 403
     return None
 
 # Progress of the two long jobs, which run in the background. The page asks

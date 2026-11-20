@@ -75,7 +75,7 @@ export function SetupWizard(props: Props) {
 
   return (
     <main className="setup">
-      <h2>Welcome to Job Finder</h2>
+      <h2>Welcome to Veri</h2>
       <ol className="setup-steps">
         {STEPS.map((title, index) => (
           <li key={title} className={index === step ? 'current' : index < step ? 'done' : ''}>

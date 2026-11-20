@@ -1,4 +1,4 @@
-# How the Job Finder works
+# How Veri works
 
 This document explains the job finder from start to finish: what happens when you press a
 button, where each piece of data comes from, why it was built this way, and where it is weak.
@@ -609,6 +609,12 @@ desktop program (`runFullTrust`), and Windows doesn't move its data to a folder 
 package's own (`FileSystemWriteVirtualization` disabled), so both installs share
 `AppData\Local\Job Finder` and the data survives uninstalling. A Store copy offers no
 updates of its own (`updates.installed_from_store()`): the Store installs them.
+
+**Names.** People see the app as **Veri** (the Store lists it as "Veri – IL Tech Jobs"). Its
+first name, Job Finder, stays wherever changing it would break something already installed:
+the GitHub repository (installed copies ask it for updates, `UPDATES_REPOSITORY`), the data
+folder (and the keys filed under it), the program's folder and `Job Finder.exe` (an update
+replaces the same files), and the running marker the installer looks for (`MUTEX_NAME`).
 
 **Releases:** pushing a version tag runs `.github/workflows/release.yml` on fresh Windows,
 macOS and Linux machines: the tests first, then the three builds, then one GitHub Release

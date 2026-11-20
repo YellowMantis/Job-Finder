@@ -1,4 +1,4 @@
-; The Windows installer for Job Finder, built with Inno Setup (https://jrsoftware.org/isinfo.php)
+; The Windows installer for Veri, built with Inno Setup (https://jrsoftware.org/isinfo.php)
 ; by tools/build_desktop.py, which passes the version and the folders:
 ;   ISCC /DAppVersion=0.1.0 /DSourceDir=...\build\Job Finder /DOutputDir=...\build installer.iss
 ;
@@ -7,7 +7,12 @@
 ; shortcut and an uninstaller. Your data (%LOCALAPPDATA%\Job Finder) is a different
 ; folder: installing a new version or uninstalling never touches it.
 
-#define AppName "Job Finder"
+; The name people see: the installer, the Start menu, Apps & features.
+#define AppName "Veri"
+; The program's folder and file keep the app's first name, Job Finder: an
+; update from an older version replaces the same files instead of putting a
+; second copy beside them.
+#define ProgramName "Job Finder"
 ; The name the app keeps while it runs (MUTEX_NAME in desktop.py).
 #define MutexName "JobFinderIsRunning"
 
@@ -18,14 +23,14 @@ AppId={{A8CE607A-EE01-4392-9D1C-41111B001DA6}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
-AppPublisher=Job Finder
-DefaultDirName={localappdata}\Programs\{#AppName}
+AppPublisher=YellowMantis
+DefaultDirName={localappdata}\Programs\{#ProgramName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir={#OutputDir}
 OutputBaseFilename=Job-Finder-Setup
 SetupIconFile={#SourceDir}\..\icon.ico
-UninstallDisplayIcon={app}\{#AppName}.exe
+UninstallDisplayIcon={app}\{#ProgramName}.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -38,16 +43,21 @@ Name: "desktopicon"; Description: "Put a shortcut on the desktop"; Flags: unchec
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[InstallDelete]
+; The shortcuts from before the app was renamed (a new version adds "Veri" ones).
+Type: files; Name: "{autoprograms}\Job Finder.lnk"
+Type: files; Name: "{userdesktop}\Job Finder.lnk"
+
 [Icons]
 ; Directly in the Start menu's list, not in a folder of its own (one shortcut only).
-Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppName}.exe"
-Name: "{userdesktop}\{#AppName}"; Filename: "{app}\{#AppName}.exe"; Tasks: desktopicon
+Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#ProgramName}.exe"
+Name: "{userdesktop}\{#AppName}"; Filename: "{app}\{#ProgramName}.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppName}.exe"; Description: "Open Job Finder now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#ProgramName}.exe"; Description: "Open Veri now"; Flags: nowait postinstall skipifsilent
 ; After a quiet update (the app's Update button runs this installer with
-; /SILENT), open Job Finder again by itself.
-Filename: "{app}\{#AppName}.exe"; Flags: nowait; Check: WizardSilent
+; /SILENT), open Veri again by itself.
+Filename: "{app}\{#ProgramName}.exe"; Flags: nowait; Check: WizardSilent
 
 [Code]
 // Windows keeps a running program's files locked, so the app can't be
@@ -65,7 +75,7 @@ begin
     Waited := Waited + 250;
   end;
   while CheckForMutexes('{#MutexName}') do
-    if SuppressibleMsgBox('Job Finder is open. Close it, then click OK to continue.',
+    if SuppressibleMsgBox('Veri is open. Close it, then click OK to continue.',
         mbInformation, MB_OKCANCEL, IDCANCEL) = IDCANCEL then
     begin
       Result := False;

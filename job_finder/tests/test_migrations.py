@@ -61,7 +61,7 @@ def test_data_from_a_newer_app_is_left_untouched(folder):
     write(folder, "data_version.json", {"version": migrations.CURRENT_VERSION + 1})
     write(folder, "jobs.json", [{"title": "kept"}])
     problem = migrations.run()
-    assert "newer version of Job Finder" in problem
+    assert "newer version of Veri" in problem
     assert read(folder, "jobs.json") == [{"title": "kept"}]
 
 
