@@ -90,7 +90,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: Microsoft-Store-package
-          path: job_finder/build/Job-Finder.msix
+          path: |
+            job_finder/build/Job-Finder.msix
+            job_finder/build/Store-logo.png
 
   # Publishes even if the macOS build didn't happen: GitHub sometimes has no Mac
   # free and cancels it, and Windows and Linux users shouldn't wait for that.

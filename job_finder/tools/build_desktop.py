@@ -45,19 +45,23 @@ def build_page():
 
 
 def draw_icon(path):
-    """The briefcase from the page's tab icon, in the app's blue, at several sizes."""
-    briefcase().save(path, sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+    """Veri's mark (the page's tab icon, frontend/public/favicon.svg) at several sizes."""
+    logo(256).save(path, sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
 
 
-def briefcase():
-    size = 256
+def logo(pixels):
+    """Veri's mark: a white V on the app's blue tile, its right arm rising like a
+    tick (Veri: "true", "verified"). Drawn large and shrunk, for smooth edges."""
+    size = 1024
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    blue, light = (31, 95, 168, 255), (232, 240, 250, 255)
-    draw.rounded_rectangle((88, 40, 168, 96), radius=18, outline=blue, width=18)  # handle
-    draw.rounded_rectangle((24, 72, 232, 216), radius=32, fill=blue)              # case
-    draw.rectangle((24, 120, 232, 136), fill=light)                              # band
-    return image
+    blue, white = (31, 95, 168, 255), (255, 255, 255, 255)
+    draw.rounded_rectangle((0, 0, size - 1, size - 1), radius=230, fill=blue)
+    points, width = [(250, 330), (450, 760), (790, 250)], 130
+    draw.line(points, fill=white, width=width, joint="curve")
+    for x, y in (points[0], points[-1]):  # round ends
+        draw.ellipse((x - width // 2, y - width // 2, x + width // 2, y + width // 2), fill=white)
+    return image.resize((pixels, pixels), Image.LANCZOS)
 
 
 def package(icon):
@@ -115,7 +119,9 @@ def store_package():
     (layout / "AppxManifest.xml").write_text(manifest, encoding="utf-8")
     (layout / "Assets").mkdir()
     for name, pixels in [("StoreLogo", 50), ("Square44x44Logo", 44), ("Square150x150Logo", 150)]:
-        briefcase().resize((pixels, pixels), Image.LANCZOS).save(layout / "Assets" / f"{name}.png")
+        logo(pixels).save(layout / "Assets" / f"{name}.png")
+    # The large logo Partner Center asks for on the Store page (Store listing, Store logos).
+    logo(2160).save(BUILD / "Store-logo.png")
     package = BUILD / "Job-Finder.msix"
     subprocess.run([make_appx(), "pack", "/o", "/d", str(layout), "/p", str(package)],
                    check=True, stdout=subprocess.DEVNULL)

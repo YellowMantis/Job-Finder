@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- A briefcase in the app's accent colour. -->
-  <rect x="3" y="9" width="26" height="18" rx="4" fill="#1f5fa8"/>
-  <path d="M11 9V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" fill="none" stroke="#1f5fa8" stroke-width="2.5"/>
-  <rect x="3" y="15" width="26" height="2" fill="#e8f0fa"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Veri's mark: a white V on the app's blue, its right arm rising like a tick
+       (the same drawing as logo() in tools/build_desktop.py). -->
+  <rect width="1024" height="1024" rx="230" fill="#1f5fa8"/>
+  <polyline points="250,330 450,760 790,250" fill="none" stroke="#fff" stroke-width="130"
+            stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
