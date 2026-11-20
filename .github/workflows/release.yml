@@ -83,6 +83,15 @@ jobs:
           name: ${{ runner.os }}
           path: ${{ matrix.file }}
 
+      # Not part of the Release: you upload it in Partner Center, and Microsoft
+      # signs it. Download it from this run's page, under "Artifacts".
+      - name: Keep the Microsoft Store package
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: Microsoft-Store-package
+          path: job_finder/build/Job-Finder.msix
+
   # Publishes even if the macOS build didn't happen: GitHub sometimes has no Mac
   # free and cancels it, and Windows and Linux users shouldn't wait for that.
   # "Re-run failed jobs" later builds it and adds it to the same Release.
@@ -106,7 +115,11 @@ jobs:
       - name: Publish the Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
         with:
-          files: builds/*
+          # Named one by one, so the Store package (also in builds/) isn't published.
+          files: |
+            builds/Job-Finder-Setup.exe
+            builds/Job-Finder-mac.dmg
+            builds/Job-Finder-linux.tar.gz
           generate_release_notes: true
           body: |
             **Windows:** download `Job-Finder-Setup.exe` and run it.

@@ -601,6 +601,15 @@ folder, so the desktop app and a copy run from source never mix up each other's 
 folder is then packaged for each system: a Windows installer (Inno Setup,
 `tools/installer.iss`), a macOS disk image, or a Linux archive.
 
+On Windows the same folder is also packaged for the **Microsoft Store** (an MSIX package,
+`tools/msix/`: the manifest, filled in from `store_identity.json` and `version.py`). Microsoft
+signs it when the Store accepts it, so it installs without the SmartScreen warning the
+unsigned installer gets. Two settings in the manifest matter: the app runs as an ordinary
+desktop program (`runFullTrust`), and Windows doesn't move its data to a folder of the
+package's own (`FileSystemWriteVirtualization` disabled), so both installs share
+`AppData\Local\Job Finder` and the data survives uninstalling. A Store copy offers no
+updates of its own (`updates.installed_from_store()`): the Store installs them.
+
 **Releases:** pushing a version tag runs `.github/workflows/release.yml` on fresh Windows,
 macOS and Linux machines: the tests first, then the three builds, then one GitHub Release
 with all three attached.
@@ -719,7 +728,7 @@ one computer. A hosted service would need both.
 | `app.py` | The back end: serves the page, answers `/api/` requests, runs updates and scoring in background threads, receives the CV |
 | `desktop.py` | The desktop app: starts the back end on a free port and opens the page in its own window |
 | `version.py` | The app's version number |
-| `tools/` | `build_desktop.py` (the builds and installer), `installer.iss` (the Windows installer's recipe), `build_snapshot.py` (the shared snapshot), `build_places.py` (the town list), `find_boards.py` (job boards techmap doesn't know about) |
+| `tools/` | `build_desktop.py` (the builds and installer), `installer.iss` (the Windows installer's recipe), `msix/` (the Microsoft Store package's manifest and identity), `build_snapshot.py` (the shared snapshot), `build_places.py` (the town list), `find_boards.py` (job boards techmap doesn't know about) |
 | `tests/` | The Python tests (pytest): real cases, with fakes instead of the internet |
 
 ### `job_finder/src/` (the pipeline)
@@ -750,7 +759,7 @@ one computer. A hosted service would need both.
 | `cv_library.py` | Your saved CVs: keeping each upload, listing them, taking one off the list | `add`, `listing`, `files`, `remove` |
 | `earlier_reviews.py` | Keeps a job's replaced fit reviews; the table shows the latest, the panel the others; switching CV brings that CV's back | `keep`, `for_job`, `swap`, `switch_to`, `forget` |
 | `migrations.py` | Upgrades your data when a new version changes its shape, after a backup; removes a deleted CV's reviews from the backups | `run`, `forget_cv_in_backups` |
-| `updates.py` | Asks GitHub whether a newer version is out, and installs it when you choose | `check`, `install` |
+| `updates.py` | Asks GitHub whether a newer version is out, and installs it when you choose (not in a Store copy: the Store updates it) | `check`, `install`, `installed_from_store` |
 
 ### `job_finder/frontend/` (the page)
 

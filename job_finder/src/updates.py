@@ -9,6 +9,7 @@ While the project's repository is private, GitHub answers "not found", which
 simply means "no update information": nothing is shown and nothing breaks.
 """
 
+import ctypes
 import subprocess
 import sys
 import tempfile
@@ -29,9 +30,24 @@ def version_tuple(version):
     return tuple(int(part) for part in version.lstrip("v").split(".") if part.isdigit())
 
 
+def installed_from_store():
+    """True when this copy came from the Microsoft Store. The Store installs its
+    updates itself, so the app offers none: its installer would put a second,
+    separate copy beside the Store's. Windows tells a program whether it runs
+    from a package (the Store's MSIX format); 15700 means "no package"."""
+    windll = getattr(ctypes, "windll", None)  # only on Windows
+    if sys.platform != "win32" or windll is None:
+        return False
+    length = ctypes.c_uint32(0)
+    return windll.kernel32.GetCurrentPackageFullName(ctypes.byref(length), None) != 15700
+
+
 def check(current):
     """The newer release, or None: {"version", "notes", "page", "installer"}.
-    None also when GitHub can't be reached or doesn't answer."""
+    None also when GitHub can't be reached or doesn't answer, and in a copy
+    from the Microsoft Store."""
+    if installed_from_store():
+        return None
     try:
         response = httpx.get(LATEST_RELEASE_URL, timeout=10,
                              headers={"Accept": "application/vnd.github+json"})
@@ -54,6 +70,8 @@ def install(update):
     """Start updating. On Windows: download the new installer and open it (the
     app then closes, so the installer can replace it). Elsewhere: open the
     Release page to download it. Returns whether the app should close now."""
+    if installed_from_store():
+        raise ValueError("This copy came from the Microsoft Store, which installs its updates.")
     if sys.platform != "win32" or not update.get("installer"):
         webbrowser.open(update["page"])
         return False

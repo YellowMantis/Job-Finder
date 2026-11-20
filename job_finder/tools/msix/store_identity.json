@@ -1,0 +1,7 @@
+{
+  "_about": "The app's identity in the Microsoft Store: Partner Center, the app, Product identity. Not secret. Until the name is reserved these are test values, which only install on a PC in Developer Mode.",
+  "name": "JobFinder.Test",
+  "publisher": "CN=JobFinderTest",
+  "publisher_display_name": "Job Finder",
+  "display_name": "Job Finder"
+}

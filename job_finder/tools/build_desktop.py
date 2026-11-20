@@ -7,6 +7,7 @@ result the usual way for the system it runs on (PyInstaller can only build for
 the system it runs on, so the release job runs this on Windows, Mac and Linux):
 
   Windows  job_finder/build/Job-Finder-Setup.exe   an installer (Inno Setup, tools/installer.iss)
+           job_finder/build/Job-Finder.msix         for the Microsoft Store (tools/msix/)
   macOS    job_finder/build/Job-Finder-mac.dmg     drag "Job Finder" into Applications
   Linux    job_finder/build/Job-Finder-linux.tar.gz  unpack, run "Job Finder"
 
@@ -16,11 +17,14 @@ unpack itself to a temporary folder on every start, which is slower and more
 often mistaken for malware by antivirus programs.
 """
 
+import json
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from string import Template
 
 from PIL import Image, ImageDraw
 
@@ -42,6 +46,10 @@ def build_page():
 
 def draw_icon(path):
     """The briefcase from the page's tab icon, in the app's blue, at several sizes."""
+    briefcase().save(path, sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+
+
+def briefcase():
     size = 256
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
@@ -49,7 +57,7 @@ def draw_icon(path):
     draw.rounded_rectangle((88, 40, 168, 96), radius=18, outline=blue, width=18)  # handle
     draw.rounded_rectangle((24, 72, 232, 216), radius=32, fill=blue)              # case
     draw.rectangle((24, 120, 232, 136), fill=light)                              # band
-    image.save(path, sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+    return image
 
 
 def package(icon):
@@ -90,6 +98,39 @@ def windows_installer():
     return BUILD / "Job-Finder-Setup.exe"
 
 
+def store_package():
+    """The same app folder as a Microsoft Store package (MSIX): the folder, the
+    manifest filled in, and the icons the Store asks for. It is not signed:
+    Microsoft signs it when the Store accepts it."""
+    layout = BUILD / "msix"
+    shutil.rmtree(layout, ignore_errors=True)
+    shutil.copytree(BUILD / NAME, layout)
+    msix = Path(__file__).parent / "msix"
+    identity = json.loads((msix / "store_identity.json").read_text(encoding="utf-8"))
+    manifest = Template((msix / "AppxManifest.xml").read_text(encoding="utf-8")).substitute(
+        name=identity["name"], publisher=identity["publisher"],
+        publisher_display_name=identity["publisher_display_name"],
+        display_name=identity["display_name"],
+        version=f"{VERSION}.0")  # the Store wants four numbers, the last one 0
+    (layout / "AppxManifest.xml").write_text(manifest, encoding="utf-8")
+    (layout / "Assets").mkdir()
+    for name, pixels in [("StoreLogo", 50), ("Square44x44Logo", 44), ("Square150x150Logo", 150)]:
+        briefcase().resize((pixels, pixels), Image.LANCZOS).save(layout / "Assets" / f"{name}.png")
+    package = BUILD / "Job-Finder.msix"
+    subprocess.run([make_appx(), "pack", "/o", "/d", str(layout), "/p", str(package)],
+                   check=True, stdout=subprocess.DEVNULL)
+    return package
+
+
+def make_appx():
+    """Windows' packaging tool, from the newest Windows SDK (on GitHub's machines too)."""
+    kits = Path(os.environ.get("ProgramFiles(x86)", "")) / "Windows Kits/10/bin"
+    found = sorted(kits.glob("10.*/x64/makeappx.exe"))
+    if not found:
+        sys.exit("The Windows SDK's makeappx.exe is needed to build the Store package.")
+    return str(found[-1])
+
+
 def mac_disk_image():
     image = BUILD / "Job-Finder-mac.dmg"
     image.unlink(missing_ok=True)
@@ -110,6 +151,7 @@ def main():
     package(icon)
     if sys.platform == "win32":
         result = windows_installer()
+        print(f"Microsoft Store package: {store_package()}")
     elif sys.platform == "darwin":
         result = mac_disk_image()
     else:

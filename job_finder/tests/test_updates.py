@@ -56,3 +56,17 @@ def test_an_installer_from_anywhere_else_is_refused(monkeypatch):
     monkeypatch.setattr(updates.sys, "platform", "win32")
     with pytest.raises(ValueError, match="isn't this project's GitHub Releases"):
         updates.install({"installer": "https://evil.example.com/Job-Finder-Setup.exe", "page": ""})
+
+
+def test_a_copy_from_the_microsoft_store_offers_no_update(monkeypatch):
+    """The Store installs its updates itself; the app's own would install a
+    second, separate copy beside it."""
+    github_answers(monkeypatch, 200, RELEASE)
+    monkeypatch.setattr(updates, "installed_from_store", lambda: True)
+    assert updates.check("0.1.0") is None
+    with pytest.raises(ValueError, match="Microsoft Store"):
+        updates.install({"installer": RELEASE["assets"][1]["browser_download_url"], "page": ""})
+
+
+def test_a_copy_run_from_the_source_code_is_not_from_the_store():
+    assert updates.installed_from_store() is False
