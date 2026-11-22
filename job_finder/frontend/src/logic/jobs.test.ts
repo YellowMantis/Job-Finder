@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, isNew, modeLabel, modeOf, passesFilters,
+  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, inYourFields, isNew, modeLabel, modeOf,
+  passesFilters,
   placeOf, restoredFilters, sortJobs, yearsText,
   type Filters,
 } from './jobs'
@@ -219,5 +220,24 @@ describe('filters you left the app with', () => {
     expect(restored.modes).toEqual(['hybrid'])
     expect(restored.maxKm).toBe(50)
     expect('goodBets' in restored).toBe(false)
+  })
+
+  it('untick a field that is no longer one of yours', () => {
+    const yours = { ...start, fields: ['software', 'qa'] }
+    expect(restoredFilters({ fields: ['qa', 'design'] }, yours).fields).toEqual(['qa'])
+    // No fields in Settings means all: nothing to untick.
+    expect(restoredFilters({ fields: ['design'] }, start).fields).toEqual(['design'])
+  })
+})
+
+describe('your fields', () => {
+  const jobs = [job({ field: 'software' }), job({ field: 'design' }), job({ field: 'qa' })]
+
+  it('keep only the jobs in the fields you chose in Settings', () => {
+    expect(inYourFields(jobs, ['software', 'qa']).map((j) => j.field)).toEqual(['software', 'qa'])
+  })
+
+  it('keep every job when no fields are chosen', () => {
+    expect(inYourFields(jobs, [])).toHaveLength(3)
   })
 })

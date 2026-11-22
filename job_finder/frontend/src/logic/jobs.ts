@@ -95,8 +95,18 @@ export const startingFilters = (fields: string[], maxKm: number): Filters => ({
 // (like the old "Good bets") is dropped.
 export function restoredFilters(saved: Partial<Filters> | null, start: Filters): Filters {
   const kept = Object.entries(saved ?? {}).filter(([key]) => key in start)
-  return { ...start, ...Object.fromEntries(kept) }
+  const restored = { ...start, ...Object.fromEntries(kept) }
+  // Only your fields can be ticked: a field dropped from Settings since is unticked
+  // (no fields in Settings means all of them).
+  if (!start.fields.length) return restored
+  return { ...restored, fields: restored.fields.filter((field) => start.fields.includes(field)) }
 }
+
+// The jobs in the fields you chose in Settings: the only ones whose posting
+// texts are downloaded, so the only ones the table offers. No fields chosen
+// means all of them.
+export const inYourFields = (jobs: Job[], fields: string[]) =>
+  fields.length ? jobs.filter((job) => fields.includes(job.field)) : jobs
 
 export function passesFilters(job: Job, filters: Filters, newSince: string | null = null,
   now = Date.now()) {

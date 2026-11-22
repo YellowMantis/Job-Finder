@@ -21,11 +21,19 @@ import { ScoringPanel } from './components/ScoringPanel'
 import { useProgress } from './hooks/useProgress'
 import { confirmAction } from './logic/confirm'
 import {
-  passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
+  inYourFields, passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
 } from './logic/jobs'
 import { batchesFor, scorable } from './logic/scoring'
 
 type Message = { text: string; isError: boolean } | null
+
+// Settings in three tabs, so each topic is short and a button can open the one it's about.
+type SettingsTab = 'cvs' | 'preferences' | 'ai'
+const SETTINGS_TABS: { key: SettingsTab; label: string }[] = [
+  { key: 'cvs', label: 'Your CVs' },
+  { key: 'preferences', label: 'Preferences' },
+  { key: 'ai', label: 'AI connections' },
+]
 
 // Everything the page shows comes from these two requests.
 const fetchData = () => Promise.all([api.status(), api.jobs()])
@@ -51,6 +59,9 @@ function App() {
   const [log, setLog] = useState<BatchRecord[]>([]) // recent scoring batches
   const [connections, setConnections] = useState<ConnectionsAnswer | null>(null)
   const [view, setView] = useState<'jobs' | 'settings'>('jobs')
+  // Settings' tab: the one you used last, unless a button opens a given one
+  // (Manage opens AI connections).
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('cvs')
   const [preferences, setPreferences] = useState<PreferencesAnswer | null>(null)
 
   // Show freshly loaded data. Filters are set only the first time, from your
@@ -78,11 +89,14 @@ function App() {
   }, [showData])
 
   // New preferences change what is hidden and every distance: reload the
-  // table, and tick your new fields in the Fields filter.
+  // table, and tick your new fields in the Fields filter. Then update: jobs
+  // they now show (a new field, more years) get their posting texts at once,
+  // not at the next update. Unchanged listings make it quick.
   function preferencesSaved(saved: Preferences) {
     setPreferences((current) => current && { ...current, preferences: saved })
     setFilters((current) => current && { ...current, fields: saved.fields })
     fetchData().then(showData).catch(() => {})
+    startUpdate().catch(() => {})
   }
 
   // After any change to the AI connections: the list, and the status (which
@@ -141,9 +155,13 @@ function App() {
   // The rows to show. useMemo redoes this only when the jobs, filters or
   // order change, not on every redraw (for example when the panel opens).
   const newSince = status?.new_since ?? null // jobs that appeared after this are new
+  // Only jobs in your fields (Settings): the filter bar offers nothing else.
+  const yourFields = status?.default_fields.join('\n') ?? ''
+  const yourJobs = useMemo(
+    () => inYourFields(jobs, yourFields ? yourFields.split('\n') : []), [jobs, yourFields])
   const shown = useMemo(
-    () => (filters ? sortJobs(jobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
-    [jobs, filters, sort, newSince])
+    () => (filters ? sortJobs(yourJobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
+    [yourJobs, filters, sort, newSince])
 
   // Clicking the sorted column again reverses it; fit starts best first.
   function changeSort(key: SortKey) {
@@ -299,11 +317,16 @@ function App() {
     await update.check()
   }
 
-  // The first-run setup is done: preferences are saved, so download the jobs.
+  function openSettings(tab?: SettingsTab) {
+    setMessage(null)
+    if (tab) setSettingsTab(tab)
+    setView('settings')
+  }
+
+  // The first-run setup is done: preferences are saved (which downloads the jobs).
   function setupFinished(saved: Preferences) {
     preferencesSaved(saved)
     setView('jobs')
-    startUpdate().catch(() => {})
   }
 
   // The open job is looked up by its link, so it always shows the latest data
@@ -333,7 +356,11 @@ function App() {
         </div>
         {/* Hidden during the first-run setup, so it is finished before anything else. */}
         {!status.setup_needed && <div className="actions">
-          <button className="button secondary" onClick={() => { setMessage(null); setView(view === 'jobs' ? 'settings' : 'jobs') }}>
+          <button className="button secondary" onClick={() => {
+            if (view === 'jobs') return openSettings()
+            setMessage(null)
+            setView('jobs')
+          }}>
             {view === 'jobs' ? 'Settings' : '← Back to positions'}
           </button>
           {update.progress?.running && (
@@ -359,10 +386,24 @@ function App() {
           onFinished={setupFinished} />
       ) : view === 'settings' ? (
         <main className="settings">
+          <nav className="tabs settings-tabs">
+            {SETTINGS_TABS.map(({ key, label }) => (
+              <button key={key} className={`tab${settingsTab === key ? ' active' : ''}`}
+                onClick={() => { setMessage(null); setSettingsTab(key) }}>
+                {label}
+              </button>
+            ))}
+          </nav>
           {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
-          <CvList cvs={status.cvs} inUse={status.cv_id} onUse={useCv} onDelete={deleteCv} />
-          {preferences && <PreferencesForm answer={preferences} onSaved={preferencesSaved} />}
-          {connections && <ConnectionsSettings info={connections} onChange={connectionsChanged} />}
+          {settingsTab === 'cvs' && (
+            <CvList cvs={status.cvs} inUse={status.cv_id} onUse={useCv} onDelete={deleteCv} />
+          )}
+          {settingsTab === 'preferences' && preferences && (
+            <PreferencesForm answer={preferences} onSaved={preferencesSaved} />
+          )}
+          {settingsTab === 'ai' && connections && (
+            <ConnectionsSettings info={connections} onChange={connectionsChanged} />
+          )}
         </main>
       ) : (
       <main>
@@ -377,14 +418,14 @@ function App() {
             batchSize={status.scorer.batch_size} onStart={startScoring}
             onStop={() => api.stopFit().then(fit.check).catch(() => {})}
             connections={connections} onSwitch={switchConnection}
-            onManage={() => setView('settings')} onCalibrated={connectionsChanged} />
+            onManage={() => openSettings('ai')} onCalibrated={connectionsChanged} />
         )}
         {status.cv && !status.scorer && (
           <section className="scoring">
             <p className="scoring-status">
               <strong>Fit scores</strong> To score jobs against your CV, add an AI connection
               first: Claude Code, a service with your key, or a model on this PC.{' '}
-              <button className="link-button" onClick={() => setView('settings')}>Open Settings</button>
+              <button className="link-button" onClick={() => openSettings('ai')}>Open Settings</button>
             </p>
           </section>
         )}
@@ -407,7 +448,7 @@ function App() {
         {tab === 'jobs' || tab === 'skills' ? (
           <>
             {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
-            <FilterBar jobs={jobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
+            <FilterBar jobs={yourJobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
             {tab === 'jobs' ? (
               <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
                 lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />

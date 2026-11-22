@@ -55,8 +55,8 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
 
       <h3>
         Fields you're interested in{' '}
-        <InfoTip>Ticked in the Fields filter when the page opens. Full posting texts are
-          downloaded for these fields.</InfoTip>
+        <InfoTip>Only these fields appear in the table. Saving downloads the full posting
+          texts for them, so years and work mode can be shown.</InfoTip>
       </h3>
       <CheckboxList selected={draft.fields} onChange={(fields) => change({ fields })}
         options={answer.fields.map((field) => ({ value: field }))} />

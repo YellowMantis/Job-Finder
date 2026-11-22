@@ -28,6 +28,9 @@
   --radius: 12px;       /* cards and panels */
   --radius-small: 8px;  /* buttons, inputs, small boxes */
   --pill: 999px;        /* badges and tags */
+  /* Tick boxes, radio buttons and sliders in the app's blue on every system:
+     otherwise Linux draws them in its desktop theme's colour (often orange or red). */
+  accent-color: var(--accent);
 }
 
 * { box-sizing: border-box; }
@@ -36,7 +39,9 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--text);
-  font: var(--text-body)/1.45 "Segoe UI", system-ui, sans-serif;
+  /* Each system's own interface font: Windows, macOS, then common Linux ones. */
+  font: var(--text-body)/1.45 "Segoe UI", system-ui, -apple-system, Ubuntu, Cantarell, "Noto Sans",
+    "DejaVu Sans", sans-serif;
 }
 
 /* ---- Header ---- */
@@ -72,7 +77,7 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
   cursor: pointer;
 }
 .button:hover { filter: brightness(1.1); }
-.button:disabled { opacity: 0.6; cursor: wait; }
+.button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ---- CV drop zone ---- */
 .drop-zone {
@@ -160,6 +165,7 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
   cursor: pointer;
 }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.settings-tabs { margin-top: 0; }
 .tab.active .count { background: var(--accent); color: #fff; }
 .count {
   margin-left: 4px;
@@ -504,6 +510,12 @@ select:not([multiple]), .multi-button {
   background-repeat: no-repeat;
   background-position: right 11px center;
   cursor: pointer;
+}
+/* Clicked or reached with Tab: the box's own edge turns blue, instead of the
+   browser's dark frame drawn around it. */
+select:focus, .multi-button:focus-visible, input[type="search"]:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 /* ---- A small "i" beside a heading, its explanation shown on hover or click ---- */
