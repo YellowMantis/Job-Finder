@@ -130,37 +130,55 @@ export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview }
   )
 }
 
-const SYMBOLS: Record<Match, string> = { yes: '✓', partial: '~', no: '✗' }
-const IMPORTANCE: Record<string, string> = { core: ' (core of the role)', nice: ' (nice to have)' }
+const ROWS: { match: Match; label: string }[] = [
+  { match: 'no', label: 'Missing' }, { match: 'partial', label: 'Partly' }, { match: 'yes', label: 'You have' },
+]
+const WEIGHTS = 'The core of the role counts double a must-have, which counts double a nice-to-have.'
 
-// The score, its summary, and every requirement with the evidence from your CV.
+// The score and its summary, then every requirement as a chip in one of three
+// rows: missing (red), partly (amber), you have (green). Hover a chip for the
+// evidence from your CV, the badge for how the score was made.
 function FitReview({ fit }: { fit: Fit }) {
   return (
     <section className="fit-box">
-      <h3>
-        {fit.score === null
-          ? 'No score for'
-          : <span className={`badge fit ${fitClass(fit.score)}`}>{fit.score}%</span>}
-        {' '}fit
-      </h3>
+      <div className="fit-head">
+        <h3>
+          {fit.score === null
+            ? 'No score for'
+            : <span className={`badge fit ${fitClass(fit.score)}`}
+                title={[...fit.notes, WEIGHTS].join(' ')}>{fit.score}%</span>}
+          {' '}fit
+        </h3>
+        <span className="muted small" title={`Scored ${fit.scored} by ${fit.model}`}>
+          {modelName(fit.model)} · {fit.scored.slice(0, 10)}
+        </span>
+      </div>
       <p>{fit.summary}</p>
-      {fit.notes.length > 0 && <p className="fit-notes">{fit.notes.join(' ')}</p>}
-      <ul className="requirements">
-        {fit.requirements.map((item) => (
-          <li key={item.requirement} className={item.match}>
-            <span className="symbol">{SYMBOLS[item.match]}</span>
-            <div>
-              <strong>{item.requirement}</strong>
-              {IMPORTANCE[item.importance] ?? ''}
-              <span className="evidence">{item.evidence}</span>
+      {/* A lowered score's note is on the badge; the years chip already shows why.
+          Only "not scored" needs saying out loud. */}
+      {fit.score === null && fit.notes.length > 0 && <p className="fit-notes">{fit.notes.join(' ')}</p>}
+      <div className="chip-rows">
+        {ROWS.map(({ match, label }) => {
+          const items = fit.requirements.filter((item) => item.match === match)
+          return items.length > 0 && (
+            <div key={match} className="chip-row">
+              <span className="chip-label">{label}</span>
+              <div className="chips">
+                {items.map((item) => (
+                  <span key={item.requirement} className={`chip ${match} ${item.importance}`}
+                    title={(item.importance === 'core' ? 'Core of the role. ' : '') +
+                      (item.importance === 'nice' ? 'Nice to have. ' : '') +
+                      (match === 'no' ? 'Not in your CV.' : `From your CV: ${item.evidence}`)}>
+                    {item.requirement}
+                    {item.importance === 'core' && <span className="chip-tag">core</span>}
+                    {item.importance === 'nice' && <span className="chip-tag">nice to have</span>}
+                  </span>
+                ))}
+              </div>
             </div>
-          </li>
-        ))}
-      </ul>
-      <p className="muted small">
-        Scored {fit.scored} by {fit.model}. The core of the role counts double a must-have,
-        which counts double a nice-to-have.
-      </p>
+          )
+        })}
+      </div>
     </section>
   )
 }

@@ -13,7 +13,7 @@ import { FilterBar } from './components/FilterBar'
 import { HiddenJobs } from './components/HiddenJobs'
 import { JobPanel } from './components/JobPanel'
 import { JobsTable } from './components/JobsTable'
-import { SkillGaps } from './components/SkillGaps'
+import { SkillsInDemand } from './components/SkillsInDemand'
 import { PreferencesForm } from './components/PreferencesForm'
 import { SetupWizard } from './components/SetupWizard'
 import { UpdateBanner } from './components/UpdateBanner'
@@ -435,7 +435,7 @@ function App() {
             Positions <span className="count">{shown.length}</span>
           </button>
           <button className={`tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
-            Missing skills
+            Skills
           </button>
           <button className={`tab${tab === 'applied' ? ' active' : ''}`} onClick={() => setTab('applied')}>
             Applied <span className="count">{appliedCount}</span>
@@ -445,24 +445,27 @@ function App() {
           </button>
         </nav>
 
-        {tab === 'jobs' || tab === 'skills' ? (
+        {tab === 'jobs' ? (
           <>
-            {/* The same filters for both tabs: the skills are those of the jobs in the table. */}
             <FilterBar jobs={yourJobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
-            {tab === 'jobs' ? (
-              <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
-                lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />
-            ) : (
-              <SkillGaps jobs={shown} onOpen={openPanel} />
-            )}
+            <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
+              lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />
           </>
         ) : tab === 'applied' ? (
           <AppliedJobs key={`${dataVersion}-${appliedVersion}`} onRemove={removeApplied} />
-        ) : (
-          // Rendered (and so fetched) only while this tab is open. The key makes
-          // it fetch again after the data reloads, e.g. after a new CV.
-          <HiddenJobs key={dataVersion} onUnhide={unhideJob} />
-        )}
+        ) : null}
+        {/* Skills and Hidden stay on the page, only hidden while another tab is
+            shown, so your choices in them are kept. Each fetches its data when
+            shown, and again only if the data changed since: dataVersion goes up
+            on every reload, the hidden count when you hide a job yourself. */}
+        <div hidden={tab !== 'skills'}>
+          <SkillsInDemand jobs={jobs} onOpen={openPanel} shown={tab === 'skills'}
+            version={`${dataVersion}-${hiddenCount}`} />
+        </div>
+        <div hidden={tab !== 'hidden'}>
+          <HiddenJobs onUnhide={unhideJob} shown={tab === 'hidden'}
+            version={`${dataVersion}-${hiddenCount}`} />
+        </div>
         <footer className="credit">
           Veri {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
         </footer>

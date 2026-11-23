@@ -73,7 +73,8 @@ def main():
     wait_until_answering(port)
     start_up()  # bring the data up to date with this version; refresh old listings
     webview.create_window("Veri", f"http://127.0.0.1:{port}",
-                          width=1440, height=900, min_size=(960, 640))
+                          width=1440, height=900, min_size=(960, 640),
+                          text_select=True)  # so posting text can be selected and copied
     webview.start()  # returns when the window is closed
     # End now, even if an update or scoring run is still going in the
     # background: otherwise Python waits for it, and the app keeps running

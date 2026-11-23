@@ -41,9 +41,9 @@ and refining it to make it as useful as possible.
 - **Several CVs.** Keep a CV per direction (backend, AI, QA…) and switch between them: each
   keeps its own scores, so switching back costs no AI use. Remove a CV from the list, or delete
   it with every score made for it.
-- **Missing skills.** The skills your scored jobs ask for most that your CV doesn't show,
-  counted across the jobs in the table, with the jobs behind each one. No extra AI use: it reads
-  the reviews you already have.
+- **Skills in demand.** The skills the jobs in your fields ask for, most asked first, and
+  whether your CV names each one: the highest ones it doesn't are what to learn next. Pick a
+  field, or click a skill to see the jobs behind it. Read from the postings, no AI needed.
 - **The AI you already have.** Claude Code (with your Claude plan), the Claude API, any service
   with your own key (OpenAI, Google Gemini, Groq, OpenRouter, Mistral, DeepSeek…), or a model on
   your own PC (Ollama, LM Studio). Gemini and Groq have free tiers.

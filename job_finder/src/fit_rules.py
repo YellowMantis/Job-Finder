@@ -31,7 +31,7 @@ POINTS = {"yes": 1.0, "partial": 0.5, "no": 0.0}
 YEARS_GAP_FOR_PENALTY = 2
 YEARS_PENALTIES = [(3, 0.5, "Halved"), (2, 0.75, "Lowered by a quarter")]  # (gap, factor, note)
 
-MAX_REQUIREMENTS = 8  # a safety net: the AI is asked for at most 6
+MAX_REQUIREMENTS = 10  # a safety net: the AI is asked for at most 8
 
 # Requirements containing these words are personality traits, which a CV can't
 # prove either way, so they are left out of the score.
@@ -79,10 +79,11 @@ were removed from the CV on purpose, for privacy. Never treat them as missing.
 
 Do this:
 1. years_required: the number of years of experience the posting asks for, as a
-   whole number. Use 0 if it doesn't say. Do not list years of experience again
-   as a requirement.
-2. List the posting's requirements, most important first, at most 6, each in a few
-   words. The first requirement is always the core discipline of the role, with
+   whole number. For a range, use the lowest: "1 to 3 years" or "1-3 years" is 1.
+   Use 0 if it doesn't say. Do not list years of experience again as a requirement.
+2. List the posting's requirements, most important first, at most 8. Name each in
+   1 to 4 words, one skill or technology per requirement: "Docker" and "Conan" are
+   two requirements, not "Docker and Conan". The first requirement is always the core discipline of the role, with
    importance "core", for example "Software test automation" or "Mechanical
    engineering". After it, list only
    qualifications that a CV can show: degrees, technologies,
@@ -90,11 +91,11 @@ Do this:
    personality traits and soft skills such as teamwork, communication, motivation
    or attention to detail.
    For the others, importance is "must" for things the posting requires and
-   "nice" for things it calls an advantage or a plus. When there are more than 6,
+   "nice" for things it calls an advantage or a plus. When there are more than 8,
    keep the ones that matter most and leave out minor nice-to-haves.
 3. For each requirement, look only in the CANDIDATE CV section. In evidence, copy
    the fewest words from the CV that show it, exactly as written there: a short
-   phrase, at most about 12 words, not a whole line. If the CV has
+   phrase, at most about 6 words, not a whole line. If the CV has
    nothing, write "not in CV". Never copy evidence from the posting.
    match is "yes" when the CV shows it in a job, a project, the degree or the skills
    list; "partial" when the CV shows the same kind of thing with another tool or in

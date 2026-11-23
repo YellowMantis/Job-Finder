@@ -179,7 +179,7 @@ main { max-width: 1440px; margin: 0 auto; padding: 20px 28px 40px; }
 /* ---- Filters ---- */
 .filters { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
 .filter-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.filters input[type="search"], .filters select {
+.filters input[type="search"], .filters select, .skills-controls select {
   padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-small);
@@ -337,13 +337,20 @@ td a.apply-chip:hover { background: var(--accent); color: #fff; text-decoration:
 .fit-box p { margin: 0 0 8px; }
 .fit-notes { color: var(--warn); font-weight: 600; }
 .fit-notes:empty { display: none; }
-.requirements { list-style: none; margin: 10px 0; padding: 0; }
-.requirements li { display: flex; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
-.requirements .symbol { width: 16px; font-weight: 700; text-align: center; }
-.requirements li.yes .symbol { color: var(--good); }
-.requirements li.partial .symbol { color: var(--warn); }
-.requirements li.no .symbol { color: var(--bad); }
-.evidence { display: block; color: var(--muted); font-size: var(--text-small); }
+.chip-rows { margin: 12px 0; display: grid; gap: 8px; }
+.chip-row { display: grid; grid-template-columns: 72px 1fr; gap: 8px; align-items: start; }
+.chip-label { font-weight: 700; font-size: var(--text-small); padding-top: 3px; }
+.chip-row:has(.chip.no) .chip-label { color: var(--bad); }
+.chip-row:has(.chip.partial) .chip-label { color: var(--warn); }
+.chip-row:has(.chip.yes) .chip-label { color: var(--good); }
+.fit-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.chip-tag { margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--surface); font-size: 0.85em; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 3px 10px; border-radius: 999px; font-size: var(--text-small); cursor: help; border: 1px solid transparent; }
+.chip.no { background: var(--bad-soft); color: var(--bad); }
+.chip.partial { background: var(--warn-soft); color: var(--warn); }
+.chip.yes { background: var(--good-soft); color: var(--good); }
+.chip.core { border-color: currentColor; }
 .small { font-size: var(--text-small); }
 .panel-heading { margin: 20px 0 0; font-size: var(--text-heading); }
 .panel-text { margin-top: 8px; }
@@ -494,11 +501,27 @@ td.wrap-narrow { white-space: normal; min-width: 150px; max-width: 220px; }
 .release-notes { white-space: pre-wrap; font: inherit; margin: 6px 0 0; }
 
 /* Missing skills: a bar per skill, and the jobs under a skill you open. */
-.skill-track { display: inline-block; width: 60px; margin-right: 8px; text-align: left; vertical-align: middle; line-height: 0; }
-.skill-bar { display: inline-block; height: 8px; border-radius: var(--radius-small); background: var(--accent); opacity: 0.6; }
-.skills-table tr.sortable { cursor: pointer; }
-.skills-table .skill-job { cursor: pointer; background: var(--accent-soft); font-size: var(--text-small); }
-.skills-table .skill-job td { padding-left: 28px; }
+/* ---- Skills tab ---- */
+.skills-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 0 8px; }
+.skills-head .note { margin: 0; }
+.skills-controls { display: flex; gap: 10px; align-items: center; }
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-small); overflow: hidden; }
+.segmented button { padding: 7px 12px; border: 0; background: var(--surface); color: var(--muted); cursor: pointer; font: inherit; }
+.segmented button + button { border-left: 1px solid var(--border); }
+.segmented button.chosen { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.demand-list { list-style: none; margin: 0; padding: 0; }
+.demand-list > li { border-top: 1px solid var(--line); }
+.demand-row { display: grid; grid-template-columns: minmax(140px, 220px) 1fr 120px 120px; align-items: center; gap: 12px;
+  width: 100%; padding: 8px 4px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.demand-row:hover { background: var(--accent-soft); }
+.demand-name { font-weight: 600; }
+.demand-track { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.demand-bar { display: block; height: 100%; border-radius: 999px; background: var(--accent); opacity: 0.7; }
+.demand-count { color: var(--muted); font-size: var(--text-small); text-align: right; }
+.demand-row .chip { justify-self: start; cursor: inherit; }
+.demand-jobs { list-style: none; margin: 0 0 8px; padding: 4px 0 4px 16px; font-size: var(--text-small); }
+.demand-jobs li { padding: 2px 0; }
+
 
 /* Every drop-down draws the same arrow, with room around it, instead of the
    system's own (which sits tight against the edge and differs per system).

@@ -75,6 +75,13 @@ export type AppliedJob = {
 // GET /api/hidden: one row per hidden job; the ones you hid yourself first.
 export type HiddenJob = { url: string; title: string; company: string; reason: string; by_you: boolean }
 
+// The skills each job in your fields asks for, and those your CV names (null: no CV).
+export type SkillsAnswer = {
+  skills: string[]
+  jobs: { url: string; field: string; skills: string[] }[]
+  cv: string[] | null
+}
+
 // Why you hide a job yourself.
 export type HideReason = 'closed' | 'not interested'
 

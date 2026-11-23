@@ -40,6 +40,7 @@ import migrations  # noqa: E402
 import new_jobs  # noqa: E402
 import updates  # noqa: E402
 import scoring  # noqa: E402
+import skills  # noqa: E402
 import places  # noqa: E402
 from industries import INDUSTRIES  # noqa: E402
 from pipeline import (FITS_PATH, JOBS_PATH, POSTINGS_PATH,  # noqa: E402
@@ -178,6 +179,24 @@ def posting_text():
     """The full posting text of one job, asked for by its link."""
     posting = read_json(POSTINGS_PATH, {}).get(request.args.get("url", ""))
     return jsonify({"text": posting["text"] if posting else ""})
+
+
+@app.get("/api/skills")
+def skills_in_demand():
+    """The skills each shown job in your fields asks for, read from its posting
+    text (no AI), and the skills your CV names. Your preferences decide which
+    jobs count; the filters above the table don't. The page does the counting."""
+    fields = load_preferences()["fields"]
+    postings = read_json(POSTINGS_PATH, {})
+    jobs = []
+    for row in jobs_for_display(cv_id()):
+        posting = postings.get(row["url"])
+        if row["hidden"] or not posting or (fields and row["field"] not in fields):
+            continue
+        jobs.append({"url": row["url"], "field": row["field"],
+                     "skills": skills.skills_in(skills.requirements_part(posting["text"]))})
+    cv = skills.skills_in(CV_TEXT_PATH.read_text(encoding="utf-8")) if CV_TEXT_PATH.exists() else None
+    return jsonify({"skills": [name for name, _, _ in skills.SKILLS], "jobs": jobs, "cv": cv})
 
 
 @app.get("/api/hidden")
