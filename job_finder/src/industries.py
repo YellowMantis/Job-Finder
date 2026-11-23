@@ -27,12 +27,15 @@ import re
 INDUSTRIES = {
     "defence": {
         "label": "Defence and military",
-        "companies": ["aitech", "imi systems"],
+        "companies": ["aitech", "imi systems", "bluebird aero systems", "xtend"],
         "name_words": ["elbit", "rafael", "elta", "israel aerospace industries",
                        "israel military industries", "israel shipyards"],
         "phrases": ["defense", "defence", "military", "army", "weapon", "weapons", "missile",
                     "missiles", "warfare", "homeland security", "armed forces", "battlefield",
-                    "munitions", "ammunition"],
+                    "munitions", "ammunition", "soldier", "soldiers",
+                    # Not "combat" alone: companies "combat cancer" or "combat fraud".
+                    "combat-tested", "combat-proven", "combat proven", "combat vehicle",
+                    "combat vehicles", "combat training", "combat survivability"],
         "guard_before": ["cyber", "detection", "multilayered", "layered", "effective", "network",
                          "threat", "threats", "fraud", "email", "endpoint", "proactive",
                          "active", "ransomware", "bot", "malware", "phishing", "identity",

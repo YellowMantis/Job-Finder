@@ -32,6 +32,10 @@ def labels(name, description="", techmap_category=""):
      "private sectors."),
     # Its description never mentions defence: only the known-companies list catches it.
     ("Aitech", "Providing customized, rugged embedded computer systems for extreme environments."),
+    # Military drone makers; their descriptions don't use a defence word either.
+    ("Bluebird Aero Systems", "A leading developer of combat-tested tactical UAS and Hybrid "
+     "Fixed-Wing VTOL-UAS with ongoing innovation through proprietary technologies."),
+    ("XTEND", "Human-guided Autonomous Systems."),
     ("Elbit Systems BMD and Land EW", ""),
 ])
 def test_defence_companies(name, description):
@@ -50,6 +54,30 @@ def test_defence_companies(name, description):
 ])
 def test_cyber_defense_is_not_military(name, description):
     assert "defence" not in labels(name, description)
+
+
+@pytest.mark.parametrize("name, description", [
+    ("Next Gen Sim", "A cutting-edge simulation platform that uses synthetic data and digital "
+     "twin environments to realistically train and validate perception and control challenges "
+     "for off-road terrains in Next Generation Combat Vehicles."),
+    ("Tactical Wear", "Automated injury detection technology in tactical clothing rapidly "
+     "increases combat survivability by minimizing critical response times."),
+    ("Digital Combat Academy", "Digital Combat Academy develops training programs that meet "
+     "the needs of today's soldiers."),
+])
+def test_military_combat_counts(name, description):
+    assert "defence" in labels(name, description)
+
+
+@pytest.mark.parametrize("description", [
+    "A global AI-powered platform combats fraud and boosts revenues by providing chargeback "
+    "guarantees to ecommerce enterprises.",
+    "An innovative oncology firm developing Tumor Treating Fields therapy to combat cancer.",
+    "Protect brand reputation and combat disinformation by identifying malicious actors, bot "
+    "networks, and AI-generated content.",
+])
+def test_combat_as_a_verb_is_not_military(description):
+    assert "defence" not in labels("Some Company", description)
 
 
 # ---- Banks and insurers: only companies that ARE one --------------------------
