@@ -52,9 +52,13 @@ class FitReview(BaseModel):
     requirements: list[Requirement]
     work_mode: Literal["remote", "hybrid", "on-site", "not stated"]
     summary: str  # one sentence: the main reason this is or isn't a fit
-    # True if the employer or the role serves military or defence customers.
-    # The candidate excludes such jobs; word rules on company names miss many.
-    defence_related: bool
+
+
+class DefenceReview(FitReview):
+    """A review that also labels the employer's industry. Asked for only when
+    your preferences hide defence: the word rules in industries.py miss many
+    such employers, and the AI is reading the posting anyway."""
+    defence_related: bool  # the employer or the role serves military or defence customers
 
 
 class CvFacts(BaseModel):
@@ -103,7 +107,10 @@ Do this:
 4. work_mode: "remote", "hybrid" or "on-site" only if the posting says so, otherwise
    "not stated".
 5. summary: one short plain sentence, at most about 20 words, giving the main reason
-   this is or isn't a fit.
+   this is or isn't a fit."""
+
+# Added to SYSTEM_PROMPT only when your preferences hide defence (DefenceReview).
+DEFENCE_NOTE = """
 6. defence_related: true if the employer or this role serves military or defence
    customers: weapons, armed forces, military standards (MIL-STD), defence
    electronics, intelligence or homeland-security systems. Ordinary cybersecurity
@@ -120,8 +127,11 @@ def _contains_any(text, phrases):
 
 
 def _evidence_is_in_cv(evidence, cv_words):
-    """Check a quote against the CV: nearly all of its words must appear there."""
-    words = [word for word in _words(evidence) if len(word) > 1]
+    """Check a quote against the CV: nearly all of its words must appear there.
+    One-letter words ("a") are skipped, unless the quote is only one-letter
+    words: a quote of just "C" or "R" names a programming language."""
+    words = _words(evidence)
+    words = [word for word in words if len(word) > 1] or words
     if not words:
         return False
     found = sum(1 for word in words if word in cv_words)

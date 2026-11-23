@@ -35,9 +35,13 @@ class FakeProvider(Provider):
     def __init__(self, *answers):
         self.answers = list(answers)
         self.prompts = []
+        self.instructions = []  # the system prompts, to see what was asked
+        self.schemas = []
 
     def ask(self, system_prompt, prompt, schema):
         self.prompts.append(prompt)
+        self.instructions.append(system_prompt)
+        self.schemas.append(schema)
         answer = self.answers.pop(0)
         if callable(answer):  # lets a test act while a request is "running"
             answer = answer(prompt)
@@ -74,6 +78,23 @@ def test_the_prompt_numbers_every_posting():
     scoring.review_batch(provider, CV, 1, jobs(2))
     assert "=== JOB 1: Engineer 0 at Acme ===" in provider.prompts[0]
     assert "=== JOB 2: Engineer 1 at Acme ===" in provider.prompts[0]
+
+
+def test_the_defence_question_is_not_asked_unless_wanted():
+    # Most people don't hide defence: the AI isn't asked, and nothing is labelled.
+    provider = FakeProvider({"reviews": [review(1, defence_related=True)]})
+    result = scoring.review_batch(provider, CV, 1, jobs(1))
+    assert "defence" not in provider.instructions[0].lower()
+    assert "defence_related" not in json.dumps(provider.schemas[0])
+    assert result["job-0"]["defence_related"] is False
+
+
+def test_the_defence_question_is_asked_when_defence_is_hidden():
+    provider = FakeProvider({"reviews": [review(1, defence_related=True)]})
+    result = scoring.review_batch(provider, CV, 1, jobs(1), ask_defence=True)
+    assert "defence_related" in provider.instructions[0]
+    assert "defence_related" in json.dumps(provider.schemas[0])
+    assert result["job-0"]["defence_related"] is True
 
 
 def test_a_review_for_a_job_never_sent_is_ignored():

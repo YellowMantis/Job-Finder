@@ -12,6 +12,7 @@ from fit_rules import check_and_score
 # A tiny made-up CV. Evidence quotes in the tests are copied from it, unless a
 # test is checking what happens to a quote that ISN'T in it.
 CV = """B.Sc. in Computer Science.
+Programming: Python, C#, Bash, C.
 Wrote Python and Bash automation on Linux.
 System validation and debugging of embedded boards.
 Built telemetry dashboards."""
@@ -94,6 +95,24 @@ def test_a_quote_that_is_not_in_the_cv_counts_as_not_met():
     assert kubernetes["match"] == "no"
     assert kubernetes["evidence"] == "not in CV"
     assert result["score"] == 33   # only the must-have (2 of 6) is met
+
+
+def test_a_one_letter_language_counts_as_a_quote():
+    # "C" in the CV's skills list is real evidence for "Basic C/C++". C# doesn't
+    # count as C, and a quote that is only "a" is still not evidence.
+    result = score([
+        req("Basic C/C++", "must", "partial", "C"),
+        req("Python", "must", "yes", "Python"),
+    ])
+    assert result["requirements"][0]["match"] == "partial"
+
+    without_c = check_and_score("Programming: Python, C#.", 1, 0,
+                                [req("C", "must", "yes", "C"), req("Python", "must", "yes", "Python")],
+                                work_mode="hybrid", summary="", reviewer="test")
+    assert without_c["requirements"][0]["match"] == "no"
+
+    article = score([req("Go", "must", "yes", "a"), req("Python", "must", "yes", "Python")])
+    assert article["requirements"][0]["match"] == "no"
 
 
 def test_soft_skills_are_left_out_of_the_score():

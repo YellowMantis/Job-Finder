@@ -15,7 +15,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
-from fit_rules import SYSTEM_PROMPT, CvFacts, FitReview, check_and_score
+from fit_rules import (DEFENCE_NOTE, SYSTEM_PROMPT, CvFacts, DefenceReview, FitReview,
+                       check_and_score)
 from preferences import FIELDS
 from providers import ProviderError
 from settings import DATA_DIR
@@ -36,6 +37,14 @@ class BatchReview(FitReview):
 
 class Batch(BaseModel):
     reviews: list[BatchReview]
+
+
+class DefenceBatchReview(DefenceReview):
+    job_id: int
+
+
+class DefenceBatch(BaseModel):
+    reviews: list[DefenceBatchReview]
 
 
 def _log(provider, usage, task, jobs):
@@ -146,10 +155,12 @@ def suggest_from_cv(provider, cv_text):
     return suggestions
 
 
-def review_batch(provider, cv_text, professional_years, jobs):
+def review_batch(provider, cv_text, professional_years, jobs, ask_defence=False):
     """Score several jobs in one request.
 
     jobs: table rows that have posting text ("text", "title", "company", "url").
+    ask_defence: also ask whether each employer serves military customers. Only
+    when your preferences hide defence; otherwise the question isn't sent at all.
     Returns {job url: fit review}. A job the AI didn't answer for is left out,
     so it simply stays unscored and can be tried again.
     """
@@ -158,8 +169,9 @@ def review_batch(provider, cv_text, professional_years, jobs):
         for number, job in enumerate(jobs, start=1))
     prompt = f"CANDIDATE CV:\n{cv_text}\n\nJOB POSTINGS:\n\n{numbered}"
 
-    batch, model = _ask_for(provider, SYSTEM_PROMPT + BATCH_NOTE, prompt, Batch,
-                            "score jobs", len(jobs))
+    system_prompt = SYSTEM_PROMPT + (DEFENCE_NOTE if ask_defence else "") + BATCH_NOTE
+    batch, model = _ask_for(provider, system_prompt, prompt,
+                            DefenceBatch if ask_defence else Batch, "score jobs", len(jobs))
     reviews = {}
     for review in batch.reviews:
         if not 1 <= review.job_id <= len(jobs):
@@ -169,5 +181,5 @@ def review_batch(provider, cv_text, professional_years, jobs):
             cv_text, professional_years, review.years_required,
             [item.model_dump() for item in review.requirements],
             review.work_mode, review.summary, f"{provider.reviewer_prefix} ({model})",
-            review.defence_related)
+            getattr(review, "defence_related", False))
     return reviews

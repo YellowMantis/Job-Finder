@@ -483,13 +483,15 @@ def score_jobs(wanted_urls, again=False):
         # Each provider reviews a few jobs per request (Claude Code 10, a local
         # model 1), and an API may run several requests at the same time.
         size = provider.batch_size
+        # The AI is asked about defence only if your preferences hide it.
+        ask_defence = "defence" in load_preferences()["hide_industries"]
         batches = [todo[start:start + size] for start in range(0, len(todo), size)]
         lock = threading.Lock()
 
         def score_batch(batch):
             if fit_progress["stop_requested"]:
                 return  # a batch already started is never cut off: its work is kept
-            reviews = scoring.review_batch(provider, cv_text, years, batch)
+            reviews = scoring.review_batch(provider, cv_text, years, batch, ask_defence)
             with lock:
                 for url, fit in reviews.items():
                     fit["cv"] = current_cv
