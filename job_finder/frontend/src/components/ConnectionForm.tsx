@@ -4,6 +4,7 @@ import type { Connection, ConnectionsAnswer, DetectAnswer, TestAnswer } from '..
 import {
   draftOf, emptyDraft, fieldsOf, needsKey, suggestedName, type Draft, type LocalChoice, type Way,
 } from '../logic/connections'
+import { Dropdown } from './Dropdown'
 
 type Props = {
   info: ConnectionsAnswer // for the list of services
@@ -138,12 +139,11 @@ export function ConnectionForm(props: Props) {
             : <span className="error-text">Not found. Install Claude Code and sign in first.</span>)}
           <p className="muted small">The check only looks for the program on this computer and
             sends nothing anywhere.</p>
-          <label className="claude-model">Model{' '}
-            <select value={draft.claudeModel}
-              onChange={(event) => change({ claudeModel: event.target.value })}>
-              {CLAUDE_MODELS.map(({ model, label }) => <option key={model} value={model}>{label}</option>)}
-            </select>
-          </label>
+          <div className="claude-model">Model{' '}
+            <Dropdown value={draft.claudeModel} label="Model"
+              options={CLAUDE_MODELS.map(({ model, label }) => ({ value: model, label }))}
+              onChange={(claudeModel) => change({ claudeModel })} />
+          </div>
           <p className="muted small">To compare, score a few jobs again with another model and
             see what each batch used in the scoring panel.</p>
         </div>
@@ -151,14 +151,17 @@ export function ConnectionForm(props: Props) {
 
       {draft.way === 'service' && (
         <div className="form-step form-grid">
-          <label>Service
-            <select value={draft.service}
-              onChange={(event) => { setModels(null); change({ service: event.target.value, model: '' }) }}>
-              {Object.entries(info.services).filter(([id]) => id !== 'lmstudio')
-                .map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-              <option value="custom">Another service (enter its address)</option>
-            </select>
-          </label>
+          <div className="form-field">Service
+            <Dropdown value={draft.service} label="Service"
+              options={[...Object.entries(info.services).filter(([id]) => id !== 'lmstudio')
+                .map(([id, label]) => ({ value: id, label })),
+              { value: 'custom', label: 'Another service (enter its address)' }]}
+              onChange={(service) => {
+                if (service === draft.service) return
+                setModels(null)
+                change({ service, model: '' })
+              }} />
+          </div>
           {SERVICE_NOTES[draft.service] &&
             <p className="muted small">{SERVICE_NOTES[draft.service]}</p>}
           {draft.service === 'custom' && (
@@ -175,9 +178,9 @@ export function ConnectionForm(props: Props) {
           <label>Model
             <span className="inline">
               {models && models.length > 0 ? (
-                <select value={draft.model} onChange={(event) => change({ model: event.target.value })}>
-                  {models.map((model) => <option key={model}>{model}</option>)}
-                </select>
+                <Dropdown value={draft.model} label="Model"
+                  options={models.map((model) => ({ value: model, label: model }))}
+                  onChange={(model) => change({ model })} />
               ) : (
                 <input placeholder="load the list, or type a name" value={draft.model}
                   onChange={(event) => change({ model: event.target.value })} />

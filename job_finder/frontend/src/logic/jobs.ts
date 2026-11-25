@@ -56,6 +56,18 @@ export function ageLabel(days: number) {
   return `${days} days ago`
 }
 
+// How long ago the listings were downloaded, for the header: "Updated 12m ago".
+// `updated` is the back end's local time, "2026-11-25 14:05".
+export function updatedLabel(updated: string, now = Date.now()) {
+  const minutes = Math.max(0, Math.floor((now - new Date(updated.replace(' ', 'T')).getTime()) / 60000))
+  if (minutes < 1) return 'Updated just now'
+  if (minutes < 60) return `Updated ${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `Updated ${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? 'Updated yesterday' : `Updated ${days} days ago`
+}
+
 // ---- Filtering ----------------------------------------------------------------
 
 // The distance slider's last position means "any distance".

@@ -539,6 +539,7 @@ frontend/src/
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)
   hooks/useProgress.ts  follows a background task, checking only while it runs
   hooks/useLoadedWhenShown.ts  data for a tab kept on the page: fetched when shown, again only if the data changed
+  hooks/usePopover.ts  a list that opens under its button and closes on a click outside or Esc
   components/         one file per piece of the page (below)
   App.tsx             holds the page's state and connects the pieces
   main.tsx            starts React; index.css holds all styling
@@ -546,12 +547,14 @@ frontend/src/
 
 | Component | What it shows |
 |---|---|
-| `CvDropZone` | The CV box: a big drop area until a CV is loaded, then one line with your saved CVs to switch between, the years of experience you can correct, and what the AI receives |
+| `CvDropZone` | The CV box: a big drop area until a CV is loaded, then the left half of the bar above the table: your saved CVs to switch between, your years of paid work (needed for fit scores), adding a CV, and what the AI receives |
 | `CvList` | Settings → Your CVs: switch to a saved CV, take it off the list (its scores are kept), or delete it with its scores |
 | `FilterBar` | Search, tick-box lists, age, distance and the other filters |
 | `MultiSelect`, `CheckboxList` | Tick-box lists, as a drop-down and as a plain list |
-| `ScoringPanel` | How many jobs to score and what that will probably use; the progress bar; stop; usage so far |
-| `JobsTable`, `FitBadge` | The table and its coloured fit badges |
+| `Dropdown` | Choosing one value, in place of the browser's own drop-down, so every list looks alike |
+| `ScoringPanel` | The right half of the bar: how many jobs to score and how long that will probably take; the progress bar; stop; Details with the full estimate and usage so far |
+| `JobsTable`, `FitBadge` | The table, its fit scores (a coloured box with a bar) and work-mode tags |
+| `ThemeSwitch`, `UpdatedAgo` | The header's light or dark switch, and how long ago the listings were updated |
 | `JobPanel` | The side panel: the fit review as chips (missing, partly, you have), the posting text, and scoring this one job |
 | `SkillsInDemand` | The Skills tab: the skills the jobs in your fields ask for, most asked first, and whether your CV names each one |
 | `AppliedJobs` | Every job you applied to, including ones no longer listed |
@@ -757,7 +760,7 @@ one computer. A hosted service would need both.
 | `years.py` | Reads the years of experience a posting asks for from its text, in plain code ("3+ years", "2-4 years", "3+ שנות ניסיון"), skipping company history and bonus lines. A fit review's number is used instead when there is one | `years_asked` |
 | `cv_privacy.py` | What an AI is sent of your CV: without your name, contact details and links | `for_ai` |
 | `fit_rules.py` | The fit score's rules: the AI's instructions, the answer shapes, and the checks and maths that turn any review into a percentage | `check_and_score`, `SYSTEM_PROMPT` |
-| `scoring.py` | Scoring with any provider: builds the request, checks the answer (one retry), scores it, logs what it used | `review_batch`, `read_cv_facts` |
+| `scoring.py` | Scoring with any provider: builds the request, checks the answer (one retry), scores it, logs what it used | `review_batch`, `suggest_from_cv` |
 | `providers/` | One file per kind of AI service, each with an `ask()` method (`base.py` says what it must do) | `ClaudeCode`, `AnthropicAPI`, `Ollama`, `OpenAICompatible` |
 | `connections.py` | Your AI connections: the list, which one is in use, keys in the system's password safe, and the provider for each | `add`, `activate`, `active_provider`, `for_page` |
 | `pipeline.py` | Runs the stages together for the app, and joins the saved files into table rows | `refresh_listings`, `update_jobs`, `jobs_for_display` |

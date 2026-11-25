@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { Job } from '../api/types'
 import { useLoadedWhenShown } from '../hooks/useLoadedWhenShown'
+import { Dropdown } from './Dropdown'
 
 type Props = {
   jobs: Job[] // every shown job, to open one from the list
@@ -47,10 +48,10 @@ export function SkillsInDemand({ jobs, onOpen, shown, version }: Props) {
           Jobs without posting text aren't counted.
         </p>
         <div className="skills-controls">
-          <select value={field} onChange={(event) => { setField(event.target.value); setOpen(null) }}>
-            <option value="">All your fields</option>
-            {fields.map((name) => <option key={name} value={name}>{name}</option>)}
-          </select>
+          <Dropdown value={field} label="Field"
+            options={[{ value: '', label: 'All your fields' },
+              ...fields.map((name) => ({ value: name, label: name }))]}
+            onChange={(chosen) => { setField(chosen); setOpen(null) }} />
           {cv && (
             <div className="segmented">
               {(['all', 'missing', 'have'] as Show[]).map((key) => (

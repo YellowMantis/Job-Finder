@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { ApiError, api } from '../api/client'
 import type { Preferences, PreferencesAnswer } from '../api/types'
 import { CheckboxList } from './CheckboxList'
+import { Dropdown } from './Dropdown'
 import { HomePicker } from './HomePicker'
 import { InfoTip } from './InfoTip'
 
@@ -62,25 +63,21 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
         options={answer.fields.map((field) => ({ value: field }))} />
 
       <h3>Posted within</h3>
-      <select value={draft.max_age_days}
-        onChange={(event) => change({ max_age_days: Number(event.target.value) })}>
-        {AGES.map(({ days, label }) => <option key={days} value={days}>{label}</option>)}
-      </select>
+      <Dropdown value={draft.max_age_days} label="Posted within"
+        options={AGES.map(({ days, label }) => ({ value: days, label }))}
+        onChange={(max_age_days) => change({ max_age_days })} />
 
       <h3>
         Most years of experience asked{' '}
         <InfoTip>Postings that ask for more are hidden. The years are read from the
           posting text.</InfoTip>
       </h3>
-      <select value={draft.max_years ?? ''}
-        onChange={(event) => change({
-          max_years: event.target.value === '' ? null : Number(event.target.value),
-        })}>
-        <option value="">no limit</option>
-        {YEARS.map((years) => (
-          <option key={years} value={years}>{years === 0 ? 'none (entry level)' : `${years} years`}</option>
-        ))}
-      </select>
+      {/* -1 stands for "no limit" (null) inside the list. */}
+      <Dropdown value={draft.max_years ?? -1} label="Most years of experience asked"
+        options={[{ value: -1, label: 'no limit' }, ...YEARS.map((years) => ({
+          value: years, label: years === 0 ? 'none (entry level)' : `${years} year${years === 1 ? '' : 's'}`,
+        }))]}
+        onChange={(years) => change({ max_years: years === -1 ? null : years })} />
       {draft.max_years !== null && (
         <label className="checkbox">
           <input type="checkbox" checked={draft.keep_unknown_years}

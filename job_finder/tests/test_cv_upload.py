@@ -65,6 +65,16 @@ def test_a_file_that_is_not_a_pdf_is_refused(client):
     assert not (folder / "cv.pdf").exists()
 
 
+def test_scoring_waits_for_your_years_of_paid_work(client):
+    import app
+    test_client, _ = client
+    upload(test_client, make_pdf("Python developer"))
+    answer = test_client.post("/api/fit/start", json={"urls": ["job"]})
+    assert answer.status_code == 400
+    assert answer.get_json()["error"] == app.YEARS_NEEDED
+    assert app.fit_progress["running"] is False   # nothing started
+
+
 def test_the_same_cv_again_keeps_your_corrected_years(client):
     test_client, folder = client
     upload(test_client, make_pdf("Python developer"))

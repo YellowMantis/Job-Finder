@@ -72,8 +72,10 @@ def main():
                      daemon=True).start()
     wait_until_answering(port)
     start_up()  # bring the data up to date with this version; refresh old listings
+    # Opens maximized: the table and the bar above it need the room. The size
+    # is what the window returns to if you un-maximize it.
     webview.create_window("Veri", f"http://127.0.0.1:{port}",
-                          width=1440, height=900, min_size=(960, 640),
+                          width=1440, height=900, min_size=(960, 640), maximized=True,
                           text_select=True)  # so posting text can be selected and copied
     webview.start()  # returns when the window is closed
     # End now, even if an update or scoring run is still going in the

@@ -61,10 +61,6 @@ class DefenceReview(FitReview):
     defence_related: bool  # the employer or the role serves military or defence customers
 
 
-class CvFacts(BaseModel):
-    professional_years: int
-
-
 SYSTEM_PROMPT = """You help a job seeker decide which job postings are worth applying to.
 You receive the candidate's CV and one job posting, and you report how well the CV
 meets what the posting asks for. Your report is turned into a score and used to rank

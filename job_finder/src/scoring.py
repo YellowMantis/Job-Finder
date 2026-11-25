@@ -15,7 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
-from fit_rules import (DEFENCE_NOTE, SYSTEM_PROMPT, CvFacts, DefenceReview, FitReview,
+from fit_rules import (DEFENCE_NOTE, SYSTEM_PROMPT, DefenceReview, FitReview,
                        check_and_score)
 from preferences import FIELDS
 from providers import ProviderError
@@ -108,17 +108,6 @@ def check_connection(provider):
                              'Answer with {"ok": true}.', ConnectionCheck, "test connection", 0)
     log = json.loads(SCORING_LOG_PATH.read_text(encoding="utf-8"))
     return {"model": model, "seconds": log[-1]["seconds"]}
-
-
-def read_cv_facts(provider, cv_text):
-    """Ask once per CV: how many years of paid work does it show?"""
-    facts, _ = _ask_for(
-        provider, "You read a CV and report facts from it.",
-        "How many years of paid professional work experience does this CV show? Count only "
-        "jobs. Do not count studies, academic projects or personal projects. Work it out "
-        f"from the dates of each job and give a whole number.\n\nCV:\n{cv_text}",
-        CvFacts, "read CV facts", 0)
-    return {"professional_years": facts.professional_years}
 
 
 class CvSuggestions(BaseModel):

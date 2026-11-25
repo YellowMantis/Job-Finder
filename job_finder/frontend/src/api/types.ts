@@ -75,6 +75,9 @@ export type AppliedJob = {
 // GET /api/hidden: one row per hidden job; the ones you hid yourself first.
 export type HiddenJob = { url: string; title: string; company: string; reason: string; by_you: boolean }
 
+// The look of the page.
+export type Theme = 'light' | 'dark'
+
 // The skills each job in your fields asks for, and those your CV names (null: no CV).
 export type SkillsAnswer = {
   skills: string[]
@@ -118,6 +121,7 @@ export type Status = {
   new_since: string | null // the end of your previous visit: jobs that appeared after it are new
   // The table's filters as you last left them; null before the first change.
   filters: Partial<Filters> | null
+  theme: Theme
 }
 
 // The AI connection that scores (connections.py), as /api/status describes it.

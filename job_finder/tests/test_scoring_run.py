@@ -128,11 +128,6 @@ def test_every_request_is_logged_even_a_failed_one(log_in_temp_folder):
     assert log[0]["cache_read_tokens"] == 0   # not reported by this provider: counted as 0
 
 
-def test_years_of_experience_are_read_from_the_cv():
-    assert scoring.read_cv_facts(FakeProvider({"professional_years": 1}), CV) == \
-        {"professional_years": 1}
-
-
 # ---- app.score_jobs: the run in the background --------------------------------------
 
 @pytest.fixture

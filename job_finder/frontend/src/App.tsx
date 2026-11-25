@@ -14,6 +14,8 @@ import { HiddenJobs } from './components/HiddenJobs'
 import { JobPanel } from './components/JobPanel'
 import { JobsTable } from './components/JobsTable'
 import { SkillsInDemand } from './components/SkillsInDemand'
+import { ThemeSwitch } from './components/ThemeSwitch'
+import { UpdatedAgo } from './components/UpdatedAgo'
 import { PreferencesForm } from './components/PreferencesForm'
 import { SetupWizard } from './components/SetupWizard'
 import { UpdateBanner } from './components/UpdateBanner'
@@ -277,6 +279,8 @@ function App() {
   }
 
   async function saveYears(years: number) {
+    // Shown as saved at once, so a Score click right after typing already sees it.
+    setStatus((current) => current?.cv ? { ...current, cv: { ...current.cv, professional_years: years } } : current)
     try {
       const cv = await api.setYears(years)
       setStatus((current) => current && { ...current, cv })
@@ -290,6 +294,16 @@ function App() {
     // Scoring uses your AI's allowance (or your PC's time), so ask first.
     const scorer = status?.scorer
     if (!scorer) return
+    // A fit score weighs the years a job asks for against yours: without them, it can't.
+    if (status.cv?.professional_years === undefined) {
+      setOpenUrl(null) // the years box is next to your CV, behind the panel
+      setMessage({ text: 'Type your years of paid work next to your CV first: fit scores need them.',
+        isError: true })
+      const box = document.getElementById('cv-years')
+      box?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      box?.focus({ preventScroll: true })
+      return
+    }
     const requests = Math.ceil(jobs.length / scorer.batch_size)
     const count = plural(jobs.length, 'job')
     const ok = await confirmAction({
@@ -347,33 +361,57 @@ function App() {
   return (
     <>
       <header className="top">
-        <div>
-          <h1>Veri</h1>
+        <div className="brand-line">
+          {/* Veri's mark is the name's first letter: a white V on a coloured tile,
+              then "eri". Screen readers read the whole name. */}
+          <h1 className="brand" aria-label="Veri">
+            <svg className="brand-mark" viewBox="0 0 1024 1024" aria-hidden="true">
+              <rect width="1024" height="1024" rx="230" fill="var(--brand-v)" />
+              <polyline points="250,330 450,760 790,250" fill="none" stroke="#ffffff"
+                strokeWidth="130" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span aria-hidden="true">eri</span>
+          </h1>
           {/* Only when there is something to do; otherwise the header stays clean. */}
           {status.setup_needed
             ? <p className="subtitle">Set up in three short steps</p>
             : !status.home && <p className="subtitle">No home chosen: set it in Settings to see distances</p>}
         </div>
-        {/* Hidden during the first-run setup, so it is finished before anything else. */}
+        {/* During the first-run setup only the theme, so setup is finished before anything else. */}
+        {status.setup_needed && <ThemeSwitch initial={status.theme} />}
         {!status.setup_needed && <div className="actions">
-          <button className="button secondary" onClick={() => {
-            if (view === 'jobs') return openSettings()
-            setMessage(null)
-            setView('jobs')
-          }}>
-            {view === 'jobs' ? 'Settings' : '← Back to positions'}
-          </button>
-          {update.progress?.running && (
+          {update.progress?.running ? (
             <span className="progress">
               {update.progress.stage}
               {update.progress.total ? ` ${update.progress.done} of ${update.progress.total}…` : '…'}
             </span>
-          )}
-          <button className="button light" onClick={startUpdate}
-            disabled={update.progress?.running}
-            title={status.jobs_updated ? `Last updated ${status.jobs_updated}` : 'No listings yet'}>
+          ) : <UpdatedAgo updated={status.jobs_updated} />}
+          {/* Only beside the jobs: in Settings it isn't what you came for. */}
+          {view === 'jobs' && <button className="button secondary with-icon" onClick={startUpdate}
+            disabled={update.progress?.running}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+              className={update.progress?.running ? 'spin' : undefined}>
+              <path d="M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M3 21v-5h5" />
+            </svg>
             {update.progress?.running ? 'Updating…' : 'Update listings'}
-          </button>
+          </button>}
+          {view === 'jobs' ? (
+            <button className="icon-button" data-tip="Settings" aria-label="Settings"
+              onClick={() => openSettings()}>
+              {/* A gear */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+          ) : (
+            <button className="button secondary" onClick={() => { setMessage(null); setView('jobs') }}>
+              ← Back to positions
+            </button>
+          )}
+          <ThemeSwitch initial={status.theme} />
         </div>}
       </header>
       {status.update && !status.setup_needed && (
@@ -384,7 +422,8 @@ function App() {
           scorer={status.scorer} onConnections={connectionsChanged}
           onCv={() => api.status().then(setStatus).catch(() => {})}
           onFinished={setupFinished} />
-      ) : view === 'settings' ? (
+      ) : (<>
+        {view === 'settings' && (
         <main className="settings">
           <nav className="tabs settings-tabs">
             {SETTINGS_TABS.map(({ key, label }) => (
@@ -405,30 +444,37 @@ function App() {
             <ConnectionsSettings info={connections} onChange={connectionsChanged} />
           )}
         </main>
-      ) : (
-      <main>
-        <CvDropZone cv={status.cv} onUpload={uploadCv} onYears={saveYears}
-          saved={{ cvs: status.cvs, inUse: status.cv_id, onUse: useCv }} />
-        {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
-        {status.cv && status.scorer && (
-          <ScoringPanel candidates={scorable(shown)} shownCount={shown.length}
-            progress={fit.progress} providerName={status.scorer.name}
-            // Only this connection's batches with its model: another's would distort the estimate.
-            log={batchesFor(log, status.scorer.id, status.scorer.model)}
-            batchSize={status.scorer.batch_size} onStart={startScoring}
-            onStop={() => api.stopFit().then(fit.check).catch(() => {})}
-            connections={connections} onSwitch={switchConnection}
-            onManage={() => openSettings('ai')} onCalibrated={connectionsChanged} />
         )}
-        {status.cv && !status.scorer && (
-          <section className="scoring">
-            <p className="scoring-status">
-              <strong>Fit scores</strong> To score jobs against your CV, add an AI connection
-              first: Claude Code, a service with your key, or a model on this PC.{' '}
-              <button className="link-button" onClick={() => openSettings('ai')}>Open Settings</button>
-            </p>
+        {/* The jobs page stays while Settings is open, only hidden, so its tabs
+            keep what they loaded (Skills, Hidden) and your place in them. */}
+      <main hidden={view === 'settings'}>
+        {/* One bar for your CV and its fit scores: on the left the CV, on the
+            right what scoring it costs. Without a CV, only the big drop box. */}
+        {status.cv ? (
+          <section className="work-bar">
+            <CvDropZone cv={status.cv} onUpload={uploadCv} onYears={saveYears}
+              saved={{ cvs: status.cvs, inUse: status.cv_id, onUse: useCv }} />
+            {status.scorer ? (
+              <ScoringPanel candidates={scorable(shown)} shownCount={shown.length}
+                progress={fit.progress} providerName={status.scorer.name}
+                // Only this connection's batches with its model: another's would distort the estimate.
+                log={batchesFor(log, status.scorer.id, status.scorer.model)}
+                batchSize={status.scorer.batch_size} onStart={startScoring}
+                onStop={() => api.stopFit().then(fit.check).catch(() => {})}
+                connections={connections} onSwitch={switchConnection}
+                onManage={() => openSettings('ai')} onCalibrated={connectionsChanged} />
+            ) : (
+              <p className="score-part muted">
+                Fit scores need an AI connection: Claude Code, a service with your key,
+                or a model on this PC.{' '}
+                <button className="link-button" onClick={() => openSettings('ai')}>Add one</button>
+              </p>
+            )}
           </section>
+        ) : (
+          <CvDropZone cv={null} onUpload={uploadCv} onYears={saveYears} />
         )}
+        {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
 
         <nav className="tabs">
           <button className={`tab${tab === 'jobs' ? ' active' : ''}`} onClick={() => setTab('jobs')}>
@@ -459,22 +505,23 @@ function App() {
             shown, and again only if the data changed since: dataVersion goes up
             on every reload, the hidden count when you hide a job yourself. */}
         <div hidden={tab !== 'skills'}>
-          <SkillsInDemand jobs={jobs} onOpen={openPanel} shown={tab === 'skills'}
+          <SkillsInDemand jobs={jobs} onOpen={openPanel} shown={view === 'jobs' && tab === 'skills'}
             version={`${dataVersion}-${hiddenCount}`} />
         </div>
         <div hidden={tab !== 'hidden'}>
-          <HiddenJobs onUnhide={unhideJob} shown={tab === 'hidden'}
+          <HiddenJobs onUnhide={unhideJob} shown={view === 'jobs' && tab === 'hidden'}
             version={`${dataVersion}-${hiddenCount}`} />
         </div>
         <footer className="credit">
           Veri {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
         </footer>
       </main>
-      )}
+      </>)}
       {openJob && (
         <JobPanel job={openJob} onClose={closePanel} scoring={fit.progress?.running ?? false}
           onHide={(reason) => hideJob(openJob, reason)}
           onUseReview={(scored) => chooseReview(openJob.url, scored)}
+          onApplied={(applied) => markApplied(openJob, applied)}
           onScore={status.cv && status.scorer
             ? (again) => startScoring([openJob], again) : undefined} />
       )}

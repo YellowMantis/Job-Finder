@@ -5,7 +5,7 @@ import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, inYourFields, isNew, modeLabel, modeOf,
   passesFilters,
-  placeOf, restoredFilters, sortJobs, yearsText,
+  placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
   type Filters,
 } from './jobs'
 
@@ -56,6 +56,15 @@ describe('values shown in the table', () => {
     expect(ageInDays(job({ updated: '2026-10-10' }), now)).toBe(7)
     expect(ageLabel(1)).toBe('yesterday')
     expect(ageLabel(7)).toBe('7 days ago')
+  })
+
+  it('says how long ago the listings were updated', () => {
+    const now = new Date('2026-11-25T14:30:00').getTime() // local time, as the back end writes it
+    expect(updatedLabel('2026-11-25 14:30', now)).toBe('Updated just now')
+    expect(updatedLabel('2026-11-25 14:18', now)).toBe('Updated 12m ago')
+    expect(updatedLabel('2026-11-25 09:10', now)).toBe('Updated 5h ago')
+    expect(updatedLabel('2026-11-24 10:00', now)).toBe('Updated yesterday')
+    expect(updatedLabel('2026-11-20 14:30', now)).toBe('Updated 5 days ago')
   })
 })
 

@@ -27,7 +27,7 @@ from urllib.parse import urlsplit
 
 import httpx
 import pdfplumber
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 
 # The pipeline code lives in job_finder/src; let Python find it.
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -61,6 +61,7 @@ CV_PDF_PATH = DATA_DIR / "cv.pdf"
 CV_TEXT_PATH = DATA_DIR / "cv.txt"
 CV_INFO_PATH = DATA_DIR / "cv_info.json"
 FILTERS_PATH = DATA_DIR / "filters.json"  # the table's filters as you last left them
+APPEARANCE_PATH = DATA_DIR / "appearance.json"  # light or dark
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # refuse uploads over 10 MB
@@ -117,7 +118,29 @@ def home_page():
         return ("<p>The page hasn't been built yet. In a terminal, run:</p>"
                 "<pre>cd job_finder/frontend\nnpm install\nnpm run build</pre>"
                 "<p>then reload this page.</p>"), 503
-    return send_from_directory(WEB_DIR, "index.html")
+    # The theme is written into the page itself, so it opens in it at once
+    # instead of flashing the other one while the page starts.
+    page = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    return page.replace('<html lang="en">', f'<html lang="en" data-theme="{saved_theme()}">', 1)
+
+
+THEMES = ["light", "dark"]
+
+
+def saved_theme():
+    """Light (until you choose dark) or dark. Kept apart from the preferences,
+    because saving those also starts an update."""
+    theme = read_json(APPEARANCE_PATH, {}).get("theme")
+    return theme if theme in THEMES else "light"
+
+
+@app.post("/api/theme")
+def save_theme():
+    theme = (request.get_json(silent=True) or {}).get("theme")
+    if theme not in THEMES:
+        return jsonify({"error": f"The theme must be one of: {', '.join(THEMES)}."}), 400
+    write_json(APPEARANCE_PATH, {"theme": theme})
+    return jsonify({"theme": theme})
 
 
 @app.get("/api/status")
@@ -147,7 +170,8 @@ def status():
                     # for the status also counts as using the app (new_jobs.visit).
                     "new_since": new_jobs.visit(),
                     # Your filters as you left them, or None to start from the defaults.
-                    "filters": read_json(FILTERS_PATH, None)})
+                    "filters": read_json(FILTERS_PATH, None),
+                    "theme": saved_theme()})
 
 
 @app.post("/api/filters")
@@ -350,8 +374,8 @@ def upload_cv():
         return jsonify({"error": "No text found in that PDF. Is it a scanned image?"}), 400
 
     # A CV uploaded before (identical text, even if since removed from the
-    # list) keeps the years you corrected; a new one has its years read
-    # afresh when it is first scored.
+    # list) keeps the years you typed; for a new one you type them (fit
+    # scores need them).
     same_cv = CV_TEXT_PATH.exists() and CV_TEXT_PATH.read_text(encoding="utf-8") == text
     CV_TEXT_PATH.write_text(text, encoding="utf-8")
     previous = cv_library.info(cv_id()) or (read_json(CV_INFO_PATH, {}) if same_cv else {})
@@ -484,12 +508,9 @@ def score_jobs(wanted_urls, again=False):
 
         provider = connections.active_provider()  # the AI connection in use
 
-        # Work out the CV's years of experience once per CV, and remember it.
-        info = read_json(CV_INFO_PATH, {})
-        if "professional_years" not in info:
-            info.update(scoring.read_cv_facts(provider, cv_text))
-            _save_cv_info(info)
-        years = info["professional_years"]
+        # Your years of paid work, as typed (or as the setup's suggestions read
+        # them). start_fit checked they are there.
+        years = read_json(CV_INFO_PATH, {})["professional_years"]
 
         fits = read_json(FITS_PATH, {})
         # Jobs with no score for this CV yet. A score stays valid whichever AI
@@ -557,11 +578,17 @@ def use_review():
     return jsonify(chosen)
 
 
+YEARS_NEEDED = "Type your years of paid work next to your CV first: fit scores need them."
+
+
 @app.post("/api/fit/start")
 def start_fit():
     """Score the jobs the page sends: the ones currently shown in the table."""
     if cv_id() is None:
         return jsonify({"error": "Drop your CV first."}), 400
+    # A fit score weighs the years a job asks for against yours, so it needs them.
+    if "professional_years" not in read_json(CV_INFO_PATH, {}):
+        return jsonify({"error": YEARS_NEEDED}), 400
     body = request.get_json()
     urls = set(body.get("urls", []))
     if not fit_progress["running"]:

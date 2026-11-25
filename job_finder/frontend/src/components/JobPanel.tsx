@@ -13,11 +13,12 @@ type Props = {
   scoring: boolean // a scoring run is under way
   onHide: (reason: HideReason) => void // e.g. the posting turned out to be closed
   onUseReview: (scored: string) => void // make an earlier review the current one
+  onApplied: (applied: boolean) => void // tick or untick "I applied"
 }
 
 // The panel that slides in when you click a position: its fit review and the
 // full posting text, which is fetched now, for this one job.
-export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview }: Props) {
+export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview, onApplied }: Props) {
   // The last text loaded, and which job it belongs to. While another job's text
   // is still arriving, the one shown doesn't match, so the panel says "Loading".
   const [loaded, setLoaded] = useState<{ url: string; text: string } | null>(null)
@@ -70,6 +71,15 @@ export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview }
         <a className="button" href={job.apply_url} target="_blank" rel="noopener noreferrer">
           Open posting
         </a>
+        {/* The same mark as the table's Applied tick, without closing the panel. */}
+        {job.applied ? (
+          <span className="panel-applied">
+            ✓ Applied {job.applied}
+            <button className="link-button" onClick={() => onApplied(false)}>Undo</button>
+          </span>
+        ) : (
+          <button className="button secondary" onClick={() => onApplied(true)}>Mark as applied</button>
+        )}
         {onScore && job.has_text && (
           <button className="button secondary" disabled={scoring}
             onClick={() => onScore(Boolean(job.fit))}>

@@ -75,10 +75,11 @@ function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
     <tr className={[job.applied && 'is-applied', opened && 'last-opened'].filter(Boolean).join(' ') || undefined}
       onClick={() => onOpen(job)}>
       <td className="centred"><FitBadge job={job} /></td>
-      <td className="wrap">
-        {job.title}
+      {/* A new job reads like unread mail: a solid "New" first, and the title in bold. */}
+      <td className={isNew ? 'wrap is-new' : 'wrap'}>
+        {isNew && <><span className="new-tag" title="Appeared since your last visit">New</span> </>}
+        <span className="job-title">{job.title}</span>
         {job.level === 'junior' && <> <span className="badge junior">Junior</span></>}
-        {isNew && <> <span className="badge new">New</span></>}
         {job.for_graduates && (
           <> <span className="badge graduates" title="The posting is aimed at recent graduates">Graduates</span></>
         )}
@@ -92,11 +93,16 @@ function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
       </td>
       <td className="wrap-narrow">{placeOf(job)}</td>
       <td className="centred">{distanceText(job)}</td>
-      <td className={mode && mode !== 'not stated' ? 'centred' : 'centred muted'}>{mode || '–'}</td>
+      <td className="centred">
+        {/* hybrid, remote, on-site: a coloured tag; not stated: a dash */}
+        {mode && mode !== 'not stated'
+          ? <span className={`mode-tag ${mode}`}>{mode[0].toUpperCase() + mode.slice(1)}</span>
+          : <span className="muted">–</span>}
+      </td>
       <td className="centred muted">{ageLabel(ageInDays(job))}</td>
       <td className="centred">
         <a className="apply-chip" href={job.apply_url} target="_blank" rel="noopener noreferrer"
-          onClick={stop}>Apply</a>
+          onClick={stop} title="Opens the employer's posting in your browser">Apply ↗</a>
       </td>
       {/* Only the box itself ticks (not a <label>, which would make the whole
           cell a target), and a click beside it doesn't open the job either. */}

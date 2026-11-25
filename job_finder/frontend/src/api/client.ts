@@ -5,7 +5,7 @@ import type { Filters } from '../logic/jobs'
 import type {
   AppliedJob, BatchRecord, ConnectionFields, ConnectionsAnswer, ConnectionTarget, CvInfo, SavedCv,
   DetectAnswer, Fit, FitProgress, HiddenJob, HideReason, Job, JobsAnswer, Place, Preferences,
-  PreferencesAnswer, SkillsAnswer, Status, Suggestions, TestAnswer, UpdateProgress,
+  PreferencesAnswer, SkillsAnswer, Status, Suggestions, TestAnswer, Theme, UpdateProgress,
 } from './types'
 
 // The back end answered with an error; message is its explanation.
@@ -30,6 +30,7 @@ export const api = {
   status: () => request<Status>('/api/status'),
   // Keep the table's filters for the next time the app opens.
   saveFilters: (filters: Filters) => post<Filters>('/api/filters', filters),
+  saveTheme: (theme: Theme) => post<{ theme: Theme }>('/api/theme', { theme }),
   jobs: () => request<JobsAnswer>('/api/jobs'),
   hidden: () => request<HiddenJob[]>('/api/hidden'),
   skills: () => request<SkillsAnswer>('/api/skills'),

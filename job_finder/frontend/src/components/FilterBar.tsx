@@ -3,6 +3,7 @@ import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
 } from '../logic/jobs'
+import { Dropdown } from './Dropdown'
 import { MultiSelect } from './MultiSelect'
 
 type Props = {
@@ -36,9 +37,6 @@ const YEARS = [
   ...[1, 2, 3, 5].map((n) => ({ years: String(n), label: `Up to ${n} year${n === 1 ? '' : 's'}` })),
 ]
 
-// A filter in use is drawn in the accent colour, like a ticked MultiSelect.
-const inUse = (used: boolean) => (used ? 'active' : undefined)
-
 // The row of filters above the table: the common ones, and the rest behind
 // "More filters".
 export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
@@ -64,15 +62,14 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
         <MultiSelect label="Work mode" options={asOptions(jobs.map(modeLabel))}
           selected={filters.modes} onChange={(modes) => set({ modes })} />
 
-        <select value={filters.maxAgeDays} className={inUse(filters.maxAgeDays > 0)}
-          onChange={(event) => set({ maxAgeDays: Number(event.target.value) })}>
-          {AGES.map(({ days, label }) => <option key={days} value={days}>{label}</option>)}
-        </select>
+        <Dropdown value={filters.maxAgeDays} active={filters.maxAgeDays > 0} label="Posted"
+          options={AGES.map(({ days, label }) => ({ value: days, label }))}
+          onChange={(maxAgeDays) => set({ maxAgeDays })} />
 
-        <select value={filters.minFit} className={inUse(filters.minFit > 0)} title="Hides jobs scored below this. Jobs without a score stay"
-          onChange={(event) => set({ minFit: Number(event.target.value) })}>
-          {FITS.map(({ fit, label }) => <option key={fit} value={fit}>{label}</option>)}
-        </select>
+        <Dropdown value={filters.minFit} active={filters.minFit > 0} label="Fit"
+          title="Hides jobs scored below this. Jobs without a score stay"
+          options={FITS.map(({ fit, label }) => ({ value: fit, label }))}
+          onChange={(minFit) => set({ minFit })} />
 
         <label className="range">
           <input type="range" min={10} max={ANY_DISTANCE} step={10} value={filters.maxKm}
@@ -80,10 +77,13 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
           <span className="distance-label">{distanceLabel(filters.maxKm)}</span>
         </label>
 
-        <button className="link-button" onClick={() => setShowMore(!showMore)}>
-          {showMore ? 'Fewer filters' : 'More filters'}{moreInUse > 0 && ` (${moreInUse} in use)`}
-        </button>
-        <button className="link-button" onClick={onReset}>Reset</button>
+        {/* The filters on the left; what you do with them, apart at the right. */}
+        <span className="filter-actions">
+          <button className="quiet-button" onClick={() => setShowMore(!showMore)}>
+            {showMore ? 'Fewer filters' : 'More filters'}{moreInUse > 0 && ` (${moreInUse} in use)`}
+          </button>
+          <button className="quiet-button muted" onClick={onReset}>Reset</button>
+        </span>
       </div>
 
       {showMore && (
@@ -93,13 +93,11 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
           <MultiSelect label="Level" options={asOptions(jobs.map(levelLabel))}
             selected={filters.levels} onChange={(levels) => set({ levels })} />
 
-          <select value={filters.maxYears ?? ''} className={inUse(filters.maxYears !== null)}
+          <Dropdown value={filters.maxYears === null ? '' : String(filters.maxYears)}
+            active={filters.maxYears !== null} label="Years asked"
             title="Postings that don't say how many years always stay"
-            onChange={(event) => set({
-              maxYears: event.target.value === '' ? null : Number(event.target.value),
-            })}>
-            {YEARS.map(({ years, label }) => <option key={years} value={years}>{label}</option>)}
-          </select>
+            options={YEARS.map(({ years, label }) => ({ value: years, label }))}
+            onChange={(years) => set({ maxYears: years === '' ? null : Number(years) })} />
 
           {filters.maxKm < ANY_DISTANCE && (
             <label className="check" title="Hybrid and remote jobs further away: you don't travel there every day">
