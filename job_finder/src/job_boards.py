@@ -94,9 +94,17 @@ def greenhouse_jobs(company, offices):
     return pairs
 
 
+def lever_feed(lever_id):
+    """The address of a Lever job feed. Lever keeps EU accounts on separate
+    servers; their ids are written "eu/<name>" (a Lever name never has a "/")."""
+    if lever_id.startswith("eu/"):
+        return f"https://api.eu.lever.co/v0/postings/{lever_id.removeprefix('eu/')}"
+    return f"https://api.lever.co/v0/postings/{lever_id}"
+
+
 def lever_jobs(company, offices):
     """Return (listing, posting) pairs for the company's jobs in Israel."""
-    data = _get_json(f"https://api.lever.co/v0/postings/{company['leverId']}", {"mode": "json"})
+    data = _get_json(lever_feed(company["leverId"]), {"mode": "json"})
     if not isinstance(data, list):
         return []  # a stale id answers with an error object instead of a list
     pairs = []

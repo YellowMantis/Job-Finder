@@ -451,20 +451,24 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
 .checkbox-list label:hover { background: var(--accent-soft); }
 
 /* ---- Fit score ---- */
-/* The fit score in the table: a bold number in a coloured box, and under it a
-   thin bar filled to the score. */
+/* The fit score: the number in a circle in the fit colour, and a ring around
+   it filled to the score (--score, set on the element). */
 .fit-score {
   position: relative; display: inline-flex; align-items: baseline; justify-content: center;
-  min-width: 50px; padding: 4px 8px 7px; overflow: hidden;
-  border: 1px solid; border-radius: var(--radius-small);
-  font-size: 15px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums;
+  width: 46px; height: 46px; padding-top: 14px; border-radius: 50%;
+  font-size: 14px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
 }
-.fit-score small { margin-left: 1px; font-size: 11px; font-weight: 600; opacity: 0.8; }
-.fit-meter { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: color-mix(in srgb, currentColor 18%, transparent); }
-.fit-meter span { display: block; height: 100%; background: currentColor; }
-.fit-score.high { background: var(--good-soft); color: var(--good); border-color: color-mix(in srgb, var(--good) 35%, transparent); }
-.fit-score.middle { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
-.fit-score.low { background: var(--neutral-soft); color: var(--muted); border-color: var(--border); }
+.fit-score small { margin-left: 1px; font-size: 10px; font-weight: 600; opacity: 0.8; }
+/* The ring: a full circle of colour, with its middle cut away so only a 4px band shows. */
+.fit-score::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(currentColor var(--score, 0%), color-mix(in srgb, currentColor 18%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+}
+.fit-score.high { background: var(--good-soft); color: var(--good); }
+.fit-score.middle { background: var(--warn-soft); color: var(--warn); }
+.fit-score.low { background: var(--neutral-soft); color: var(--muted); }
 /* The company, under the job title. */
 .job-company { margin-top: 2px; color: var(--muted); font-size: 13px; }
 .jobs-table .job-title { font-weight: 600; }

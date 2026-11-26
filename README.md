@@ -90,7 +90,8 @@ The full [privacy policy](docs/PRIVACY.md) explains what stays on your computer 
 - **Everything stays on your computer.** There is no server of ours: your CV, preferences,
   scores and applications are files on your own PC, in `%LOCALAPPDATA%\Job Finder` (macOS:
   `~/Library/Application Support/Job Finder`, Linux: `~/.local/share/job-finder`). Installing a
-  new version or uninstalling never touches them.
+  new version or uninstalling never touches them. The Microsoft Store copy keeps them in its own
+  folder, which Windows removes when you uninstall it.
 - **The AI never learns who you are.** Your name, email, phone number, address and links are
   removed from your CV before it's sent to any AI. The CV box shows exactly what the AI receives.
   With a model on your own PC, your CV doesn't leave the computer at all.

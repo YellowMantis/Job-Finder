@@ -5,17 +5,16 @@
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
          xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-         xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
-         IgnorableNamespaces="uap rescap desktop6">
+         IgnorableNamespaces="uap rescap">
   <Identity Name="$name" Publisher="$publisher" Version="$version" ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>$display_name</DisplayName>
     <PublisherDisplayName>$publisher_display_name</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
-    <!-- Your data stays in the same folder as the other installer's
-         (AppData\Local\Job Finder) and survives uninstalling, instead of
-         Windows moving it to a folder of the package's own. -->
-    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
+    <!-- Windows keeps a Store copy's data in a folder of the package's own (it
+         redirects AppData\Local\Job Finder there), and removes it on uninstall,
+         like any Store app. Keeping the shared folder needed a restricted
+         capability, unvirtualizedResources, which the Store declined. -->
   </Properties>
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
@@ -32,7 +31,5 @@
     <!-- An ordinary desktop program (it starts Claude Code, keeps keys in the
          password safe, serves its page on this PC). -->
     <rescap:Capability Name="runFullTrust" />
-    <!-- Needed for the data folder setting above. -->
-    <rescap:Capability Name="unvirtualizedResources" />
   </Capabilities>
 </Package>

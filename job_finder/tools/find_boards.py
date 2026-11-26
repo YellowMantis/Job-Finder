@@ -43,7 +43,7 @@ sys.path.insert(0, str(JOB_FINDER / "src"))
 
 from career_sites import _comeet_positions, _normalise  # noqa: E402
 from companies import BOARDS_PATH, load_companies  # noqa: E402
-from job_boards import FEED_KEYS  # noqa: E402
+from job_boards import FEED_KEYS, lever_feed  # noqa: E402
 from pipeline import JOBS_PATH, POSTINGS_PATH, read_json  # noqa: E402
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -52,7 +52,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 SIGNATURES = {
     "greenhouse": r"(?:boards|job-boards)(?:\.eu)?\.greenhouse\.io/(?:embed/job_board\?for=)?([\w-]+)"
                   r"|boards-api\.greenhouse\.io/v1/boards/([\w-]+)",
-    "lever": r"jobs\.(?:eu\.)?lever\.co/([\w-]+)",
+    "lever": r"jobs\.(eu\.)?lever\.co/([\w-]+)",  # an EU account's id is "eu/<name>"
     "comeet": r"comeet\.(?:com|co)/jobs/([\w-]+/[\w.]+)",
     "workday": r"([\w-]+\.wd\d+\.myworkdayjobs\.com/(?:[a-z]{2}-[A-Z]{2}/)?[\w-]+)",
     "ashby": r"jobs\.ashbyhq\.com/([\w.%-]+)|api\.ashbyhq\.com/posting-api/job-board/([\w.%-]+)",
@@ -103,7 +103,7 @@ def _feed_titles(system, board_id):
         if system == "greenhouse":
             return [job["title"] for job in _json(f"https://boards-api.greenhouse.io/v1/boards/{board_id}/jobs")["jobs"]]
         if system == "lever":
-            data = _json(f"https://api.lever.co/v0/postings/{board_id}?mode=json")
+            data = _json(f"{lever_feed(board_id)}?mode=json")
             return [job["text"] for job in data] if isinstance(data, list) else None
         if system == "ashby":
             return [job["title"] for job in _json(f"https://api.ashbyhq.com/posting-api/job-board/{board_id}")["jobs"]]
@@ -180,6 +180,8 @@ def _found_in(text):
             groups = groups if isinstance(groups, tuple) else (groups,)
             if system == "comeet_api":
                 board_id = ":".join(groups)
+            elif system == "lever":
+                board_id = ("eu/" if groups[0] else "") + groups[1]
             else:
                 board_id = next((group for group in groups if group), "")
             if board_id and board_id.lower() not in NOT_IDS:
@@ -262,8 +264,10 @@ def find_board(company, titles, browser_text=""):
     text = _page_text(company) + " " + browser_text
     # What the pages name first; then the feeds under the company's likely names,
     # for pages that give nothing away (or name a board that doesn't check out).
+    # Lever is tried on its EU servers too, where accounts like Mobileye's are.
     candidates = _found_in(text) + [(system, board_id) for system in ("greenhouse", "lever", "ashby")
-                                    for board_id in _likely_ids(company)]
+                                    for board_id in _likely_ids(company)] + [
+        ("lever", f"eu/{board_id}") for board_id in _likely_ids(company)]
     for system, board_id in dict.fromkeys(candidates):
         entry = _verified(system, board_id, titles)
         if entry:

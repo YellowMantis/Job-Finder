@@ -18,10 +18,13 @@ computer:
 - the jobs, their fit scores, the jobs you hid, and the applications you marked;
 - the list of AI connections you added.
 
-On Windows they're in `%LOCALAPPDATA%\Job Finder`, the folder name the app has always used. On
-macOS they're in `~/Library/Application Support/Job Finder`, and on Linux in
-`~/.local/share/job-finder`. Updating or uninstalling the app doesn't delete them. Delete the
-folder to remove them.
+On Windows, with the installer from the website, they're in `%LOCALAPPDATA%\Job Finder`, the
+folder name the app has always used. On macOS they're in `~/Library/Application Support/Job Finder`,
+and on Linux in `~/.local/share/job-finder`. Updating or uninstalling the app doesn't delete them.
+Delete the folder to remove them.
+
+The copy from the **Microsoft Store** keeps them in its own folder, which Windows sets aside for it
+(under `%LOCALAPPDATA%\Packages`), and Windows deletes them when you uninstall it.
 
 **AI keys** are kept in your system's password safe (Windows Credential Manager, macOS
 Keychain), never in a file. A key is only ever sent to the service it belongs to.
@@ -81,7 +84,9 @@ from the Microsoft Store skip this, because the Store installs the updates.
 - To delete a CV and every score made for it: **Settings → Your CVs → Delete with its scores**.
   This also removes the backups the app keeps before upgrades.
 - To remove an AI connection and its key: **Settings → AI connections → Remove**.
-- To remove everything: uninstall the app, then delete the data folder listed above.
+- To remove everything: remove your AI connections (their keys are in the password safe, which
+  uninstalling doesn't clear), then uninstall the app. With the installer from the website, also
+  delete the data folder listed above.
 
 ## Children
 

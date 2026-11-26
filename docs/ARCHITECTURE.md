@@ -610,9 +610,10 @@ On Windows the same folder is also packaged for the **Microsoft Store** (an MSIX
 `tools/msix/`: the manifest, filled in from `store_identity.json` and `version.py`). Microsoft
 signs it when the Store accepts it, so it installs without the SmartScreen warning the
 unsigned installer gets. Two settings in the manifest matter: the app runs as an ordinary
-desktop program (`runFullTrust`), and Windows doesn't move its data to a folder of the
-package's own (`FileSystemWriteVirtualization` disabled), so both installs share
-`AppData\Local\Job Finder` and the data survives uninstalling. A Store copy offers no
+desktop program (`runFullTrust`), and Windows redirects its data folder
+(`AppData\Local\Job Finder`) to a folder of the package's own, which uninstalling removes. The
+two installs therefore keep separate data. (Sharing the folder needed the restricted capability
+`unvirtualizedResources`, which the Store declined in November 2026.) A Store copy offers no
 updates of its own (`updates.installed_from_store()`): the Store installs them.
 
 **Names.** People see the app as **Veri** (the Store lists it as "Veri – IL Tech Jobs"). Its

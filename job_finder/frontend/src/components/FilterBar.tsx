@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, distanceLabel, distinct, fieldLabel, levelLabel, modeLabel, type Filters,
+  ANY_DISTANCE, distanceLabel, distinct, fieldLabel, levelLabel, type Filters,
 } from '../logic/jobs'
 import { Dropdown } from './Dropdown'
 import { MultiSelect } from './MultiSelect'
@@ -12,6 +12,12 @@ type Props = {
   onChange: (filters: Filters) => void
   onReset: () => void
 }
+
+// The work modes, as modeLabel gives them, in the order people think of them.
+const WORK_MODES = [
+  { value: 'hybrid', label: 'Hybrid' }, { value: 'on-site', label: 'On-site' },
+  { value: 'remote', label: 'Remote' }, { value: 'not stated', label: 'Not stated' },
+]
 
 const AGES = [
   { days: 0, label: 'Posted: any time' },
@@ -60,7 +66,9 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
         <MultiSelect label="Fields"
           options={asOptions(jobs.map((job) => job.field)).map(({ value }) => ({ value, label: fieldLabel(value) }))}
           selected={filters.fields} onChange={(fields) => set({ fields })} />
-        <MultiSelect label="Work mode" options={asOptions(jobs.map(modeLabel))}
+        {/* Every mode is always offered, even one no job in the table has today,
+            so a choice never disappears from the list. */}
+        <MultiSelect label="Work mode" options={WORK_MODES}
           selected={filters.modes} onChange={(modes) => set({ modes })} />
 
         <Dropdown value={filters.maxAgeDays} active={filters.maxAgeDays > 0} label="Posted"

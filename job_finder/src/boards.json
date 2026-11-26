@@ -5,7 +5,7 @@
       "comeetId": "365scores/B3.006"
     },
     "4M Analytics": {
-      "comeetId": "4Manalytics/B6.00F"
+      "ashbyId": "4M"
     },
     "AKEYLESS": {
       "comeetId": "akeyless/27.006"
@@ -25,8 +25,14 @@
     "Anchor": {
       "comeetId": "anchorfintech/87.00D"
     },
+    "Appcharge": {
+      "comeetId": "appcharge/9A.00B"
+    },
     "AppsFlyer": {
       "greenhouseId": "appsflyer"
+    },
+    "Aquant Technologies": {
+      "ashbyId": "Aquant"
     },
     "Arpeely": {
       "comeetId": "arpeely/57.001"
@@ -34,8 +40,14 @@
     "Artlist": {
       "comeetId": "artlist/85.003"
     },
+    "Augury": {
+      "greenhouseId": "augury"
+    },
     "Autodesk": {
       "workdaySite": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext"
+    },
+    "BIRD Aerosystems": {
+      "comeetId": "birdaero/97.006"
     },
     "Beach Bum": {
       "ashbyId": "beach-bum"
@@ -52,20 +64,35 @@
     "BioCatch": {
       "leverId": "biocatch"
     },
+    "Biolojic Design": {
+      "comeetId": "biolojicdesign/7B.006"
+    },
     "Blockaid": {
       "comeetId": "blockaid/69.00B"
     },
     "BlueGreen Water Technologies": {
       "comeetId": "bgtechs/E6.00D"
     },
+    "Bluevine": {
+      "greenhouseId": "bluevineisrael"
+    },
     "Bond Sports": {
       "comeetId": "bondsports/F7.009"
+    },
+    "Bounce": {
+      "comeetId": "bounce/E9.00C"
     },
     "BridgeWise": {
       "comeetId": "bridgewise/F9.009"
     },
+    "Bringg": {
+      "greenhouseId": "bringg"
+    },
     "Broadcom": {
       "workdaySite": "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career"
+    },
+    "Candex Technologies": {
+      "ashbyId": "candex"
     },
     "Cato Networks": {
       "greenhouseId": "catonetworks"
@@ -76,6 +103,9 @@
     "Check Point Software Technologies": {
       "smartrecruitersId": "CheckPointSoftwareTechnologies2"
     },
+    "Classiq Technologies": {
+      "comeetId": "classiq/F7.008"
+    },
     "Cognyte": {
       "comeetId": "cognyte/F2.009"
     },
@@ -84,6 +114,9 @@
     },
     "ControlUp": {
       "leverId": "controlup"
+    },
+    "Coralogix": {
+      "comeetId": "coralogix/06.004"
     },
     "Cross River Technologies": {
       "comeetId": "crossriver/C7.00F"
@@ -109,6 +142,9 @@
     "DoubleVerify": {
       "workdaySite": "https://doubleverify.wd5.myworkdayjobs.com/wday/cxs/doubleverify/DV_Careers"
     },
+    "Draftt": {
+      "comeetId": "draftt/3A.00F"
+    },
     "Duve": {
       "comeetId": "duve/58.00D"
     },
@@ -119,7 +155,7 @@
       "comeetId": "eitanmedical/C6.00F"
     },
     "Empathy": {
-      "comeetId": "empathy/F8.007"
+      "ashbyId": "empathy"
     },
     "F5 Networks": {
       "workdaySite": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs"
@@ -151,6 +187,9 @@
     "HoneyBook": {
       "ashbyId": "honeybook"
     },
+    "Hypercore": {
+      "ashbyId": "hypercore"
+    },
     "Hypernative Labs": {
       "comeetId": "hypernative/8A.00E"
     },
@@ -163,6 +202,9 @@
     "Intel": {
       "workdaySite": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External"
     },
+    "K2view": {
+      "comeetId": "k2view/D5.000"
+    },
     "KLA": {
       "workdaySite": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search"
     },
@@ -174,6 +216,9 @@
     },
     "LiveU": {
       "comeetId": "liveu/90.00C"
+    },
+    "Logz.io": {
+      "leverId": "logz"
     },
     "Loora": {
       "ashbyId": "loora"
@@ -202,6 +247,9 @@
     "Melio": {
       "greenhouseId": "melio"
     },
+    "Mend": {
+      "ashbyId": "mend-io"
+    },
     "Mentee Robotics": {
       "comeetId": "mentee_robotics/6A.002"
     },
@@ -211,11 +259,17 @@
     "Mitiga": {
       "comeetId": "mitiga/26.00B"
     },
+    "Mobileye": {
+      "leverId": "eu/mobileye"
+    },
     "Moon Active": {
       "ashbyId": "moonactive"
     },
     "Moonshot Marketing": {
       "comeetId": "moonshot/87.005"
+    },
+    "Morphisec": {
+      "comeetId": "morphisec/65.00C"
     },
     "Motorola Solutions": {
       "workdaySite": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers"
@@ -235,6 +289,9 @@
     "Nominal": {
       "comeetId": "nominal/E8.003"
     },
+    "Novidea Software": {
+      "ashbyId": "novidea"
+    },
     "Nvidia": {
       "workdaySite": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite"
     },
@@ -246,6 +303,9 @@
     },
     "Optimove": {
       "greenhouseId": "optimove"
+    },
+    "Oriient": {
+      "comeetId": "oriient/EA.005"
     },
     "PTC": {
       "workdaySite": "https://ptc.wd1.myworkdayjobs.com/wday/cxs/ptc/PTC"
@@ -286,6 +346,9 @@
     "QuantHealth": {
       "greenhouseId": "quanthealth"
     },
+    "Reco": {
+      "comeetId": "reco/3A.00D"
+    },
     "Red Hat": {
       "workdaySite": "https://redhat.wd5.myworkdayjobs.com/wday/cxs/redhat/jobs"
     },
@@ -313,11 +376,20 @@
     "Sisense": {
       "ashbyId": "sisense"
     },
+    "Smart Shooter": {
+      "comeetId": "smart-shooter/0B.00A"
+    },
+    "Snappy Gifts": {
+      "ashbyId": "snappy"
+    },
     "SuperCom": {
       "comeetId": "supercom/46.00A"
     },
     "Sweet Security": {
       "greenhouseId": "sweetsecurity"
+    },
+    "SysAid": {
+      "comeetId": "sysaid/43.00A"
     },
     "Tenable": {
       "greenhouseId": "tenableinc"
@@ -340,6 +412,9 @@
     "Utila": {
       "comeetId": "utila/D9.00F"
     },
+    "VAST Data": {
+      "comeetId": "vastdata/43.001"
+    },
     "Venn": {
       "greenhouseId": "venncity"
     },
@@ -355,8 +430,14 @@
     "WalkMe": {
       "leverId": "walkme"
     },
+    "Wand AI": {
+      "ashbyId": "wand-ai"
+    },
     "WeTrip": {
       "comeetId": "weski/F8.00C"
+    },
+    "Windward": {
+      "ashbyId": "windward"
     },
     "Wix": {
       "smartrecruitersId": "Wix2"
@@ -391,8 +472,20 @@
     "accessiBe": {
       "greenhouseId": "accessibe"
     },
+    "apiiro": {
+      "greenhouseId": "apiiro"
+    },
     "april": {
       "ashbyId": "april"
+    },
+    "flo Optics": {
+      "comeetId": "flo_optics/EA.00E"
+    },
+    "proteanTecs": {
+      "comeetId": "proteantecs/D5.00E"
+    },
+    "ryze beyond": {
+      "comeetId": "ryzebeyond/37.006"
     },
     "torq": {
       "greenhouseId": "torq"

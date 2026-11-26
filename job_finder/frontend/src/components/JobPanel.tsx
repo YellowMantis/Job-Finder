@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { Fit, HideReason, Job, Match } from '../api/types'
-import { ageInDays, ageLabel, distanceText, fitClass, placeOf } from '../logic/jobs'
+import { ageInDays, ageLabel, distanceText, placeOf } from '../logic/jobs'
 import { postingBlocks } from '../logic/posting'
+import { FitScore } from './FitBadge'
 import { modelName } from '../logic/scoring'
 
 type Props = {
@@ -159,14 +160,8 @@ function FitReview({ fit }: { fit: Fit }) {
         <h3>
           {fit.score === null
             ? 'No score for'
-            : (
-              // The same score box as in the table, so a score always looks the same.
-              <span className={`fit-score ${fitClass(fit.score)}`}
-                title={[...fit.notes, WEIGHTS].join(' ')}>
-                {fit.score}<small>%</small>
-                <span className="fit-meter" aria-hidden="true"><span style={{ width: `${fit.score}%` }} /></span>
-              </span>
-            )}
+            // The same score circle as in the table, so a score always looks the same.
+            : <FitScore score={fit.score} title={[...fit.notes, WEIGHTS].join(' ')} />}
           {' '}fit
         </h3>
         <span className="muted small" title={`Scored ${fit.scored} by ${fit.model}`}>

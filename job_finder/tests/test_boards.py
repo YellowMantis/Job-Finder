@@ -56,6 +56,17 @@ def test_hiring_systems_are_recognised_in_a_page():
         ("comeet", "infinidat/D6.003"), ("workday", "ffive.wd5.myworkdayjobs.com/en-US/f5jobs")]
 
 
+def test_a_lever_account_on_the_eu_servers_is_told_apart():
+    page = '<a href="https://jobs.eu.lever.co/mobileye/7aa00e13/apply">Apply now</a>'
+    assert find_boards._found_in(page) == [("lever", "eu/mobileye")]
+
+
+def test_each_lever_id_is_read_from_its_own_servers():
+    from job_boards import lever_feed
+    assert lever_feed("walkme") == "https://api.lever.co/v0/postings/walkme"
+    assert lever_feed("eu/mobileye") == "https://api.eu.lever.co/v0/postings/mobileye"
+
+
 def test_a_workday_address_becomes_its_search_address():
     assert find_boards._workday_site("ffive.wd5.myworkdayjobs.com/en-US/f5jobs") == \
         "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs"
