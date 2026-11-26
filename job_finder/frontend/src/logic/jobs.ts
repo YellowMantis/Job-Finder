@@ -10,6 +10,11 @@ import type { Job } from '../api/types'
 // Every job is in Israel, so a trailing ", Israel" only makes the column wrap.
 export const placeOf = (job: Job) => (job.location || job.city).replace(/,\s*Israel$/i, '')
 
+// Where the place (and so the distance) comes from, for the hover note.
+export const placeSource = (job: Job) => job.location
+  ? "From the company's own careers site."
+  : "From the job listing. Listings often name the company's main office, so the job may be elsewhere."
+
 export const levelLabel = (job: Job) =>
   ({ junior: 'Junior', senior: 'Senior' } as Record<string, string>)[job.level] ?? 'Level not stated'
 

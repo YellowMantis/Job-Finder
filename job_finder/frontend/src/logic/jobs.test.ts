@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf,
+  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, placeSource,
   passesFilters,
   placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
   type Filters,
@@ -56,6 +56,11 @@ describe('values shown in the table', () => {
     expect(ageInDays(job({ updated: '2026-10-10' }), now)).toBe(7)
     expect(ageLabel(1)).toBe('yesterday')
     expect(ageLabel(7)).toBe('7 days ago')
+  })
+
+  it("says whether a job's place is the company's own or only the listing's", () => {
+    expect(placeSource(job({ location: 'Ramat Hasharon, Israel' }))).toMatch(/company's own/)
+    expect(placeSource(job({ location: '' }))).toMatch(/main office/)
   })
 
   it('names fields and ages as people read them', () => {

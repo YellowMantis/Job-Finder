@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react'
 import type { Job } from '../api/types'
 import {
-  ageInDays, ageLabelCapital, distanceText, fieldLabel, modeOf, placeOf, yearsText, type Sort, type SortKey,
+  ageInDays, ageLabelCapital, distanceText, fieldLabel, modeOf, placeOf, placeSource, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
 import { FitBadge } from './FitBadge'
 
@@ -88,8 +88,10 @@ function JobRow({ job, opened, onOpen, onApplied }: RowProps) {
           : 'Years of experience the posting asks for'}>
         {yearsText(job)}
       </td>
-      <td className="wrap-narrow">{placeOf(job)}</td>
-      <td className="centred">{distanceText(job)}</td>
+      {/* Hovering says where the place comes from: the company's own site, or
+          only the listing, which often names the company's main office. */}
+      <td className="wrap-narrow" title={placeSource(job)}>{placeOf(job)}</td>
+      <td className="centred" title={placeSource(job)}>{distanceText(job)}</td>
       <td className="centred">
         {/* hybrid, remote, on-site: a coloured tag; not stated: a dash */}
         {mode && mode !== 'not stated'

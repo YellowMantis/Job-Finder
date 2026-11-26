@@ -11,7 +11,7 @@
   --accent-line: #c5d8fa;  /* edges of blue-tinted areas */
   --good: #1a7f4b;
   --good-soft: #e3f4ea;
-  --warn: #8a5a00;
+  --warn: #b45309;  /* a deep amber-orange: readable on light, not a muddy brown */
   --warn-soft: #fdf0d9;
   --bad: #a12222;
   --bad-soft: #fdecec;
@@ -34,6 +34,12 @@
   --purple: #6b3fb0;        /* remote jobs */
   --purple-soft: #f1ebfa;
   --purple-line: #dccdf3;
+  /* Fit score rings: lighter than the score text, so the circle sits as
+     lightly in a row as the tags beside it. */
+  --ring-good: #2fa36b;
+  --ring-warn: #e0a02a;
+  --ring-low: #9aa5b4;
+  --fit-fill: 100%; /* how much of the soft colour fills the circle */
   color-scheme: light;
   /* Four text sizes, two roundings: everything uses these. */
   --text-small: 12px;
@@ -87,6 +93,10 @@
   --bad-soft: #472428;
   --neutral-soft: #2c343f;
   --on-accent: #ffffff;
+  --ring-good: var(--good);
+  --ring-warn: var(--warn);
+  --ring-low: var(--muted);
+  --fit-fill: 45%; /* a faint tint: a full soft fill reads as a dark disc here */
   color-scheme: dark;
 }
 
@@ -454,21 +464,32 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
 /* The fit score: the number in a circle in the fit colour, and a ring around
    it filled to the score (--score, set on the element). */
 .fit-score {
-  position: relative; display: inline-flex; align-items: baseline; justify-content: center;
-  width: 46px; height: 46px; padding-top: 14px; border-radius: 50%;
-  font-size: 14px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  font-size: 13px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
 }
-.fit-score small { margin-left: 1px; font-size: 10px; font-weight: 600; opacity: 0.8; }
-/* The ring: a full circle of colour, with its middle cut away so only a 4px band shows. */
+/* The number in the middle (nudged left so the % beside it balances it), the
+   % hanging off its right edge, sitting on the same baseline. */
+.fit-number { position: relative; transform: translate(-2px, 1px); }
+.fit-number small {
+  position: absolute; left: 100%; bottom: 2px; margin-left: 1px;
+  font-size: 8px; font-weight: 600; opacity: 0.8;
+}
+/* 100 has three digits: a little smaller and further left, so its % clears the ring. */
+.fit-score.full { font-size: 11px; }
+.fit-score.full .fit-number { transform: translate(-2.5px, 1px); }
+.fit-score.full .fit-number small { font-size: 7px; margin-left: 0; }
+/* The ring: a full circle of colour, with its middle cut away so only a 2px band shows. */
 .fit-score::before {
   content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: conic-gradient(currentColor var(--score, 0%), color-mix(in srgb, currentColor 18%, transparent) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  background: conic-gradient(var(--ring) var(--score, 0%), color-mix(in srgb, var(--ring) 22%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
 }
-.fit-score.high { background: var(--good-soft); color: var(--good); }
-.fit-score.middle { background: var(--warn-soft); color: var(--warn); }
-.fit-score.low { background: var(--neutral-soft); color: var(--muted); }
+.fit-score { background: color-mix(in srgb, var(--soft) var(--fit-fill), transparent); }
+.fit-score.high { --soft: var(--good-soft); --ring: var(--ring-good); color: var(--good); }
+.fit-score.middle { --soft: var(--warn-soft); --ring: var(--ring-warn); color: var(--warn); }
+.fit-score.low { --soft: var(--neutral-soft); --ring: var(--ring-low); color: var(--muted); }
 /* The company, under the job title. */
 .job-company { margin-top: 2px; color: var(--muted); font-size: 13px; }
 .jobs-table .job-title { font-weight: 600; }
