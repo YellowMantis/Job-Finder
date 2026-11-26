@@ -35,11 +35,6 @@ export const yearsText = (job: Job) =>
 // Hybrid or remote: you don't travel there every day.
 const isFlexible = (job: Job) => ['hybrid', 'remote'].includes(modeLabel(job))
 
-// New since your previous visit (newSince: Status.new_since). Jobs from the
-// very first list ("") are never new, and nothing is on your first visit.
-export const isNew = (job: Job, newSince: string | null) =>
-  newSince !== null && job.first_seen !== '' && job.first_seen > newSince
-
 export const distanceText = (job: Job) =>
   job.distance_km === null ? '–' : `${job.distance_km} km`
 
@@ -54,6 +49,20 @@ export function ageLabel(days: number) {
   if (days === 0) return 'today'
   if (days === 1) return 'yesterday'
   return `${days} days ago`
+}
+
+// A field as people read it: "data-science" is "Data Science", "qa" is "QA".
+// The ids stay as they are everywhere else (filters, saved preferences).
+const FIELD_NAMES: Record<string, string> = {
+  qa: 'QA', devops: 'DevOps', hr: 'HR', 'procurement-operations': 'Procurement & Operations',
+}
+export const fieldLabel = (field: string) =>
+  FIELD_NAMES[field] ?? field.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+
+// "Today", "Yesterday", "3 days ago": ageLabel at the start of a table cell.
+export const ageLabelCapital = (days: number) => {
+  const label = ageLabel(days)
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
 // How long ago the listings were downloaded, for the header: "Updated 12m ago".
@@ -91,14 +100,13 @@ export type Filters = {
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
-  onlyNew: boolean
   flexibleAnywhere: boolean // hybrid and remote jobs pass whatever their distance
 }
 
 // The filters to start from: your fields ticked, the default distance.
 export const startingFilters = (fields: string[], maxKm: number): Filters => ({
   search: '', companies: [], fields, levels: [], modes: [], maxAgeDays: 0, minFit: 0,
-  maxYears: null, needText: false, maxKm, hideApplied: false, onlyNew: false,
+  maxYears: null, needText: false, maxKm, hideApplied: false,
   flexibleAnywhere: false,
 })
 
@@ -120,11 +128,9 @@ export function restoredFilters(saved: Partial<Filters> | null, start: Filters):
 export const inYourFields = (jobs: Job[], fields: string[]) =>
   fields.length ? jobs.filter((job) => fields.includes(job.field)) : jobs
 
-export function passesFilters(job: Job, filters: Filters, newSince: string | null = null,
-  now = Date.now()) {
+export function passesFilters(job: Job, filters: Filters, now = Date.now()) {
   const search = filters.search.trim().toLowerCase()
   return (
-    (!filters.onlyNew || isNew(job, newSince)) &&
     (scoreOf(job) === null || scoreOf(job)! >= filters.minFit) &&
     (filters.maxYears === null || job.years === null || job.years <= filters.maxYears) &&
     (!filters.hideApplied || !job.applied) &&

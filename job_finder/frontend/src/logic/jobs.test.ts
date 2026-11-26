@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, distanceLabel, distinct, inYourFields, isNew, modeLabel, modeOf,
+  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf,
   passesFilters,
   placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
   type Filters,
@@ -24,7 +24,7 @@ function job(changes: Partial<Job> = {}): Job {
 
 const noFilters: Filters = {
   search: '', companies: [], fields: [], levels: [], modes: [], maxAgeDays: 0, minFit: 0,
-  maxYears: null, needText: false, maxKm: ANY_DISTANCE, hideApplied: false, onlyNew: false,
+  maxYears: null, needText: false, maxKm: ANY_DISTANCE, hideApplied: false,
   flexibleAnywhere: false,
 }
 
@@ -56,6 +56,16 @@ describe('values shown in the table', () => {
     expect(ageInDays(job({ updated: '2026-10-10' }), now)).toBe(7)
     expect(ageLabel(1)).toBe('yesterday')
     expect(ageLabel(7)).toBe('7 days ago')
+  })
+
+  it('names fields and ages as people read them', () => {
+    expect(fieldLabel('data-science')).toBe('Data Science')
+    expect(fieldLabel('qa')).toBe('QA')
+    expect(fieldLabel('devops')).toBe('DevOps')
+    expect(fieldLabel('procurement-operations')).toBe('Procurement & Operations')
+    expect(fieldLabel('software')).toBe('Software')
+    expect(ageLabelCapital(1)).toBe('Yesterday')
+    expect(ageLabelCapital(0)).toBe('Today')
   })
 
   it('says how long ago the listings were updated', () => {
@@ -106,25 +116,6 @@ describe('filters', () => {
   })
 })
 
-describe('new jobs', () => {
-  const since = '2026-10-24T20:00:00' // your previous visit ended then
-
-  it('marks jobs that first appeared after your previous visit', () => {
-    expect(isNew(job({ first_seen: '2026-10-25T09:00:00' }), since)).toBe(true)
-    expect(isNew(job({ first_seen: '2026-10-24T08:00:00' }), since)).toBe(false)
-  })
-
-  it('never marks jobs from the first list, or anything on your first visit', () => {
-    expect(isNew(job({ first_seen: '' }), since)).toBe(false)
-    expect(isNew(job({ first_seen: '2026-10-25T09:00:00' }), null)).toBe(false)
-  })
-
-  it('can show only the new ones', () => {
-    const filters = { ...noFilters, onlyNew: true }
-    expect(passesFilters(job({ first_seen: '2026-10-25T09:00:00' }), filters, since)).toBe(true)
-    expect(passesFilters(job({ first_seen: '2026-10-24T08:00:00' }), filters, since)).toBe(false)
-  })
-})
 
 describe('fit, years and distance filters', () => {
   const scored = (score: number, years: number | null = null) => job({ fit: fit(score), years })

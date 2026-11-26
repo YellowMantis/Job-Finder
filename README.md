@@ -57,7 +57,6 @@ and refining it to make it as useful as possible.
   any industries to hide. Hidden jobs aren't deleted: each one says why it's hidden. Found a
   posting closed, or not for you? Hide it yourself, and undo that any time.
 - **Postings for graduates are marked.** Hybrid and remote jobs can be kept beyond your distance.
-- **See what's new.** Jobs that appeared since you last opened the app get a "New" badge.
 - **Track applications** with one tick per job, in the table or in a job's own panel. The
   Applied tab counts and lists every job you applied to, even after its listing closes, and
   your preferences never hide them.

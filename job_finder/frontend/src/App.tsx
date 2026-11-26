@@ -156,14 +156,13 @@ function App() {
 
   // The rows to show. useMemo redoes this only when the jobs, filters or
   // order change, not on every redraw (for example when the panel opens).
-  const newSince = status?.new_since ?? null // jobs that appeared after this are new
   // Only jobs in your fields (Settings): the filter bar offers nothing else.
   const yourFields = status?.default_fields.join('\n') ?? ''
   const yourJobs = useMemo(
     () => inYourFields(jobs, yourFields ? yourFields.split('\n') : []), [jobs, yourFields])
   const shown = useMemo(
-    () => (filters ? sortJobs(yourJobs.filter((job) => passesFilters(job, filters, newSince)), sort) : []),
-    [yourJobs, filters, sort, newSince])
+    () => (filters ? sortJobs(yourJobs.filter((job) => passesFilters(job, filters)), sort) : []),
+    [yourJobs, filters, sort])
 
   // Clicking the sorted column again reverses it; fit starts best first.
   function changeSort(key: SortKey) {
@@ -494,7 +493,7 @@ function App() {
         {tab === 'jobs' ? (
           <>
             <FilterBar jobs={yourJobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
-            <JobsTable jobs={shown} newSince={newSince} sort={sort} onSort={changeSort}
+            <JobsTable jobs={shown} sort={sort} onSort={changeSort}
               lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />
           </>
         ) : tab === 'applied' ? (

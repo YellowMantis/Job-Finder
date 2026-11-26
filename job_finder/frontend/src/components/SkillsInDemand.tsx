@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { Job } from '../api/types'
 import { useLoadedWhenShown } from '../hooks/useLoadedWhenShown'
+import { fieldLabel } from '../logic/jobs'
 import { Dropdown } from './Dropdown'
 
 type Props = {
@@ -44,13 +45,13 @@ export function SkillsInDemand({ jobs, onOpen, shown, version }: Props) {
       <div className="skills-head">
         <p className="note">
           Skills asked for in {counted.length.toLocaleString('en-US')} postings
-          {field ? ` in ${field}` : ' in your fields'}, read from their requirements.
+          {field ? ` in ${fieldLabel(field)}` : ' in your fields'}, read from their requirements.
           Jobs without posting text aren't counted.
         </p>
         <div className="skills-controls">
           <Dropdown value={field} label="Field"
             options={[{ value: '', label: 'All your fields' },
-              ...fields.map((name) => ({ value: name, label: name }))]}
+              ...fields.map((name) => ({ value: name, label: fieldLabel(name) }))]}
             onChange={(chosen) => { setField(chosen); setOpen(null) }} />
           {cv && (
             <div className="segmented">

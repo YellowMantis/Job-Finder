@@ -536,6 +536,7 @@ frontend/src/
   logic/jobs.ts       filtering, sorting and cell values, as plain functions
   logic/scoring.ts    the scoring panel's rules (what can be scored, estimates, progress)
   logic/connections.ts  the AI connection forms' rules
+  logic/posting.ts    a posting's text as headings, bullet lists and paragraphs
   logic/*.test.ts     tests for them, run with "npm test" (Vitest)
   hooks/useProgress.ts  follows a background task, checking only while it runs
   hooks/useLoadedWhenShown.ts  data for a tab kept on the page: fetched when shown, again only if the data changed
@@ -555,7 +556,7 @@ frontend/src/
 | `ScoringPanel` | The right half of the bar: how many jobs to score and how long that will probably take; the progress bar; stop; Details with the full estimate and usage so far |
 | `JobsTable`, `FitBadge` | The table, its fit scores (a coloured box with a bar) and work-mode tags |
 | `ThemeSwitch`, `UpdatedAgo` | The header's light or dark switch, and how long ago the listings were updated |
-| `JobPanel` | The side panel: the fit review as chips (missing, partly, you have), the posting text, and scoring this one job |
+| `JobPanel` | The side panel: the fit review as chips (missing, partly, you have), the posting text laid out as a page, marking it applied, and scoring this one job |
 | `SkillsInDemand` | The Skills tab: the skills the jobs in your fields ask for, most asked first, and whether your CV names each one |
 | `AppliedJobs` | Every job you applied to, including ones no longer listed |
 | `HiddenJobs` | The jobs your preferences or you hide, with reasons; Undo for yours |
@@ -675,8 +676,8 @@ uploaded.
 | `earlier_reviews.json` | `earlier_reviews.py` | Fit reviews replaced by a newer one (another model, or another of your CVs), up to 10 per job and CV, so models can be compared and switching CV brings a CV's reviews back | job link |
 | `hidden_by_you.json` | `hidden_by_you.py` | Jobs you hid yourself: reason and date (forgotten once no longer listed) | job link |
 | `filters.json` | `save_filters` | The table's filters as you last left them | – |
-| `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list) | job link |
-| `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended: later jobs get a "New" badge | – |
+| `first_seen.json` | `new_jobs.record_first_seen` | When each job first appeared in your list ("" for the first list); jobs that drop out are remembered for 90 days | job link |
+| `visits.json` | `new_jobs.visit` | When the app was last in use, and when your previous visit ended. Not shown on the page for now: kept for a later "since your last visit" view | – |
 | `cv.pdf`, `cv.txt` | `upload_cv`, `use_cv` | The CV in use and its extracted text | – |
 | `cv_info.json` | `upload_cv`, `use_cv`, `set_years` | The CV in use: name, size, years of experience | – |
 | `cvs/` | `cv_library.py` | Every CV you uploaded, one folder each (`cv.pdf`, `cv.txt`, `info.json`), named by its fingerprint | CV fingerprint |

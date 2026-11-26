@@ -1,13 +1,12 @@
 import type { MouseEvent } from 'react'
 import type { Job } from '../api/types'
 import {
-  ageInDays, ageLabel, distanceText, isNew, modeOf, placeOf, yearsText, type Sort, type SortKey,
+  ageInDays, ageLabelCapital, distanceText, fieldLabel, modeOf, placeOf, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
 import { FitBadge } from './FitBadge'
 
 type Props = {
   jobs: Job[] // already filtered and sorted
-  newSince: string | null // jobs that appeared after this get a "New" badge
   sort: Sort
   onSort: (key: SortKey) => void
   lastOpened: string | null // the job opened last, marked until another is opened
@@ -18,8 +17,7 @@ type Props = {
 // Short values are centred under their heading; text reads best from the left.
 const COLUMNS: { key: SortKey | null; label: string; centred?: boolean; hint?: string }[] = [
   { key: 'fit', label: 'Fit', centred: true },
-  { key: 'title', label: 'Position' },
-  { key: 'company', label: 'Company' },
+  { key: 'title', label: 'Position & company' },
   { key: 'field', label: 'Field' },
   { key: 'years', label: 'Years', centred: true },
   { key: 'place', label: 'Location' },
@@ -33,7 +31,7 @@ const COLUMNS: { key: SortKey | null; label: string; centred?: boolean; hint?: s
 
 // The positions table. It only displays: the rows, the order and what happens
 // on a click all come from App, through the props above.
-export function JobsTable({ jobs, newSince, sort, onSort, lastOpened, onOpen, onApplied }: Props) {
+export function JobsTable({ jobs, sort, onSort, lastOpened, onOpen, onApplied }: Props) {
   return (
     <div className="table-wrap">
       <table className="jobs-table">
@@ -54,7 +52,7 @@ export function JobsTable({ jobs, newSince, sort, onSort, lastOpened, onOpen, on
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <JobRow key={job.url} job={job} isNew={isNew(job, newSince)}
+            <JobRow key={job.url} job={job}
               opened={job.url === lastOpened} onOpen={onOpen} onApplied={onApplied} />
           ))}
         </tbody>
@@ -64,9 +62,9 @@ export function JobsTable({ jobs, newSince, sort, onSort, lastOpened, onOpen, on
   )
 }
 
-type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job; isNew: boolean; opened: boolean }
+type RowProps = Pick<Props, 'onOpen' | 'onApplied'> & { job: Job; opened: boolean }
 
-function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
+function JobRow({ job, opened, onOpen, onApplied }: RowProps) {
   const mode = modeOf(job)
   // Clicks on the link and the tick box must not also open the side panel.
   const stop = (event: MouseEvent) => event.stopPropagation()
@@ -75,17 +73,16 @@ function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
     <tr className={[job.applied && 'is-applied', opened && 'last-opened'].filter(Boolean).join(' ') || undefined}
       onClick={() => onOpen(job)}>
       <td className="centred"><FitBadge job={job} /></td>
-      {/* A new job reads like unread mail: a solid "New" first, and the title in bold. */}
-      <td className={isNew ? 'wrap is-new' : 'wrap'}>
-        {isNew && <><span className="new-tag" title="Appeared since your last visit">New</span> </>}
+      {/* The title, and the company under it in small grey text. */}
+      <td className="wrap">
         <span className="job-title">{job.title}</span>
         {job.level === 'junior' && <> <span className="badge junior">Junior</span></>}
         {job.for_graduates && (
           <> <span className="badge graduates" title="The posting is aimed at recent graduates">Graduates</span></>
         )}
+        <div className="job-company">{job.company}</div>
       </td>
-      <td className="wrap-narrow">{job.company}</td>
-      <td>{job.field}</td>
+      <td>{fieldLabel(job.field)}</td>
       <td className={job.years === null ? 'centred muted' : 'centred'}
         title={job.years === null ? "The posting doesn't say, or we don't have its text"
           : 'Years of experience the posting asks for'}>
@@ -99,7 +96,7 @@ function JobRow({ job, isNew, opened, onOpen, onApplied }: RowProps) {
           ? <span className={`mode-tag ${mode}`}>{mode[0].toUpperCase() + mode.slice(1)}</span>
           : <span className="muted">–</span>}
       </td>
-      <td className="centred muted">{ageLabel(ageInDays(job))}</td>
+      <td className="centred muted">{ageLabelCapital(ageInDays(job))}</td>
       <td className="centred">
         <a className="apply-chip" href={job.apply_url} target="_blank" rel="noopener noreferrer"
           onClick={stop} title="Opens the employer's posting in your browser">Apply ↗</a>

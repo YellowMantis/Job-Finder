@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { ApiError, api } from '../api/client'
 import type { Preferences, PreferencesAnswer } from '../api/types'
+import { fieldLabel } from '../logic/jobs'
 import { CheckboxList } from './CheckboxList'
 import { Dropdown } from './Dropdown'
 import { HomePicker } from './HomePicker'
@@ -60,7 +61,7 @@ export function PreferencesForm({ answer, onSaved, saveLabel = 'Save preferences
           texts for them, so years and work mode can be shown.</InfoTip>
       </h3>
       <CheckboxList selected={draft.fields} onChange={(fields) => change({ fields })}
-        options={answer.fields.map((field) => ({ value: field }))} />
+        options={answer.fields.map((field) => ({ value: field, label: fieldLabel(field) }))} />
 
       <h3>Posted within</h3>
       <Dropdown value={draft.max_age_days} label="Posted within"

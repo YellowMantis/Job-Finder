@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 import type { Fit, HideReason, Job, Match } from '../api/types'
 import { ageInDays, ageLabel, distanceText, fitClass, placeOf } from '../logic/jobs'
+import { postingBlocks } from '../logic/posting'
 import { modelName } from '../logic/scoring'
 
 type Props = {
@@ -131,11 +132,13 @@ export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview, 
       )}
 
       <h3 className="panel-heading">Posting</h3>
-      <pre className="panel-text">
-        {!job.has_text
-          ? "The full posting text isn't available for this company yet. Open the posting to read it."
-          : text ?? 'Loading the posting text…'}
-      </pre>
+      {!job.has_text || text === null ? (
+        <p className="panel-text muted">
+          {!job.has_text
+            ? "The full posting text isn't available for this company yet. Open the posting to read it."
+            : 'Loading the posting text…'}
+        </p>
+      ) : <PostingText text={text} />}
     </aside>
   )
 }
@@ -148,6 +151,7 @@ const WEIGHTS = 'The core of the role counts double a must-have, which counts do
 // The score and its summary, then every requirement as a chip in one of three
 // rows: missing (red), partly (amber), you have (green). Hover a chip for the
 // evidence from your CV, the badge for how the score was made.
+// (PostingText, the posting as a page, is at the end of this file.)
 function FitReview({ fit }: { fit: Fit }) {
   return (
     <section className="fit-box">
@@ -155,8 +159,14 @@ function FitReview({ fit }: { fit: Fit }) {
         <h3>
           {fit.score === null
             ? 'No score for'
-            : <span className={`badge fit ${fitClass(fit.score)}`}
-                title={[...fit.notes, WEIGHTS].join(' ')}>{fit.score}%</span>}
+            : (
+              // The same score box as in the table, so a score always looks the same.
+              <span className={`fit-score ${fitClass(fit.score)}`}
+                title={[...fit.notes, WEIGHTS].join(' ')}>
+                {fit.score}<small>%</small>
+                <span className="fit-meter" aria-hidden="true"><span style={{ width: `${fit.score}%` }} /></span>
+              </span>
+            )}
           {' '}fit
         </h3>
         <span className="muted small" title={`Scored ${fit.scored} by ${fit.model}`}>
@@ -190,5 +200,19 @@ function FitReview({ fit }: { fit: Fit }) {
         })}
       </div>
     </section>
+  )
+}
+
+// The posting as a page: its headings, bullet lists and paragraphs, read from
+// the shape of its lines (logic/posting.ts). The words are the posting's own.
+function PostingText({ text }: { text: string }) {
+  const blocks = useMemo(() => postingBlocks(text), [text])
+  return (
+    <div className="panel-text posting">
+      {blocks.map((block, n) =>
+        block.kind === 'heading' ? <h4 key={n}>{block.text}</h4>
+        : block.kind === 'list' ? <ul key={n}>{block.items.map((item, i) => <li key={i}>{item}</li>)}</ul>
+        : <p key={n}>{block.text}</p>)}
+    </div>
   )
 }

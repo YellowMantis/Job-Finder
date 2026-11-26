@@ -28,10 +28,21 @@ def test_later_jobs_keep_the_time_they_first_appeared():
     assert new_jobs.first_seen() == {"a": "", "b": "2026-10-25T10:00:00", "c": "2026-10-25T11:00:00"}
 
 
-def test_jobs_no_longer_listed_are_forgotten():
-    new_jobs.record_first_seen(jobs("a", "b"), at(0))
-    new_jobs.record_first_seen(jobs("b"), at(60))
-    assert new_jobs.first_seen() == {"b": ""}
+def test_a_job_left_out_of_one_update_isnt_new_when_it_comes_back():
+    new_jobs.record_first_seen(jobs("a"), at(0))
+    new_jobs.record_first_seen(jobs("a", "b"), at(60))       # b appears
+    new_jobs.record_first_seen(jobs("a"), at(120))           # a source leaves a and b out...
+    new_jobs.record_first_seen(jobs(), at(150))
+    new_jobs.record_first_seen(jobs("a", "b"), at(180))      # ...and brings them back
+    assert new_jobs.first_seen() == {"a": "", "b": "2026-10-25T10:00:00"}
+
+
+def test_jobs_gone_for_long_are_forgotten():
+    days = 24 * 60
+    new_jobs.record_first_seen(jobs("a"), at(0))
+    new_jobs.record_first_seen(jobs("a", "b"), at(60))
+    new_jobs.record_first_seen(jobs("a"), at(new_jobs.REMEMBER_GONE_DAYS * days + 61))
+    assert new_jobs.first_seen() == {"a": ""}
 
 
 def test_the_first_visit_has_nothing_to_compare_with():

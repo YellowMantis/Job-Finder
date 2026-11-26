@@ -24,6 +24,7 @@ from settings import DATA_DIR
 FIRST_SEEN_PATH = DATA_DIR / "first_seen.json"
 VISITS_PATH = DATA_DIR / "visits.json"
 VISIT_GAP_MINUTES = 30
+REMEMBER_GONE_DAYS = 90
 
 
 def _read(path, default):
@@ -45,11 +46,20 @@ def _now(now):
 def record_first_seen(jobs, now=None):
     """Note when each job first appeared. The very first list counts as
     already seen (""): on a fresh install every job would otherwise be new.
-    Jobs no longer listed are forgotten, so the file stays the size of the list."""
+
+    A source sometimes leaves a job out of one download and brings it back in
+    the next. So a job no longer listed is remembered for REMEMBER_GONE_DAYS
+    after it first appeared: if it comes back, it keeps its time and isn't
+    "new" again. Older ones are forgotten, so the file doesn't keep growing."""
     seen = _read(FIRST_SEEN_PATH, None)
     stamp = "" if seen is None else _now(now)
     seen = seen or {}
-    _write(FIRST_SEEN_PATH, {job["url"]: seen.get(job["url"], stamp) for job in jobs})
+    listed = {job["url"]: seen.get(job["url"], stamp) for job in jobs}
+    cutoff = _now((now or datetime.now()) - timedelta(days=REMEMBER_GONE_DAYS))
+    # "" (from the very first list) has no time to age by; there are only that many.
+    gone = {url: time for url, time in seen.items()
+            if url not in listed and (time == "" or time >= cutoff)}
+    _write(FIRST_SEEN_PATH, {**gone, **listed})
 
 
 def first_seen():

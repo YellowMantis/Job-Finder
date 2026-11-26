@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, distanceLabel, distinct, levelLabel, modeLabel, type Filters,
+  ANY_DISTANCE, distanceLabel, distinct, fieldLabel, levelLabel, modeLabel, type Filters,
 } from '../logic/jobs'
 import { Dropdown } from './Dropdown'
 import { MultiSelect } from './MultiSelect'
@@ -47,7 +47,7 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
   // How many of the filters under "More filters" are in use, so they aren't
   // forgotten while folded away. Folded or open is kept as you leave it.
   const moreInUse = [filters.companies.length > 0, filters.levels.length > 0,
-    filters.maxYears !== null, filters.needText, filters.hideApplied, filters.onlyNew,
+    filters.maxYears !== null, filters.needText, filters.hideApplied,
     filters.flexibleAnywhere && filters.maxKm < ANY_DISTANCE].filter(Boolean).length
   const [showMore, setShowMore] = useState(moreInUse > 0)
 
@@ -57,7 +57,8 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
         <input type="search" placeholder="Search position or company" value={filters.search}
           onChange={(event) => set({ search: event.target.value })} />
 
-        <MultiSelect label="Fields" options={asOptions(jobs.map((job) => job.field))}
+        <MultiSelect label="Fields"
+          options={asOptions(jobs.map((job) => job.field)).map(({ value }) => ({ value, label: fieldLabel(value) }))}
           selected={filters.fields} onChange={(fields) => set({ fields })} />
         <MultiSelect label="Work mode" options={asOptions(jobs.map(modeLabel))}
           selected={filters.modes} onChange={(modes) => set({ modes })} />
@@ -119,11 +120,6 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
             Hide applied
           </label>
 
-          <label className="check">
-            <input type="checkbox" checked={filters.onlyNew}
-              onChange={(event) => set({ onlyNew: event.target.checked })} />
-            New only
-          </label>
         </div>
       )}
     </div>
