@@ -4,9 +4,9 @@
 
 **One clear place to find the tech jobs in Israel that actually fit you.** (Formerly called Job Finder.)
 
-<img width="1914" height="1030" alt="Sample_CV_screenshot" src="https://github.com/user-attachments/assets/1717474f-8481-4268-a4f1-7b5221609db8" />
+![Veri's jobs table in light mode, ranked by how well each job fits the CV](docs/images/veri-jobs-table-light.png)
 
-<img width="1017" height="954" alt="SC2" src="https://github.com/user-attachments/assets/3f911a1a-22c3-44ba-9cbd-9a166b3a553e" />
+![A job's fit review in dark mode: what the CV has, what's partly there, and what's missing](docs/images/veri-job-fit-review-dark.png)
 
 
 
