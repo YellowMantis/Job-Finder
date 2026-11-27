@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from 'react'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, distanceLabel, distinct, fieldLabel, levelLabel, type Filters,
+  ANY_DISTANCE, SCORED_ONLY, distanceLabel, distinct, fieldLabel, levelLabel, type Filters,
 } from '../logic/jobs'
 import { Dropdown } from './Dropdown'
 import { MultiSelect } from './MultiSelect'
@@ -28,8 +28,11 @@ const AGES = [
   { days: 60, label: 'Last 60 days' },
 ]
 
+// Any fit keeps every job; the others keep only scored jobs (useful with the
+// distance slider: "scored jobs near me").
 const FITS = [
   { fit: 0, label: 'Fit: any' },
+  { fit: SCORED_ONLY, label: 'Fit: scored only' },
   { fit: 20, label: 'Fit 20%+' },
   { fit: 40, label: 'Fit 40%+' },
   { fit: 60, label: 'Fit 60%+' },
@@ -75,7 +78,7 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
           options={AGES.map(({ days, label }) => ({ value: days, label }))}
           onChange={(maxAgeDays) => set({ maxAgeDays })} />
 
-        <Dropdown value={filters.minFit} active={filters.minFit > 0} label="Fit"
+        <Dropdown value={filters.minFit} active={filters.minFit !== 0} label="Fit"
           title="Hides jobs scored below this. Jobs without a score stay"
           options={FITS.map(({ fit, label }) => ({ value: fit, label }))}
           onChange={(minFit) => set({ minFit })} />

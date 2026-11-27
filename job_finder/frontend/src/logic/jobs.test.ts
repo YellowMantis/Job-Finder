@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, onLinkedIn, placeSource,
+  ANY_DISTANCE, SCORED_ONLY, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, onLinkedIn, placeSource,
   passesFilters,
   placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
   type Filters,
@@ -134,11 +134,19 @@ describe('filters', () => {
 describe('fit, years and distance filters', () => {
   const scored = (score: number, years: number | null = null) => job({ fit: fit(score), years })
 
-  it("can hide jobs scored below a minimum, and keeps the ones without a score", () => {
+  it('a minimum fit keeps only jobs scored at least that', () => {
     const filters = { ...noFilters, minFit: 40 }
     expect(passesFilters(scored(40), filters)).toBe(true)
     expect(passesFilters(scored(39), filters)).toBe(false)
-    expect(passesFilters(job(), filters)).toBe(true) // not scored, or no text to score
+    expect(passesFilters(job(), filters)).toBe(false) // not scored: its fit isn't known
+  })
+
+  it('"scored only" keeps every scored job, whatever its score; "any" keeps all', () => {
+    const scoredOnly = { ...noFilters, minFit: SCORED_ONLY }
+    expect(passesFilters(scored(0), scoredOnly)).toBe(true)
+    expect(passesFilters(scored(95), scoredOnly)).toBe(true)
+    expect(passesFilters(job(), scoredOnly)).toBe(false)
+    expect(passesFilters(job(), noFilters)).toBe(true)
   })
 
   it("can keep only jobs asking for at most some years, and ones that don't say", () => {

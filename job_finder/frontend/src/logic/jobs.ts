@@ -111,12 +111,23 @@ export type Filters = {
   levels: string[] // level labels, as levelLabel gives them
   modes: string[] // work modes, as modeLabel gives them
   maxAgeDays: number // 0 means any age
-  minFit: number // 0 means any; jobs without a score always pass, they aren't known to fit badly
+  minFit: number // 0: any job; SCORED_ONLY: every scored job; 20, 40...: scored at least that
   maxYears: number | null // null means any; postings that don't say always pass
   needText: boolean
   maxKm: number // ANY_DISTANCE means no limit
   hideApplied: boolean
   flexibleAnywhere: boolean // hybrid and remote jobs pass whatever their distance
+}
+
+// The Fit filter's "scored only": every job with a score, whatever it is (0% too).
+export const SCORED_ONLY = -1
+
+// The Fit filter: "any" keeps every job; otherwise only scored jobs pass, at
+// or above the minimum (a job without a score has no known fit).
+const fitPasses = (job: Job, minFit: number) => {
+  if (minFit === 0) return true
+  const score = scoreOf(job)
+  return score !== null && (minFit === SCORED_ONLY || score >= minFit)
 }
 
 // The filters to start from: your fields ticked, the default distance.
@@ -147,7 +158,7 @@ export const inYourFields = (jobs: Job[], fields: string[]) =>
 export function passesFilters(job: Job, filters: Filters, now = Date.now()) {
   const search = filters.search.trim().toLowerCase()
   return (
-    (scoreOf(job) === null || scoreOf(job)! >= filters.minFit) &&
+    fitPasses(job, filters.minFit) &&
     (filters.maxYears === null || job.years === null || job.years <= filters.maxYears) &&
     (!filters.hideApplied || !job.applied) &&
     (!search || `${job.title} ${job.company}`.toLowerCase().includes(search)) &&

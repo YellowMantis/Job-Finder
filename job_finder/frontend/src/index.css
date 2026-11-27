@@ -24,13 +24,13 @@
   --hover: #f2f4f7;
   --accent-fill: #2563eb;   /* blue behind white text: buttons, counts */
   --on-accent: #ffffff;     /* text on that blue */
-  /* Where you are (the open tab) and the logo's V: blue in light mode, a warm
-     orange in dark mode. Never used for scores, so it can't read as "partly". */
+  /* Where you are (the open tab) and the logo's V: blue in both modes, the
+     same family as the buttons, so the page has one accent colour. */
   --highlight: var(--accent);
   --highlight-fill: var(--accent-fill);
   --on-highlight: var(--on-accent);
   --brand-v: #2563eb;
-  --header-line: transparent; /* a warm line under the header in dark mode only */
+  --header-line: transparent; /* a line under the header in dark mode only */
   --teal: #0b6e85;          /* hybrid jobs: apart from the blue of Apply */
   --teal-soft: #e2f3f7;
   --teal-line: #bfe2ea;
@@ -69,14 +69,14 @@
   --accent-fill: #3a7ad6;
   --accent-soft: #223553;
   --accent-line: #36537e;
-  /* A light cyan for "where you are": the line under the header, the logo
-     tile, the open tab, the to-score dot and the scoring bar. */
-  --header-line: #38bdd6;
-  --highlight: #67d8ec;
-  --highlight-fill: #38bdd6;
-  --on-highlight: #06232a;
-  --brand-v: #1597b2;
-  --teal: #aab6ff;         /* hybrid: indigo here, so it stays apart from the cyan */
+  /* "Where you are" in the same blue as the buttons: the line under the
+     header, the logo tile, the open tab, the to-score dot and the scoring bar. */
+  --header-line: #3a7ad6;
+  --highlight: #7ab4ff;
+  --highlight-fill: #3a7ad6;
+  --on-highlight: #ffffff;
+  --brand-v: #3a7ad6;
+  --teal: #aab6ff;         /* hybrid: a light indigo here, apart from the blue of buttons and links */
   --teal-soft: #262c4d;
   --teal-line: #3d4677;
   --purple: #e3a6ef;
