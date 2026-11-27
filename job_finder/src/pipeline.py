@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 from applied import APPLIED_PATH
-from career_sites import _normalise, comeet_id, fetch_posting
+from career_sites import Unreachable, _normalise, comeet_id, fetch_posting
 from companies import company_points, load_companies, locate_cities, nearest_km, place_points
 from download import download_data
 from hidden_by_you import HIDDEN_BY_YOU_PATH
@@ -178,7 +178,16 @@ def fetch_texts(jobs, companies_by_name, progress, board_postings=None):
 
     def fetch_company(company_jobs):
         company = companies_by_name.get(company_jobs[0]["company"])
-        return [(job["url"], fetch_posting(job, company, comeet_pages)) for job in company_jobs]
+        results = []
+        for job in company_jobs:
+            try:
+                results.append((job["url"], fetch_posting(job, company, comeet_pages)))
+            except Unreachable:
+                # The site asked us to slow down, or didn't answer: leave it alone
+                # for the rest of this update. Its jobs aren't noted as missing,
+                # so the next update tries them again.
+                break
+        return results
 
     for results in in_parallel(fetch_company, list(by_company.values()), progress):
         for url, posting in results:

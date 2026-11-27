@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { BatchRecord, Job } from '../api/types'
 import {
-  batchesFor, batchesLabel, dayOf, estimate, formatDuration, formatTokens, modelName, runProgress, scorable,
+  batchesFor, batchesLabel, dayOf, estimate, formatDuration, formatTokens, modelName, runProgress, scorable, scoreCounts, scoreState,
   sessionPercent, tokensOf, totalsFor, totalsSince,
 } from './scoring'
 
@@ -34,6 +34,32 @@ describe('scoring panel', () => {
       job('scored', { has_text: true, fit }),
     ]
     expect(scorable(jobs).map((j) => j.url)).toEqual(['new'])
+  })
+
+  it('splits the table into scored, to score, and no posting text', () => {
+    const job = (url: string, changes: Partial<Job>) => ({ url, ...changes }) as Job
+    const fit = { score: 50 } as Job['fit']
+    const jobs = [
+      job('to score', { has_text: true, fit: null }),
+      job('no text', { has_text: false, fit: null }),
+      job('scored', { has_text: true, fit }),
+      job('scored before its text went', { has_text: false, fit }), // still counts as scored
+      job('reviewed, no number', { has_text: true, fit: { score: null } as Job['fit'] }),
+    ]
+    expect(scoreCounts(jobs)).toEqual({ scored: 3, toScore: 1, noText: 1 })
+  })
+
+  it('knows which rows are waiting for a score and which scores just arrived', () => {
+    const job = (url: string, scored: string | null) =>
+      ({ url, has_text: true, fit: scored ? { score: 80, scored } : null }) as Job
+    // The run asked for "a" (no score yet) and "b" (scored before, now again).
+    const run = new Map([['a', null], ['b', '2026-11-20 10:00']])
+    expect(scoreState(job('a', null), run, true)).toBe('waiting')
+    expect(scoreState(job('b', '2026-11-20 10:00'), run, true)).toBe('waiting') // old score, new one coming
+    expect(scoreState(job('a', '2026-11-26 15:00'), run, true)).toBe('new')
+    expect(scoreState(job('b', '2026-11-26 15:00'), run, false)).toBe('new')
+    expect(scoreState(job('a', null), run, false)).toBe(null) // the run ended without a score for it
+    expect(scoreState(job('c', '2026-11-01 09:00'), run, true)).toBe(null) // not in this run
   })
 
   it("keeps the table's order", () => {

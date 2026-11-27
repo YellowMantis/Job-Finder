@@ -36,6 +36,13 @@ ASHBY_WORK_MODES = {"OnSite": "on-site", "Hybrid": "hybrid", "Remote": "remote"}
 FEED_KEYS = ("greenhouseId", "leverId", "ashbyId", "smartrecruitersId")
 
 
+def in_israel(*places):
+    """Does any of these feed places mean Israel? Either it says so, or it names
+    an Israeli place we know: many companies write only "Tel Aviv", "Ramat Gan
+    (Hybrid)" or a street address, and those jobs are as Israeli as any."""
+    return any("israel" in place.lower() or place_points(place) for place in places if place)
+
+
 def job_key(company, title):
     """A short key that is the same for the same job, whatever the punctuation."""
     return f"{_normalise(company)}|{_normalise(title)}"
@@ -79,8 +86,8 @@ def greenhouse_jobs(company, offices):
     pairs = []
     for job in (data or {}).get("jobs", []):
         location = (job.get("location") or {}).get("name") or ""
-        office_names = " ".join(office.get("name") or "" for office in job.get("offices") or [])
-        if "israel" not in f"{location} {office_names}".lower():
+        office_names = [office.get("name") or "" for office in job.get("offices") or []]
+        if not in_israel(location, *office_names):
             continue
         url = job.get("absolute_url") or ""
         # Greenhouse sends the description as HTML that is itself escaped ("&lt;p&gt;").
@@ -111,7 +118,7 @@ def lever_jobs(company, offices):
     for job in data:
         categories = job.get("categories") or {}
         places = [categories.get("location") or ""] + list(categories.get("allLocations") or [])
-        if job.get("country") != "IL" and not any("israel" in place.lower() for place in places):
+        if job.get("country") != "IL" and not in_israel(*places):
             continue
         # The description comes as an opening, then named lists ("Requirements"...).
         parts = [job.get("descriptionPlain") or ""]
@@ -142,7 +149,7 @@ def ashby_jobs(company, offices):
         country = ((job.get("address") or {}).get("postalAddress") or {}).get("addressCountry") or ""
         places = [job.get("location") or ""] + [place.get("location") or ""
                                                  for place in job.get("secondaryLocations") or []]
-        if country.lower() != "israel" and not any("israel" in place.lower() for place in places):
+        if country.lower() != "israel" and not in_israel(*places):
             continue
         url = job.get("jobUrl") or ""
         location = job.get("location") or ""

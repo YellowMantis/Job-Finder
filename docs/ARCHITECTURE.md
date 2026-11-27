@@ -190,7 +190,8 @@ it blocks it. Companies' own career sites publish their jobs openly.
 **Greenhouse, Lever, Ashby and SmartRecruiters** (in `src/job_boards.py`) work the other way
 round. Each publishes an official public feed of a company's *complete* job list with full
 descriptions, so each update reads the feed of every company that uses them, keeping jobs
-located in Israel. (SmartRecruiters' list has no descriptions, so each job is then read on
+located in Israel (`in_israel()`: the place says "Israel" or names an Israeli place we know,
+since many companies write only "Tel Aviv" or a street address). (SmartRecruiters' list has no descriptions, so each job is then read on
 its own; on your computer, only the ones still missing a text.) Some of those jobs are already in our listings; others techmap never had. To avoid
 showing a job twice, `job_key()` reduces each job to "company|title" in simplified form, and
 `merge_board_jobs()` keeps these keys in a dictionary: a job whose key is already there just
@@ -482,7 +483,9 @@ An update took 90 seconds; it now takes about 20 (measured on the real data). Th
 - **Missing postings are remembered.** Some listings aren't on the company's own careers
   page, so they were looked for, and not found, on every update (22 of them, about 27
   seconds). Now a miss is noted in `data/missing_postings.json` and tried again only after 3
-  days (`due_for_fetch()`).
+  days (`due_for_fetch()`). A site that asks us to slow down (429), has trouble (5xx) or can't
+  be reached raises `Unreachable` instead: that isn't a miss, so nothing is noted, the site
+  isn't asked again in that update, and its jobs are tried at the next one.
 - **Old listings refresh by themselves.** When the app starts with listings over 12 hours old,
   `refresh_if_stale()` in `app.py` starts an update in the background; the header shows its
   progress and the table stays usable.
@@ -541,6 +544,8 @@ frontend/src/
   hooks/useProgress.ts  follows a background task, checking only while it runs
   hooks/useLoadedWhenShown.ts  data for a tab kept on the page: fetched when shown, again only if the data changed
   hooks/usePopover.ts  a list that opens under its button and closes on a click outside or Esc
+  hooks/useCountUp.ts  a new fit score counting up from 0 as it arrives
+  hooks/useRowGlide.ts  rows sliding to their new place when new scores re-sort the table ("FLIP")
   components/         one file per piece of the page (below)
   App.tsx             holds the page's state and connects the pieces
   main.tsx            starts React; index.css holds all styling
@@ -554,8 +559,9 @@ frontend/src/
 | `MultiSelect`, `CheckboxList` | Tick-box lists, as a drop-down and as a plain list |
 | `Dropdown` | Choosing one value, in place of the browser's own drop-down, so every list looks alike |
 | `ScoringPanel` | The right half of the bar: how many jobs to score and how long that will probably take; the progress bar; stop; Details with the full estimate and usage so far |
-| `JobsTable`, `FitBadge` | The table, its fit scores (a coloured box with a bar) and work-mode tags |
+| `JobsTable`, `FitBadge` | The table, its fit scores (a bold number in the fit colour; a shimmer while being scored, then counting up), work-mode tags and the Applied tick |
 | `ThemeSwitch`, `UpdatedAgo` | The header's light or dark switch, and how long ago the listings were updated |
+| `TabIndicator`, `RollingNumber` | The underline that glides to the open tab, and counts that glide to their new value |
 | `JobPanel` | The side panel: the fit review as chips (missing, partly, you have), the posting text laid out as a page, marking it applied, and scoring this one job |
 | `SkillsInDemand` | The Skills tab: the skills the jobs in your fields ask for, most asked first, and whether your CV names each one |
 | `AppliedJobs` | Every job you applied to, including ones no longer listed |

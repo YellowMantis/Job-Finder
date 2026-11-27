@@ -37,7 +37,9 @@ and refining it to make it as useful as possible.
 - **A fit score you can check.** An AI reads each posting and lists its requirements, quoting the
   words in your CV that show each one. Code then checks every quote is really in your CV and
   calculates the 0–100% score, so the AI can't invent a match. Open a job to see why it scored
-  what it did, line by line.
+  what it did, line by line. Beside the tabs: how many jobs are scored, ready to score, or have
+  no posting text. Jobs listed only on LinkedIn say so: LinkedIn's terms don't allow apps to read
+  its pages, so open those there.
 - **Several CVs.** Keep a CV per direction (backend, AI, QA…) and switch between them: each
   keeps its own scores, so switching back costs no AI use. Remove a CV from the list, or delete
   it with every score made for it.
@@ -60,7 +62,9 @@ and refining it to make it as useful as possible.
 - **Track applications** with one tick per job, in the table or in a job's own panel. The
   Applied tab counts and lists every job you applied to, even after its listing closes, and
   your preferences never hide them.
-- **Light or dark,** with one click in the header.
+- **Light or dark,** with one click in the header. Calm motion shows what changed: new scores
+  count up as they arrive and rows glide to their place; turned off when Windows is set to
+  reduce motion.
 
 ## Install
 

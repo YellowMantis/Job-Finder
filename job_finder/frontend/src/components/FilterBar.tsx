@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, distanceLabel, distinct, fieldLabel, levelLabel, type Filters,
@@ -81,7 +81,10 @@ export function FilterBar({ jobs, filters, onChange, onReset }: Props) {
           onChange={(minFit) => set({ minFit })} />
 
         <label className="range">
+          {/* --fill: how much of the track is coloured, up to the handle (index.css). */}
           <input type="range" min={10} max={ANY_DISTANCE} step={10} value={filters.maxKm}
+            aria-label="Maximum distance"
+            style={{ '--fill': `${((filters.maxKm - 10) / (ANY_DISTANCE - 10)) * 100}%` } as CSSProperties}
             onChange={(event) => set({ maxKm: Number(event.target.value) })} />
           <span className="distance-label">{distanceLabel(filters.maxKm)}</span>
         </label>

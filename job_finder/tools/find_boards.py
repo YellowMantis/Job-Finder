@@ -41,7 +41,7 @@ import httpx
 JOB_FINDER = Path(__file__).parent.parent
 sys.path.insert(0, str(JOB_FINDER / "src"))
 
-from career_sites import _comeet_positions, _normalise  # noqa: E402
+from career_sites import Unreachable, _comeet_positions, _normalise  # noqa: E402
 from companies import BOARDS_PATH, load_companies  # noqa: E402
 from job_boards import FEED_KEYS, lever_feed  # noqa: E402
 from pipeline import JOBS_PATH, POSTINGS_PATH, read_json  # noqa: E402
@@ -158,7 +158,10 @@ def _verified(system, board_id, titles):
         if listed and titles & {_normalise(title) for title in listed}:
             return {f"{system}Id": board_id}
     elif system == "comeet":
-        listed = {_normalise(position.get("name") or "") for position in _comeet_positions(board_id, {})}
+        try:
+            listed = {_normalise(position.get("name") or "") for position in _comeet_positions(board_id, {})}
+        except Unreachable:
+            listed = set()  # Comeet didn't answer: this board can't be checked now
         if titles & listed:
             return {"comeetId": board_id}
     elif system == "comeet_api":

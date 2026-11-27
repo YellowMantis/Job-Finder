@@ -11,8 +11,11 @@
   --accent-line: #c5d8fa;  /* edges of blue-tinted areas */
   --good: #1a7f4b;
   --good-soft: #e3f4ea;
-  --warn: #b45309;  /* a deep amber-orange: readable on light, not a muddy brown */
-  --warn-soft: #fdf0d9;
+  --warn: #946200;  /* amber, well apart from the red of --bad (hue 40° vs 0°), readable on light */
+  --warn-soft: #fdf3dc;
+  /* Middle fit scores: big bold numbers, so they can be a brighter orange than
+     small amber text and still read well (3.8:1 on white). */
+  --fit-middle: #c76a00;
   --bad: #a12222;
   --bad-soft: #fdecec;
   --neutral-soft: #eef0f3;  /* grey badges, code */
@@ -34,12 +37,6 @@
   --purple: #6b3fb0;        /* remote jobs */
   --purple-soft: #f1ebfa;
   --purple-line: #dccdf3;
-  /* Fit score rings: lighter than the score text, so the circle sits as
-     lightly in a row as the tags beside it. */
-  --ring-good: #2fa36b;
-  --ring-warn: #e0a02a;
-  --ring-low: #9aa5b4;
-  --fit-fill: 100%; /* how much of the soft colour fills the circle */
   color-scheme: light;
   /* Four text sizes, two roundings: everything uses these. */
   --text-small: 12px;
@@ -91,12 +88,9 @@
   --warn-soft: #3e3116;
   --bad: #ff9393;
   --bad-soft: #472428;
+  --fit-middle: var(--warn); /* dark mode's amber is already light and bright */
   --neutral-soft: #2c343f;
   --on-accent: #ffffff;
-  --ring-good: var(--good);
-  --ring-warn: var(--warn);
-  --ring-low: var(--muted);
-  --fit-fill: 45%; /* a faint tint: a full soft fill reads as a dark disc here */
   color-scheme: dark;
 }
 
@@ -253,6 +247,13 @@ select.field { cursor: pointer; }
 
 /* ---- Tabs ---- */
 .tabs { display: flex; gap: 4px; margin-top: 22px; border-bottom: 1px solid var(--border); }
+/* "120 scored · 34 to score · 283 no posting text", quietly on the right of the tabs. */
+.score-summary {
+  margin-left: auto; align-self: center; padding-left: 12px;
+  color: var(--muted); font-size: var(--text-small); white-space: nowrap;
+}
+.score-summary strong { color: var(--text); font-weight: 600; }
+.score-summary > span { cursor: help; }
 .tab {
   padding: 9px 14px;
   border: 0;
@@ -264,6 +265,20 @@ select.field { cursor: pointer; }
   cursor: pointer;
 }
 .tab.active { color: var(--highlight); border-bottom-color: var(--highlight); }
+/* With a sliding underline (TabIndicator), the line is one element that glides
+   to the open tab; the tabs' own line stays hidden. */
+.tabs.sliding { position: relative; }
+.tabs.sliding .tab.active { border-bottom-color: transparent; }
+.tab-indicator {
+  position: absolute; bottom: 0; height: 2px; border-radius: 2px; background: var(--highlight);
+  transition: left 280ms cubic-bezier(0.3, 0.7, 0.2, 1), width 280ms cubic-bezier(0.3, 0.7, 0.2, 1);
+  pointer-events: none;
+}
+.tab-indicator.instant { transition: none; } /* its first placement doesn't slide in from the side */
+.tab { transition: color 200ms; }
+/* Counts keep the same width per digit, so a rolling number doesn't jiggle. */
+.count, .score-summary strong, .score-count strong { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .tab-indicator, .tab { transition: none; } }
 .settings-tabs { margin-top: 0; }
 .tab.active .count { background: var(--highlight-fill); color: var(--on-highlight); }
 .count {
@@ -318,8 +333,18 @@ th.sorted::after { content: "▲"; position: absolute; margin-left: 4px; }
 th.sorted.descending::after { content: "▼"; }
 td { border-bottom: 1px solid var(--line); }
 tbody tr:last-child td { border-bottom: 0; }
-.jobs-table tbody tr { cursor: pointer; }
+/* Rows: the hover shade fades in and out instead of blinking, and a row's
+   text fades when you mark it applied. */
+.jobs-table tbody tr { cursor: pointer; transition: background-color 150ms ease-out; }
 .jobs-table tbody tr:hover { background: var(--hover); }
+.jobs-table tbody td { transition: opacity 250ms ease-out; }
+/* A row gliding to its new place (useRowGlide): above the others, on a solid
+   background, so it slides over them without the text overlapping. */
+.jobs-table tbody tr.gliding {
+  position: relative; z-index: 1; background: var(--surface);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.08);
+  transition: transform 450ms cubic-bezier(0.25, 0.8, 0.25, 1), background-color 150ms ease-out;
+}
 /* The job opened last: marked after its panel closes, to find it again. */
 .jobs-table tbody tr.last-opened { background: var(--accent-soft); }
 .jobs-table tbody tr.last-opened td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
@@ -363,6 +388,23 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
   background: var(--surface);
   border-left: 1px solid var(--border);
   box-shadow: -8px 0 28px rgba(20, 30, 50, 0.12);
+  animation: panel-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* The panel slides in a short way from the right as it fades in, and back out
+   when closed (App waits for this before removing it: PANEL_OUT_MS). */
+@keyframes panel-in { from { transform: translateX(32px); opacity: 0; } }
+.panel.closing { animation: panel-out 200ms ease-in forwards; pointer-events: none; }
+@keyframes panel-out { to { transform: translateX(40px); opacity: 0; } }
+/* Another job opened: its content fades up afresh. */
+.panel-body { animation: rise 220ms ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+/* The fit review's rows (Missing, Partly, You have) one after another, and the
+   posting text fading in once it has loaded. */
+.fit-box .chip-row { animation: rise 280ms ease-out both; animation-delay: calc(90ms + var(--row, 0) * 80ms); }
+.panel-text.posting { animation: fade-in 260ms ease-out; }
+@keyframes fade-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .panel, .panel.closing, .panel-body, .fit-box .chip-row, .panel-text.posting { animation: none; }
 }
 .panel h2 { margin: 0 34px 4px 0; font-size: var(--text-title); }
 .panel-meta { margin: 0 0 14px; color: var(--muted); }
@@ -461,35 +503,51 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
 .checkbox-list label:hover { background: var(--accent-soft); }
 
 /* ---- Fit score ---- */
-/* The fit score: the number in a circle in the fit colour, and a ring around
-   it filled to the score (--score, set on the element). */
+/* The fit score: "96%" as a bold number in the fit colour, no box: the row's
+   boxes are for tags (work mode) and the Apply button, so the score reads as
+   information, and its colour is enough to make it stand out. */
 .fit-score {
-  position: relative; display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 50%;
-  font-size: 13px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  font-size: 16px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-/* The number in the middle (nudged left so the % beside it balances it), the
-   % hanging off its right edge, sitting on the same baseline. */
-.fit-number { position: relative; transform: translate(-2px, 1px); }
-.fit-number small {
-  position: absolute; left: 100%; bottom: 2px; margin-left: 1px;
-  font-size: 8px; font-weight: 600; opacity: 0.8;
+.fit-score small { margin-left: 1px; font-size: 11px; font-weight: 600; opacity: 0.75; }
+.fit-score.high { color: var(--good); }
+.fit-score.middle { color: var(--fit-middle); }
+.fit-score.low { color: var(--muted); }
+
+/* While the AI scores a job: a small placeholder with a light sweeping across
+   at a steady speed. The light starts and ends outside the placeholder, so the
+   loop has no visible restart; FitBadge keeps every sweep on one shared clock
+   when the table re-sorts. */
+.fit-waiting {
+  position: relative; overflow: hidden;
+  display: inline-block; width: 40px; height: 14px; border-radius: var(--pill); vertical-align: middle;
+  background: var(--neutral-soft);
 }
-/* 100 has three digits: a little smaller and further left, so its % clears the ring. */
-.fit-score.full { font-size: 11px; }
-.fit-score.full .fit-number { transform: translate(-2.5px, 1px); }
-.fit-score.full .fit-number small { font-size: 7px; margin-left: 0; }
-/* The ring: a full circle of colour, with its middle cut away so only a 2px band shows. */
-.fit-score::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: conic-gradient(var(--ring) var(--score, 0%), color-mix(in srgb, var(--ring) 22%, transparent) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+.fit-sweep {
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent-line), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s linear infinite;
 }
-.fit-score { background: color-mix(in srgb, var(--soft) var(--fit-fill), transparent); }
-.fit-score.high { --soft: var(--good-soft); --ring: var(--ring-good); color: var(--good); }
-.fit-score.middle { --soft: var(--warn-soft); --ring: var(--ring-warn); color: var(--warn); }
-.fit-score.low { --soft: var(--neutral-soft); --ring: var(--ring-low); color: var(--muted); }
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* The table never scrolls by itself: when a score re-sorts the rows, your
+   place stays put (the browser would otherwise follow a moved row). */
+.jobs-table { overflow-anchor: none; }
+
+/* A score that has just arrived pops in (while useCountUp counts it up), and
+   its row glows for a moment, so you can see where it landed in the table. */
+.fit-score { display: inline-block; }
+.fit-score.arriving { animation: score-in 450ms cubic-bezier(0.2, 0.9, 0.3, 1.25) both; }
+@keyframes score-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+.jobs-table tr:has(.fit-score.arriving) > td { animation: row-glow 1.8s ease-out; }
+@keyframes row-glow { from { background-color: var(--accent-soft); } to { background-color: transparent; } }
+
+/* Windows set to reduce motion: everything appears at once, nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+  .fit-sweep, .fit-score.arriving, .jobs-table tr:has(.fit-score.arriving) > td { animation: none; }
+}
 /* The company, under the job title. */
 .job-company { margin-top: 2px; color: var(--muted); font-size: 13px; }
 .jobs-table .job-title { font-weight: 600; }
@@ -521,14 +579,41 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
 .chip.core { border-color: currentColor; }
 .small { font-size: var(--text-small); }
 .panel-heading { margin: 20px 0 0; font-size: var(--text-heading); }
+/* A note in place of the posting (a LinkedIn job): a soft box, not an error. */
+.panel-note {
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-small);
+  background: var(--surface-alt); color: var(--muted); white-space: normal;
+}
+.panel-note strong { color: var(--text); }
 .panel-text { margin-top: 8px; }
 
 /* ---- Applied tick box ---- */
 .applied { display: flex; align-items: center; gap: 6px; color: var(--good); font-size: var(--text-small); }
 .jobs-table tbody td.applied-cell { cursor: default; }
 .jobs-table .applied { justify-content: center; }
-.applied input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--good); }
 .jobs-table tbody tr.is-applied td:not(:last-child) { opacity: 0.55; }
+/* The Applied box (AppliedTick): the checkbox's own look is replaced by a box
+   that fills green, with a tick on top that draws itself (its stroke is
+   hidden by a dash as long as itself, which slides away when ticked). */
+.tick { position: relative; display: inline-flex; width: 16px; height: 16px; flex: none; }
+.tick input {
+  appearance: none; margin: 0; width: 16px; height: 16px; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 60%, transparent); border-radius: 4px;
+  background: var(--surface);
+  transition: background-color 160ms ease-out, border-color 160ms ease-out;
+}
+.tick input:hover { border-color: var(--good); }
+.tick input:checked { background: var(--good); border-color: var(--good); }
+.tick input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tick svg {
+  position: absolute; inset: 0; pointer-events: none;
+  fill: none; stroke: var(--surface); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+}
+.tick path { stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset 220ms ease-out 60ms; }
+.tick input:checked + svg path { stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .jobs-table tbody tr, .jobs-table tbody td, .tick input, .tick path { transition: none; }
+}
 
 /* ---- Years of experience, inside the CV box ---- */
 /* The years: the number, then a word, inside one box ("1 yrs of paid work"). */
@@ -545,7 +630,37 @@ td a.apply-chip:hover { background: var(--accent-fill); border-color: var(--acce
   display: flex; align-items: center; gap: 10px; padding: 6px 12px;
   border: 1px solid var(--border); border-radius: var(--radius-small); background: var(--surface); color: var(--muted);
 }
-.range input { width: 120px; margin: 0; accent-color: var(--accent); }
+/* The distance slider: a thin track coloured up to the handle (--fill, set by
+   FilterBar), and a handle that is a white circle with a blue ring and a blue
+   dot inside. Hovering lifts it with a soft halo; dragging widens the halo
+   and grows the dot, so it feels pressed. */
+.range input {
+  -webkit-appearance: none; appearance: none; width: 130px; height: 20px; margin: 0;
+  background: none; cursor: pointer;
+}
+.range input::-webkit-slider-runnable-track {
+  height: 4px; border-radius: var(--pill);
+  background: linear-gradient(to right, var(--accent-fill) var(--fill, 50%), var(--border) var(--fill, 50%));
+}
+.range input::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+  border: 2px solid var(--accent-fill);
+  background: radial-gradient(circle, var(--accent-fill) 0 3px, var(--surface) 3.5px);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2), 0 0 0 0 color-mix(in srgb, var(--accent-fill) 18%, transparent);
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out;
+}
+.range input:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2), 0 0 0 5px color-mix(in srgb, var(--accent-fill) 18%, transparent);
+}
+.range input:active::-webkit-slider-thumb {
+  transform: scale(1.18);
+  background: radial-gradient(circle, var(--accent-fill) 0 4.5px, var(--surface) 5px);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2), 0 0 0 8px color-mix(in srgb, var(--accent-fill) 22%, transparent);
+}
+.range input:focus-visible { outline: none; }
+.range input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .range input::-webkit-slider-thumb { transition: none; } }
 .distance-label { min-width: 86px; font-weight: 600; color: var(--text); }
 
 /* Work mode as a small tag, each mode its own colour. None of them green,

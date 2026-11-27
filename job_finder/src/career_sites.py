@@ -25,6 +25,21 @@ import httpx
 
 from settings import SECONDS_BETWEEN_REQUESTS
 
+class Unreachable(Exception):
+    """The site didn't answer properly: it asked us to slow down (429), had a
+    problem of its own (5xx), or couldn't be reached. That says nothing about
+    the job, so it isn't noted as "not found": the job is tried again at the
+    next update, and the site isn't asked again in this one."""
+
+
+def _check(response):
+    """Raise Unreachable for "slow down" and server trouble; other errors
+    (a page that isn't there) are ordinary "not found"."""
+    if response.status_code == 429 or response.status_code >= 500:
+        raise Unreachable(f"{response.request.url.host} answered {response.status_code}")
+    response.raise_for_status()
+
+
 # Comeet's words for where the work happens, turned into ours.
 COMEET_WORK_MODES = {"hybrid": "hybrid", "on-site": "on-site", "onsite": "on-site",
                      "remote": "remote"}
@@ -87,7 +102,7 @@ def _fetch_workday(site, title):
         time.sleep(SECONDS_BETWEEN_REQUESTS)
         response = httpx.post(f"{site}/jobs", timeout=30, json={
             "appliedFacets": {}, "limit": 20, "offset": 0, "searchText": title})
-        response.raise_for_status()
+        _check(response)
         results = response.json().get("jobPostings", [])
 
         # 2. Keep results with exactly our title; prefer one located in Israel.
@@ -103,10 +118,12 @@ def _fetch_workday(site, title):
         time.sleep(SECONDS_BETWEEN_REQUESTS)
         response = httpx.get(f"{site}{matches[0]['externalPath']}", timeout=30,
                              headers={"Accept": "application/json"})
-        response.raise_for_status()
+        _check(response)
         info = response.json()["jobPostingInfo"]
+    except httpx.TransportError as problem:  # no connection, timed out
+        raise Unreachable(str(problem)) from problem
     except (httpx.HTTPError, KeyError, ValueError):
-        # Network problem or an unexpected reply: treat as "not found".
+        # A page that isn't there, or an unexpected reply: treat as "not found".
         return None
 
     return {
@@ -129,15 +146,17 @@ def _comeet_positions(company_id, comeet_pages):
             time.sleep(SECONDS_BETWEEN_REQUESTS)
             response = httpx.get(f"https://www.comeet.com/jobs/{company_id}", timeout=30,
                                  follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
-            response.raise_for_status()
+            _check(response)
             # The page carries its data as a JavaScript line:
             #   COMPANY_POSITIONS_DATA = [ {...position...}, ... ];
             found = re.search(r"COMPANY_POSITIONS_DATA\s*=\s*(\[.*?\]);\s*\n", response.text,
                               flags=re.DOTALL)
             if found:
                 positions = json.loads(found.group(1))
+        except httpx.TransportError as problem:  # no connection, timed out
+            raise Unreachable(str(problem)) from problem
         except (httpx.HTTPError, ValueError):
-            pass  # unreachable or changed page: no positions for this company
+            pass  # no such page, or a changed one: no positions for this company
         comeet_pages[company_id] = positions
     return comeet_pages[company_id]
 

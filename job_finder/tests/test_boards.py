@@ -96,3 +96,32 @@ def test_comeets_api_gives_the_companys_usual_comeet_id(monkeypatch):
     entry = find_boards._verified("comeet_api", "87.00B:ABC123", {"data scientist"})
     assert entry == {"comeetId": "sentra/87.00B"}
     assert find_boards._verified("comeet_api", "87.00B:ABC123", {"qa engineer"}) is None
+
+
+# The feeds' own places. Many Israeli companies write only the city ("Tel Aviv",
+# "Ramat Gan (Hybrid)") or a street address, without the word "Israel": those
+# jobs must count as Israeli, and get their posting text. Jobs abroad must not.
+PLACES = ["Tel Aviv", "Ramat Gan (Hybrid)", "21 Ha'Arba'a St., 20th floor, Tel Aviv",
+          "Haifa, Israel", "London", "United States - Remote"]
+ISRAELI = ["Tel Aviv", "Ramat Gan (Hybrid)", "21 Ha'Arba'a St., 20th floor, Tel Aviv", "Haifa, Israel"]
+
+
+def test_greenhouse_counts_a_job_in_an_israeli_city_without_the_word_israel(monkeypatch):
+    import job_boards
+    monkeypatch.setattr(job_boards, "_get_json", lambda url, params=None: {"jobs": [
+        {"title": place, "location": {"name": place}, "offices": [], "content": "", "absolute_url": place}
+        for place in PLACES]})
+    kept = [listing["title"] for listing, _ in job_boards.greenhouse_jobs({"name": "Acme", "greenhouseId": "acme"}, [])]
+    assert kept == ISRAELI
+
+
+def test_lever_and_ashby_count_israeli_cities_too(monkeypatch):
+    import job_boards
+    monkeypatch.setattr(job_boards, "_get_json", lambda url, params=None: [
+        {"text": place, "categories": {"location": place}, "hostedUrl": place} for place in PLACES])
+    kept = [listing["title"] for listing, _ in job_boards.lever_jobs({"name": "Acme", "leverId": "acme"}, [])]
+    assert kept == ISRAELI
+    monkeypatch.setattr(job_boards, "_get_json", lambda url, params=None: {"jobs": [
+        {"title": place, "location": place, "jobUrl": place} for place in PLACES]})
+    kept = [listing["title"] for listing, _ in job_boards.ashby_jobs({"name": "Acme", "ashbyId": "acme"}, [])]
+    assert kept == ISRAELI

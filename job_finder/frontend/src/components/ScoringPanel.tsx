@@ -3,6 +3,7 @@ import { ApiError, api } from '../api/client'
 import type { BatchRecord, ConnectionsAnswer, FitProgress, Job } from '../api/types'
 import type { Estimate } from '../logic/scoring'
 import { Dropdown } from './Dropdown'
+import { RollingNumber } from './RollingNumber'
 import {
   SESSION_HOURS, batchesLabel, dayOf, estimate, formatDuration, formatTokens, runProgress,
   sessionPercent, tokensOf, totalsFor, totalsSince,
@@ -54,7 +55,7 @@ export function ScoringPanel(props: Props) {
         <span className="status-dot" aria-hidden="true" />
         {available === 0
           ? <>All <strong>{shownCount}</strong> scored</>
-          : <><strong>{available}</strong> / {shownCount}<span className="wide-only"> to score</span></>}
+          : <><strong><RollingNumber value={available} /></strong> to score</>}
       </span>
       <Dropdown className="field" value={connections?.active ?? ''} disabled={progress?.running}
         label="Score with" title="The AI that scores"

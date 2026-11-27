@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { api } from '../api/client'
 import type { Fit, HideReason, Job, Match } from '../api/types'
-import { ageInDays, ageLabel, distanceText, placeOf } from '../logic/jobs'
+import { ageInDays, ageLabel, distanceText, onLinkedIn, placeOf } from '../logic/jobs'
 import { postingBlocks } from '../logic/posting'
 import { FitScore } from './FitBadge'
 import { modelName } from '../logic/scoring'
 
 type Props = {
   job: Job
+  closing: boolean // sliding out after you closed it
   onClose: () => void
   // Score just this job (again: it has a score; redo it, e.g. with another AI).
   // Missing when there is nothing to score with (no CV or no AI).
@@ -20,13 +21,14 @@ type Props = {
 
 // The panel that slides in when you click a position: its fit review and the
 // full posting text, which is fetched now, for this one job.
-export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview, onApplied }: Props) {
+export function JobPanel({ job, closing, onClose, onScore, scoring, onHide, onUseReview, onApplied }: Props) {
   // The last text loaded, and which job it belongs to. While another job's text
   // is still arriving, the one shown doesn't match, so the panel says "Loading".
   const [loaded, setLoaded] = useState<{ url: string; text: string } | null>(null)
   const text = loaded?.url === job.url ? loaded.text : null
   // Hide asks why first: the two reasons appear beside it. Folded again for another job.
   const [hiding, setHiding] = useState<string | null>(null) // the job being asked about
+  const linkedIn = onLinkedIn(job)
 
   useEffect(() => {
     if (!job.has_text) return
@@ -62,16 +64,20 @@ export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview, 
   }, [onClose])
 
   return (
-    <aside className="panel" aria-label={job.title}>
+    // It slides in when it opens and out when closed (index.css). The content
+    // is keyed by job, so opening another job fades its content in afresh.
+    <aside className={`panel${closing ? ' closing' : ''}`} aria-label={job.title}>
       <button className="panel-close" aria-label="Close" onClick={onClose}>×</button>
+      <div key={job.url} className="panel-body">
       <h2>{job.title}</h2>
       <p className="panel-meta">
-        {job.company} · {placeOf(job)} · {distanceText(job)} · updated {ageLabel(ageInDays(job))}
+        {/* <bdi>: a Hebrew city name keeps to itself, so "92 km" stays after it. */}
+        <bdi>{job.company}</bdi> · <bdi>{placeOf(job)}</bdi> · {distanceText(job)} · updated {ageLabel(ageInDays(job))}
         {job.source && ` · text from ${job.source}`}
       </p>
       <div className="panel-actions">
-        <a className="button" href={job.apply_url} target="_blank" rel="noopener noreferrer">
-          Open posting
+        <a className="button" href={job.apply_url || job.url} target="_blank" rel="noopener noreferrer">
+          {linkedIn ? 'Open on LinkedIn ↗' : 'Open posting'}
         </a>
         {/* The same mark as the table's Applied tick, without closing the panel. */}
         {job.applied ? (
@@ -133,13 +139,20 @@ export function JobPanel({ job, onClose, onScore, scoring, onHide, onUseReview, 
       )}
 
       <h3 className="panel-heading">Posting</h3>
-      {!job.has_text || text === null ? (
+      {!job.has_text && linkedIn ? (
+        // Said plainly, so it's clear the text won't come later, and where to read it.
+        <p className="panel-text panel-note">
+          <strong>This job is listed on LinkedIn.</strong> LinkedIn's terms don't allow apps to read its
+          pages, so Veri can't show the posting here or score it. Open it on LinkedIn to read the full posting.
+        </p>
+      ) : !job.has_text || text === null ? (
         <p className="panel-text muted">
           {!job.has_text
             ? "The full posting text isn't available for this company yet. Open the posting to read it."
             : 'Loading the posting text…'}
         </p>
       ) : <PostingText text={text} />}
+      </div>
     </aside>
   )
 }
@@ -173,10 +186,11 @@ function FitReview({ fit }: { fit: Fit }) {
           Only "not scored" needs saying out loud. */}
       {fit.score === null && fit.notes.length > 0 && <p className="fit-notes">{fit.notes.join(' ')}</p>}
       <div className="chip-rows">
-        {ROWS.map(({ match, label }) => {
+        {ROWS.filter(({ match }) => fit.requirements.some((item) => item.match === match)).map(({ match, label }, row) => {
           const items = fit.requirements.filter((item) => item.match === match)
-          return items.length > 0 && (
-            <div key={match} className="chip-row">
+          // --row: the rows appear one after another (index.css).
+          return (
+            <div key={match} className="chip-row" style={{ '--row': row } as CSSProperties}>
               <span className="chip-label">{label}</span>
               <div className="chips">
                 {items.map((item) => (

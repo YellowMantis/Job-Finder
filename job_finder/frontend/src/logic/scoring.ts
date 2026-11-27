@@ -7,6 +7,27 @@ import type { BatchRecord, Job } from '../api/types'
 // table's order, so what you see first is scored first.
 export const scorable = (jobs: Job[]) => jobs.filter((job) => job.has_text && !job.fit)
 
+// The jobs of the latest scoring run, each with the time of the score it had
+// when the run began (null: none). From it the table knows, per row:
+// 'waiting' while its new score is still coming, 'new' once it has arrived
+// (shown with a little animation), or null for every other job.
+export type ScoringRun = Map<string, string | null>
+export function scoreState(job: Job, run: ScoringRun, running: boolean): 'waiting' | 'new' | null {
+  if (!run.has(job.url)) return null
+  const unchanged = (job.fit?.scored ?? null) === run.get(job.url)
+  if (!unchanged) return 'new'
+  return running ? 'waiting' : null
+}
+
+// Every job in the table is in one of three groups: reviewed for this CV (with
+// a number, or "?" when the review couldn't give one), ready to score, or
+// without posting text, so nothing to score against.
+export function scoreCounts(jobs: Job[]) {
+  const scored = jobs.filter((job) => job.fit).length
+  const toScore = scorable(jobs).length
+  return { scored, toScore, noText: jobs.length - scored - toScore }
+}
+
 // The batches made with this connection, and with its current model when one
 // is chosen: an estimate from another model's batches would mislead. Batches
 // record the model's full name ("claude-sonnet-5-5"); a choice may be short ("sonnet").

@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Job } from '../api/types'
 import {
-  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, placeSource,
+  ANY_DISTANCE, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, onLinkedIn, placeSource,
   passesFilters,
   placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
   type Filters,
@@ -61,6 +61,15 @@ describe('values shown in the table', () => {
   it("says whether a job's place is the company's own or only the listing's", () => {
     expect(placeSource(job({ location: 'Ramat Hasharon, Israel' }))).toMatch(/company's own/)
     expect(placeSource(job({ location: '' }))).toMatch(/main office/)
+  })
+
+  it('knows a job whose posting is on LinkedIn', () => {
+    expect(onLinkedIn(job({ url: 'https://il.linkedin.com/jobs/view/qa-engineer-at-acme-123' }))).toBe(true)
+    expect(onLinkedIn(job({ url: 'https://www.linkedin.com/jobs/view/1', apply_url: '' }))).toBe(true)
+    // the company's own page found for it: not a LinkedIn job any more
+    expect(onLinkedIn(job({ url: 'https://il.linkedin.com/jobs/view/1', apply_url: 'https://boards.greenhouse.io/acme/1' }))).toBe(false)
+    expect(onLinkedIn(job({ url: 'https://www.comeet.com/jobs/acme/AB.001/qa/1' }))).toBe(false)
+    expect(onLinkedIn(job({ url: 'https://notlinkedin.com.example/jobs/1' }))).toBe(false)
   })
 
   it('names fields and ages as people read them', () => {

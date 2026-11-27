@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiError, api } from './api/client'
 import type {
   AppliedJob, BatchRecord, HideReason, ConnectionsAnswer, FitProgress, Job, JobsAnswer, Preferences, PreferencesAnswer,
   SavedCv, Status, UpdateProgress,
 } from './api/types'
 import { AppliedJobs } from './components/AppliedJobs'
+import { RollingNumber } from './components/RollingNumber'
+import { TabIndicator } from './components/TabIndicator'
 import { ConfirmHost } from './components/ConfirmDialog'
 import { ConnectionsSettings } from './components/ConnectionsSettings'
 import { CvDropZone } from './components/CvDropZone'
@@ -25,7 +27,7 @@ import { confirmAction } from './logic/confirm'
 import {
   inYourFields, passesFilters, restoredFilters, sortJobs, startingFilters, type Filters, type Sort, type SortKey,
 } from './logic/jobs'
-import { batchesFor, scorable } from './logic/scoring'
+import { batchesFor, scorable, scoreCounts, type ScoringRun } from './logic/scoring'
 
 type Message = { text: string; isError: boolean } | null
 
@@ -93,8 +95,11 @@ function App() {
   // New preferences change what is hidden and every distance: reload the
   // table, and tick your new fields in the Fields filter. Then update: jobs
   // they now show (a new field, more years) get their posting texts at once,
-  // not at the next update. Unchanged listings make it quick.
+  // not at the next update. Unchanged listings make it quick. Saved without
+  // any change: nothing to redo, so no reload and no update.
   function preferencesSaved(saved: Preferences) {
+    const before = preferences?.preferences
+    if (before && JSON.stringify(before) === JSON.stringify(saved)) return
     setPreferences((current) => current && { ...current, preferences: saved })
     setFilters((current) => current && { ...current, fields: saved.fields })
     fetchData().then(showData).catch(() => {})
@@ -115,6 +120,10 @@ function App() {
       setMessage({ text: problem instanceof ApiError ? problem.message : 'Could not switch.', isError: true })
     }
   }
+
+  // The jobs of the latest scoring run, with the score each had when it began,
+  // so the table can show which are being scored and animate new scores in.
+  const [run, setRun] = useState<ScoringRun>(() => new Map())
 
   // Scoring: after each finished batch, show the new scores and what the batch
   // used; when it stops, say how it went.
@@ -318,6 +327,7 @@ function App() {
     if (!ok) return
     try {
       await api.startFit(jobs.map((job) => job.url), again)
+      setRun(new Map(jobs.map((job) => [job.url, job.fit?.scored ?? null])))
       setMessage({ text: `Scoring ${jobs.length} job(s). Scores appear as each batch finishes.`, isError: false })
       await fit.check()
     } catch (problem) {
@@ -345,10 +355,20 @@ function App() {
   // The open job is looked up by its link, so it always shows the latest data
   // (a new score, or a tick on Applied) rather than a copy from when it opened.
   const openJob = jobs.find((job) => job.url === openUrl) ?? null
-  // useCallback keeps the same function between redraws, so the panel's Esc
-  // listener isn't removed and added again every time.
-  const closePanel = useCallback(() => setOpenUrl(null), [])
+  // Closing slides the panel out first (index.css), then removes it. Opening
+  // another job meanwhile cancels that. useCallback keeps the same function
+  // between redraws, so the panel's Esc listener isn't removed and added again.
+  const [closing, setClosing] = useState(false)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const closePanel = useCallback(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return setOpenUrl(null)
+    setClosing(true)
+    clearTimeout(closeTimer.current)
+    closeTimer.current = setTimeout(() => { setOpenUrl(null); setClosing(false) }, PANEL_OUT_MS)
+  }, [])
   const openPanel = (job: Job) => {
+    clearTimeout(closeTimer.current)
+    setClosing(false)
     setOpenUrl(job.url)
     setLastOpened(job.url)
   }
@@ -424,13 +444,14 @@ function App() {
       ) : (<>
         {view === 'settings' && (
         <main className="settings">
-          <nav className="tabs settings-tabs">
+          <nav className="tabs settings-tabs sliding">
             {SETTINGS_TABS.map(({ key, label }) => (
               <button key={key} className={`tab${settingsTab === key ? ' active' : ''}`}
                 onClick={() => { setMessage(null); setSettingsTab(key) }}>
                 {label}
               </button>
             ))}
+            <TabIndicator active={settingsTab} />
           </nav>
           {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
           {settingsTab === 'cvs' && (
@@ -475,25 +496,28 @@ function App() {
         )}
         {message && <p className={`message${message.isError ? ' error' : ''}`}>{message.text}</p>}
 
-        <nav className="tabs">
+        <nav className="tabs sliding">
           <button className={`tab${tab === 'jobs' ? ' active' : ''}`} onClick={() => setTab('jobs')}>
-            Positions <span className="count">{shown.length}</span>
+            Positions <span className="count"><RollingNumber value={shown.length} /></span>
           </button>
           <button className={`tab${tab === 'skills' ? ' active' : ''}`} onClick={() => setTab('skills')}>
             Skills
           </button>
           <button className={`tab${tab === 'applied' ? ' active' : ''}`} onClick={() => setTab('applied')}>
-            Applied <span className="count">{appliedCount}</span>
+            Applied <span className="count"><RollingNumber value={appliedCount} /></span>
           </button>
           <button className={`tab${tab === 'hidden' ? ' active' : ''}`} onClick={() => setTab('hidden')}>
-            Hidden <span className="count">{hiddenCount}</span>
+            Hidden <span className="count"><RollingNumber value={hiddenCount} /></span>
           </button>
+          {tab === 'jobs' && status.cv && <ScoreSummary jobs={shown} />}
+          <TabIndicator active={tab} />
         </nav>
 
         {tab === 'jobs' ? (
           <>
             <FilterBar jobs={yourJobs} filters={filters} onChange={setFilters} onReset={resetFilters} />
-            <JobsTable jobs={shown} sort={sort} onSort={changeSort}
+            <JobsTable jobs={shown} run={run} running={fit.progress?.running ?? false}
+              sort={sort} onSort={changeSort}
               lastOpened={lastOpened} onOpen={openPanel} onApplied={markApplied} />
           </>
         ) : tab === 'applied' ? (
@@ -512,12 +536,12 @@ function App() {
             version={`${dataVersion}-${hiddenCount}`} />
         </div>
         <footer className="credit">
-          Veri {status.version} · {status.credit} · Fit scored by {status.scorer?.name ?? 'no AI yet'}
+          Veri {status.version} · {status.credit}
         </footer>
       </main>
       </>)}
       {openJob && (
-        <JobPanel job={openJob} onClose={closePanel} scoring={fit.progress?.running ?? false}
+        <JobPanel job={openJob} closing={closing} onClose={closePanel} scoring={fit.progress?.running ?? false}
           onHide={(reason) => hideJob(openJob, reason)}
           onUseReview={(scored) => chooseReview(openJob.url, scored)}
           onApplied={(applied) => markApplied(openJob, applied)}
@@ -531,7 +555,29 @@ function App() {
 
 export default App
 
+const PANEL_OUT_MS = 200 // the job panel sliding out, as .panel.closing in index.css
+
 // "1 job", "3 jobs".
 function plural(count: number, word: string) {
   return `${count} ${word}${count === 1 ? '' : 's'}`
+}
+
+// On the right of the tabs: how the jobs in the table split up for your CV.
+function ScoreSummary({ jobs }: { jobs: Job[] }) {
+  const { scored, toScore, noText } = scoreCounts(jobs)
+  return (
+    <span className="score-summary">
+      <span title="Jobs in the table with a fit score for this CV">
+        <strong><RollingNumber value={scored} /></strong> scored
+      </span>
+      {' · '}
+      <span title="Jobs in the table with posting text and no score yet: the Score button scores these">
+        <strong><RollingNumber value={toScore} /></strong> to score
+      </span>
+      {' · '}
+      <span title="Veri couldn't get the posting text for these, so they can't be scored. Open the posting to read it">
+        <strong><RollingNumber value={noText} /></strong> no posting text
+      </span>
+    </span>
+  )
 }

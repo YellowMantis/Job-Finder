@@ -15,6 +15,17 @@ export const placeSource = (job: Job) => job.location
   ? "From the company's own careers site."
   : "From the job listing. Listings often name the company's main office, so the job may be elsewhere."
 
+// The job's posting is on LinkedIn (its link goes there, and no company page
+// was found for it). Veri doesn't read LinkedIn's pages, so the panel says so.
+export const onLinkedIn = (job: Job) => {
+  try {
+    const host = new URL(job.apply_url || job.url).hostname
+    return host === 'linkedin.com' || host.endsWith('.linkedin.com')
+  } catch {
+    return false // not a link at all
+  }
+}
+
 export const levelLabel = (job: Job) =>
   ({ junior: 'Junior', senior: 'Senior' } as Record<string, string>)[job.level] ?? 'Level not stated'
 
