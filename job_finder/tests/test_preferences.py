@@ -6,7 +6,7 @@ here are small made-up records shaped like techmap's.
 
 import pytest
 
-from jobs import job_level, label_listings
+from jobs import classify_title, job_level, label_listings
 from preferences import DEFAULTS, check_preferences, hidden_reason
 
 
@@ -134,6 +134,28 @@ def test_age_limit_zero_shows_every_age():
     old = {**job(), "updated": "2022-01-13"}
     assert hidden_reason(old, {**DEFAULTS, "max_age_days": 0}, date(2026, 10, 17)) is None
 
+
+# ---- Fields -------------------------------------------------------------------
+
+@pytest.mark.parametrize("title, field", [
+    ("QA Automation Engineer", "qa"),
+    ("Senior Product Manager", "product"),
+    ("Data Product Manager", "product"),             # product work, not data science
+    ("Technical Program Manager", "product"),         # techmap files these under product
+    ("Product Marketing Manager", "other"),           # marketing, not product management
+    ("Engineering Project Manager", "project-management"),
+    ("PMO - Hardware", "project-management"),
+    ("Backend Engineer", "software"),
+])
+def test_field_from_title(title, field):
+    assert classify_title(title) == field
+
+
+def test_product_and_project_management_can_be_chosen():
+    # techmap has these two job lists; without them in the field list, their
+    # jobs could never be shown.
+    assert check_preferences({**DEFAULTS, "fields": ["product", "project-management"],
+                              "home": HOME}) is None
 
 # ---- Checking preferences sent by the page ------------------------------------
 

@@ -29,8 +29,8 @@ from settings import DATA_DIR, JOB_CATEGORIES
 PREFERENCES_PATH = DATA_DIR / "preferences.json"
 LEVELS = ["junior", "not stated", "senior"]
 FIELDS = ["software", "frontend", "qa", "devops", "data-science", "security", "hardware",
-          "design", "support", "business", "finance", "sales", "marketing", "hr", "legal",
-          "admin", "procurement-operations", "other"]
+          "product", "project-management", "design", "support", "business", "finance", "sales",
+          "marketing", "hr", "legal", "admin", "procurement-operations", "other"]
 
 # Made for someone looking for their first job: junior roles and roles that
 # don't state a level, first posted in the last 60 days. The date is the

@@ -26,6 +26,10 @@ def _contains_word(text, words):
 # from the job boards come without techmap's category, so we sort them here.
 FIELD_WORDS = [
     ("qa", ["qa", "test", "tester", "testing", "quality assurance", "verification", "validation"]),
+    # Before the engineering fields, so "Data Product Manager" is product work.
+    ("product", ["product manager", "product owner", "product analyst", "program manager",
+                 "head of product", "vp product"]),
+    ("project-management", ["project manager", "project management", "pmo"]),
     ("devops", ["devops", "sre", "site reliability", "infrastructure", "cloud", "platform",
                 "it", "system administrator", "network engineer"]),
     ("data-science", ["data", "machine learning", "ml", "ai", "algorithm", "algorithms",
