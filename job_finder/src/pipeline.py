@@ -19,7 +19,7 @@ from download import download_data
 from hidden_by_you import HIDDEN_BY_YOU_PATH
 from job_boards import (FEED_KEYS, ashby_jobs, greenhouse_jobs, lever_jobs, merge_board_jobs,
                         smartrecruiters_jobs)
-from jobs import label_listings, load_listings
+from jobs import label_listings, load_listings, web_link, with_own_field
 import hidden_by_you
 import new_jobs
 import snapshot
@@ -137,6 +137,7 @@ def fetch_texts(jobs, companies_by_name, progress, board_postings=None):
     are read here, but only for the companies of jobs that need a text.
     Returns how many texts are new."""
     preferences = load_preferences()
+    jobs = [with_own_field(job) for job in jobs]
     wanted = [job for job in jobs if job["field"] in preferences["fields"]
               and hidden_reason(job, preferences) is None]
     postings = read_json(POSTINGS_PATH, {})
@@ -306,7 +307,7 @@ def jobs_for_display(cv_id=None):
     preferences = load_preferences()
     chosen = preferences["home"]  # None until the first-run setup is done
     home = (chosen["lat"], chosen["lon"]) if chosen else None
-    jobs = read_json(JOBS_PATH, [])
+    jobs = [with_own_field(job) for job in read_json(JOBS_PATH, [])]
     # Companies where a review found a job defence-related. That is a fact
     # about the company, not about one job or your CV, so all its jobs get
     # the label, including ones never reviewed.
@@ -323,7 +324,7 @@ def jobs_for_display(cv_id=None):
             industries.setdefault("defence", "the review of its job "
                                   f'"{defence_found[job["company"]]}" found it serves military customers')
         row = {**job, "has_text": posting is not None, "text": "", "location": "",
-               "apply_url": job["url"], "fit": fit, "work_mode": "", "source": "",
+               "apply_url": web_link(job["url"]), "fit": fit, "work_mode": "", "source": "",
                "industries": industries,
                # Distance from your home to where the job is. (Jobs saved before
                # positions were kept still carry a distance; it is used until
@@ -352,7 +353,7 @@ def jobs_for_display(cv_id=None):
             # Stated by the company itself (Comeet), so better than the AI's reading.
             row["work_mode"] = posting.get("work_mode", "")
             # Prefer the company's own apply page over the listing site.
-            row["apply_url"] = posting["apply_url"] or job["url"]
+            row["apply_url"] = web_link(posting["apply_url"]) or web_link(job["url"])
             # Some postings call the role junior in the text but not in the title.
             if row["level"] == "not stated" and describes_junior_role(posting["text"], fit):
                 row["level"] = "junior"

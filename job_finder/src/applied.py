@@ -16,6 +16,7 @@ import os
 import threading
 from datetime import date
 
+from jobs import web_link
 from settings import DATA_DIR
 
 APPLIED_PATH = DATA_DIR / "applied.json"
@@ -41,7 +42,7 @@ def mark(url, title, company, apply_url, today=None):
         applied = _read()
         if url not in applied:
             applied[url] = {"date": (today or date.today()).isoformat(), "title": title,
-                            "company": company, "apply_url": apply_url or url}
+                            "company": company, "apply_url": web_link(apply_url) or web_link(url)}
             _write(applied)
         return applied[url]["date"]
 

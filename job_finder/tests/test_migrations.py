@@ -126,3 +126,21 @@ def test_the_cv_loaded_before_becomes_the_first_in_your_list(folder):
     assert cv_library.info(saved["id"])["professional_years"] == 1
     pdf, text = cv_library.files(saved["id"])
     assert pdf.read_bytes() == b"%PDF-1.4 a CV"
+
+
+def test_where_qa_was_chosen_quality_is_chosen_too(folder):
+    write(folder, "data_version.json", {"version": 4})
+    write(folder, "preferences.json", {"levels": ["junior"], "fields": ["software", "qa", "devops"]})
+    write(folder, "filters.json", {"search": "", "fields": ["qa"]})
+    migrations.run()
+    assert read(folder, "preferences.json")["fields"] == ["software", "qa", "quality", "devops"]
+    assert read(folder, "filters.json")["fields"] == ["qa", "quality"]
+
+
+def test_without_qa_the_fields_are_left_as_they_were(folder):
+    write(folder, "data_version.json", {"version": 4})
+    write(folder, "preferences.json", {"levels": ["junior"], "fields": ["software"]})
+    write(folder, "filters.json", {"search": "", "fields": []})
+    migrations.run()
+    assert read(folder, "preferences.json")["fields"] == ["software"]
+    assert read(folder, "filters.json")["fields"] == []

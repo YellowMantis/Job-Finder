@@ -6,6 +6,13 @@ import type { Job } from '../api/types'
 
 // ---- Values worked out from a job ---------------------------------------------
 
+// The address if it's a web page (http or https), otherwise undefined, which
+// leaves a link with nothing to open. Job links come from outside data, and
+// the desktop window hands a clicked link to Windows, which would also open
+// other kinds ("file:", or an app's own scheme).
+export const webLink = (url: string | undefined) =>
+  url && /^https?:\/\//i.test(url) ? url : undefined
+
 // Where the job is: the company site's answer if we have it, else the listing's city.
 // Every job is in Israel, so a trailing ", Israel" only makes the column wrap.
 export const placeOf = (job: Job) => (job.location || job.city).replace(/,\s*Israel$/i, '')
@@ -67,10 +74,10 @@ export function ageLabel(days: number) {
   return `${days} days ago`
 }
 
-// A field as people read it: "data-science" is "Data Science", "qa" is "QA".
+// A field as people read it: "data-science" is "Data Science", "qa" is "Software Testing".
 // The ids stay as they are everywhere else (filters, saved preferences).
 const FIELD_NAMES: Record<string, string> = {
-  qa: 'QA', devops: 'DevOps', hr: 'HR', 'procurement-operations': 'Procurement & Operations',
+  qa: 'Software Testing', quality: 'Quality & Reliability', devops: 'DevOps', hr: 'HR', 'procurement-operations': 'Procurement & Operations',
 }
 export const fieldLabel = (field: string) =>
   FIELD_NAMES[field] ?? field.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')

@@ -25,7 +25,10 @@ def _contains_word(text, words):
 # Words in a title that place a job in a field, checked in this order. Jobs read
 # from the job boards come without techmap's category, so we sort them here.
 FIELD_WORDS = [
-    ("qa", ["qa", "test", "tester", "testing", "quality assurance", "verification", "validation"]),
+    # Site reliability is operations work, not quality: checked before "reliability".
+    ("devops", ["site reliability", "sre"]),
+    ("qa", ["qa", "test", "tester", "testing", "quality", "reliability", "verification",
+            "validation"]),
     # Before the engineering fields, so "Data Product Manager" is product work.
     ("product", ["product manager", "product owner", "product analyst", "program manager",
                  "head of product", "vp product"]),
@@ -41,12 +44,70 @@ FIELD_WORDS = [
 ]
 
 
+def web_link(url):
+    """The link if it's a web address (http or https), otherwise "". Links come
+    from outside data, and the desktop window hands a clicked link to Windows,
+    which would also open other kinds ("file:", or an app's own scheme)."""
+    return url if isinstance(url, str) and re.match(r"https?://", url, flags=re.IGNORECASE) else ""
+
+
 def classify_title(title):
     """Guess a job's field from its title, or "other" if no field word appears."""
     for field, words in FIELD_WORDS:
         if _contains_word(title, words):
             return field
     return "other"
+
+
+# The "qa" field holds two professions: testing software (often writing test
+# code) and quality and reliability engineering (making sure physical products
+# are built right and last: inspections, failure analysis, standards). The
+# shared job list keeps them together as "qa", so older versions of the app
+# read it unchanged; each app splits them here, by the title, then the company.
+TESTING_WORDS = ["software", "automation", "sdet", "in test", "manual", "e2e", "end to end",
+                 "performance", "firmware", "embedded", "framework", "frameworks", "selenium",
+                 "playwright", "api", "web", "mobile", "data quality", "image quality", "תוכנה"]
+QUALITY_WORDS = ["reliability", "qc", "quality control", "inspector", "supplier", "audit",
+                 "audits", "manufacturing", "production", "shopfloor", "device", "mechanical",
+                 "laboratory", "technician", "technologist", "regulatory", "iso", "rf",
+                 "environmental",
+                 # Hebrew: quality, reliability, non-destructive, lab, environmental
+                 # tests, technician, mechanical
+                 "איכות", "אמינות", "אל הרס", "מעבדת", "בדיקות סביבה", "טכנאי", "טכנאי/ת",
+                 "מכאני", "מכונות"]
+# Companies that make physical things, by techmap's category: there a title
+# saying just "Quality" means quality engineering, elsewhere software quality.
+MAKERS = {"Aerospace", "Health", "Semiconductors", "Robotics & Automation", "Automotive",
+          "Sustainable Technology", "IoT"}
+
+
+def testing_or_quality(job):
+    """For a job in the "qa" field: ("qa", why) for software testing, or
+    ("quality", why) for quality and reliability engineering."""
+    title = job["title"]
+    word = _contains_word(title, TESTING_WORDS)
+    if word:
+        return "qa", f'title contains "{word}"'
+    word = _contains_word(title, QUALITY_WORDS)
+    if word:
+        return "quality", f'title contains "{word}"'
+    if _contains_word(title, ["quality"]):
+        industry = job.get("industry", "")
+        if industry in MAKERS:
+            return "quality", f'title says "quality" and techmap lists the company under "{industry}"'
+        if "defence" in job.get("industries", {}):
+            return "quality", 'title says "quality" at a defence company'
+        return "qa", 'title says "quality" at a company that doesn\'t make physical products'
+    return "qa", "title doesn't name quality or reliability work"
+
+
+def with_own_field(job):
+    """The job with the field this app shows: "qa" jobs split as above, with
+    the reason in "field_reason"; any other job as it is."""
+    if job.get("field") != "qa":
+        return job
+    field, reason = testing_or_quality(job)
+    return {**job, "field": field, "field_reason": reason}
 
 
 def load_listings(city_locations, categories=None, only_known_cities=True):

@@ -28,7 +28,7 @@ from settings import DATA_DIR, JOB_CATEGORIES
 
 PREFERENCES_PATH = DATA_DIR / "preferences.json"
 LEVELS = ["junior", "not stated", "senior"]
-FIELDS = ["software", "frontend", "qa", "devops", "data-science", "security", "hardware",
+FIELDS = ["software", "frontend", "qa", "quality", "devops", "data-science", "security", "hardware",
           "product", "project-management", "design", "support", "business", "finance", "sales",
           "marketing", "hr", "legal", "admin", "procurement-operations", "other"]
 

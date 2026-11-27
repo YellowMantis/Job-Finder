@@ -136,7 +136,9 @@ def suggest_from_cv(provider, cv_text):
         "From this CV, report:\n"
         "- professional_years: whole years of paid professional work, from the dates of "
         "each job. Do not count studies, academic or personal projects.\n"
-        f"- fields: up to 5 of these job fields that suit the CV, best first: {', '.join(FIELDS)}\n"
+        f"- fields: up to 5 of these job fields that suit the CV, best first: {', '.join(FIELDS)} "
+        "(qa is software testing; quality is quality and reliability engineering of "
+        "physical products)\n"
         "- roles: up to 5 job titles the candidate is a good fit for, e.g. \"Junior "
         "Backend Developer\".\n\n"
         f"CV:\n{cv_text}",

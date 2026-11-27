@@ -5,7 +5,7 @@ import type { Job } from '../api/types'
 import {
   ANY_DISTANCE, SCORED_ONLY, ageInDays, ageLabel, ageLabelCapital, distanceLabel, fieldLabel, distinct, inYourFields, modeLabel, modeOf, onLinkedIn, placeSource,
   passesFilters,
-  placeOf, restoredFilters, sortJobs, updatedLabel, yearsText,
+  placeOf, restoredFilters, sortJobs, updatedLabel, webLink, yearsText,
   type Filters,
 } from './jobs'
 
@@ -72,9 +72,18 @@ describe('values shown in the table', () => {
     expect(onLinkedIn(job({ url: 'https://notlinkedin.com.example/jobs/1' }))).toBe(false)
   })
 
+  it('only makes web addresses clickable', () => {
+    expect(webLink('https://boards.greenhouse.io/acme/jobs/1')).toBe('https://boards.greenhouse.io/acme/jobs/1')
+    expect(webLink('javascript:alert(1)')).toBeUndefined()
+    expect(webLink('file:///C:/Windows/System32/calc.exe')).toBeUndefined()
+    expect(webLink('ms-msdt:/id PCWDiagnostic')).toBeUndefined()
+    expect(webLink('')).toBeUndefined()
+  })
+
   it('names fields and ages as people read them', () => {
     expect(fieldLabel('data-science')).toBe('Data Science')
-    expect(fieldLabel('qa')).toBe('QA')
+    expect(fieldLabel('qa')).toBe('Software Testing')
+    expect(fieldLabel('quality')).toBe('Quality & Reliability')
     expect(fieldLabel('devops')).toBe('DevOps')
     expect(fieldLabel('procurement-operations')).toBe('Procurement & Operations')
     expect(fieldLabel('software')).toBe('Software')

@@ -27,15 +27,13 @@ from datetime import datetime
 import cv_library
 from fit_rules import score_of
 from settings import DATA_DIR
-
-VERSION_PATH = DATA_DIR / "data_version.json"
 BACKUPS_DIR = DATA_DIR / "backups"
 # The files a migration may change. Downloaded job data (techmap/) isn't backed
 # up: it can always be downloaded again.
 DATA_FILES = ["jobs.json", "postings.json", "fits.json", "applied.json", "preferences.json",
               "connections.json", "cv_info.json", "scoring_log.json", "missing_postings.json",
               "company_boards.json", "hidden_by_you.json",
-              "earlier_reviews.json"]
+              "earlier_reviews.json", "filters.json"]
 
 
 def _read(name, default):
@@ -128,8 +126,21 @@ def _to_version_4():
         cv_library.add(cv, DATA_DIR / "cv.pdf", text_path.read_text(encoding="utf-8"), info)
 
 
+def _to_version_5():
+    """The QA field was split in two: software testing (still "qa") and quality
+    and reliability engineering ("quality"). Where QA was chosen, in your
+    preferences or the table's filters, both are now, so no job disappears."""
+    for name in ("preferences.json", "filters.json"):
+        saved = _read(name, None)
+        fields = (saved or {}).get("fields")
+        if isinstance(fields, list) and "qa" in fields and "quality" not in fields:
+            fields.insert(fields.index("qa") + 1, "quality")
+            _write(name, saved)
+
+
 # Version number -> the migration that brings the data up to that version.
-MIGRATIONS = {1: _to_version_1, 2: _to_version_2, 3: _to_version_3, 4: _to_version_4}
+MIGRATIONS = {1: _to_version_1, 2: _to_version_2, 3: _to_version_3, 4: _to_version_4,
+              5: _to_version_5}
 CURRENT_VERSION = max(MIGRATIONS)
 
 

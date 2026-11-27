@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { AppliedJob } from '../api/types'
+import { webLink } from '../logic/jobs'
 
 type Props = {
   onRemove: (job: AppliedJob) => void // untick: App saves it and reloads this tab
@@ -44,7 +45,7 @@ export function AppliedJobs({ onRemove }: Props) {
                 </td>
                 <td>{job.company}</td>
                 <td>
-                  <a href={job.apply_url} target="_blank" rel="noopener noreferrer">Link</a>
+                  <a href={webLink(job.apply_url)} target="_blank" rel="noopener noreferrer">Link</a>
                 </td>
                 <td>
                   <button className="link-button" onClick={() => onRemove(job)}>Remove</button>

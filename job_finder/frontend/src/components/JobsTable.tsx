@@ -2,7 +2,7 @@ import { useMemo, useRef, type MouseEvent } from 'react'
 import type { Job } from '../api/types'
 import { useRowGlide } from '../hooks/useRowGlide'
 import {
-  ageInDays, ageLabelCapital, distanceText, fieldLabel, modeOf, placeOf, placeSource, yearsText, type Sort, type SortKey,
+  ageInDays, ageLabelCapital, distanceText, fieldLabel, modeOf, placeOf, placeSource, webLink, yearsText, type Sort, type SortKey,
 } from '../logic/jobs'
 import { scoreState, type ScoringRun } from '../logic/scoring'
 import { FitBadge } from './FitBadge'
@@ -96,7 +96,7 @@ function JobRow({ job, opened, scoring, onOpen, onApplied }: RowProps) {
         )}
         <div className="job-company">{job.company}</div>
       </td>
-      <td>{fieldLabel(job.field)}</td>
+      <td title={job.field_reason && `Sorted here because the ${job.field_reason}`}>{fieldLabel(job.field)}</td>
       <td className={job.years === null ? 'centred muted' : 'centred'}
         title={job.years === null ? "The posting doesn't say, or we don't have its text"
           : 'Years of experience the posting asks for'}>
@@ -115,7 +115,7 @@ function JobRow({ job, opened, scoring, onOpen, onApplied }: RowProps) {
       </td>
       <td className="centred muted">{ageLabelCapital(ageInDays(job))}</td>
       <td className="centred">
-        <a className="apply-chip" href={job.apply_url} target="_blank" rel="noopener noreferrer"
+        <a className="apply-chip" href={webLink(job.apply_url)} target="_blank" rel="noopener noreferrer"
           onClick={stop} title="Opens the employer's posting in your browser">Apply ↗</a>
       </td>
       {/* Only the box itself ticks (not a <label>, which would make the whole

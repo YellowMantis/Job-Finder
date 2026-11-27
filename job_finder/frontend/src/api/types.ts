@@ -45,6 +45,8 @@ export type Job = {
   data_level: string
   level: Level
   level_reason: string
+  // Why a job from the QA list counts as software testing or quality work.
+  field_reason?: string
   industries: Record<string, string> // {industry id: reason}
   has_text: boolean
   apply_url: string

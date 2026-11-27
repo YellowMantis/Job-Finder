@@ -6,7 +6,7 @@ here are small made-up records shaped like techmap's.
 
 import pytest
 
-from jobs import classify_title, job_level, label_listings
+from jobs import classify_title, job_level, label_listings, web_link, with_own_field
 from preferences import DEFAULTS, check_preferences, hidden_reason
 
 
@@ -146,6 +146,9 @@ def test_age_limit_zero_shows_every_age():
     ("Engineering Project Manager", "project-management"),
     ("PMO - Hardware", "project-management"),
     ("Backend Engineer", "software"),
+    ("Site Reliability Engineer", "devops"),          # operations, not quality
+    ("Reliability Engineer", "qa"),                   # split later into quality
+    ("Product Quality Engineer", "qa"),
 ])
 def test_field_from_title(title, field):
     assert classify_title(title) == field
@@ -156,6 +159,37 @@ def test_product_and_project_management_can_be_chosen():
     # jobs could never be shown.
     assert check_preferences({**DEFAULTS, "fields": ["product", "project-management"],
                               "home": HOME}) is None
+
+
+# Real titles from techmap's QA list.
+@pytest.mark.parametrize("title, industry, field", [
+    ("QA Automation Engineer", "Cybersecurity", "qa"),
+    ("Junior QA Engineer", "Aerospace", "qa"),              # "QA" alone: software testing
+    ("Manual Software Tester -Temporary Position", "Cloud Computing", "qa"),
+    ("Quality Assurance Automation Engineer", "IoT", "qa"),  # automation wins
+    ("Senior Quality Engineer", "Fintech", "qa"),            # software company
+    ("Production Quality Engineer", "Automotive", "quality"),
+    ("Semiconductor Quality & Reliability Engineer", "Automotive", "quality"),
+    ("Mechanical Quality Inspector", "Aerospace", "quality"),
+    ("QC Technician", "Health", "quality"),
+    ("מהנדס/ת איכות", "Aerospace", "quality"),
+    ("Quality Engineer", "Robotics & Automation", "quality"),  # a maker of physical things
+])
+def test_qa_jobs_split_into_testing_and_quality(title, industry, field):
+    job = with_own_field({"title": title, "field": "qa", "industry": industry})
+    assert job["field"] == field
+    assert job["field_reason"]
+
+
+def test_quality_at_a_defence_company_is_quality_work():
+    job = {"title": "Quality Engineer", "field": "qa", "industry": "",
+           "industries": {"defence": "on the list of known companies"}}
+    assert with_own_field(job)["field"] == "quality"
+
+
+def test_jobs_in_other_fields_are_left_as_they_are():
+    job = {"title": "Quality Engineer", "field": "hardware", "industry": "Aerospace"}
+    assert with_own_field(job) is job
 
 # ---- Checking preferences sent by the page ------------------------------------
 
@@ -302,3 +336,19 @@ def test_a_job_with_several_offices_is_as_far_as_the_nearest():
     assert nearest_km([tel_aviv, kinneret], (32.7219, 35.4404)) == \
         nearest_km([kinneret], (32.7219, 35.4404))
     assert nearest_km([], (32.7, 35.4)) is None
+
+
+
+@pytest.mark.parametrize("url, kept", [
+    ("https://boards.greenhouse.io/acme/jobs/1", True),
+    ("HTTP://example.com/job", True),
+    ("javascript:alert(1)", False),
+    ("file:///C:/Windows/System32/calc.exe", False),
+    ("ms-msdt:/id PCWDiagnostic", False),
+    ("search-ms:query=x", False),
+    ("", False),
+    (None, False),
+])
+def test_only_web_links_are_kept(url, kept):
+    # Links come from outside data, and a clicked one is handed to Windows.
+    assert web_link(url) == (url if kept else "")

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { api } from '../api/client'
 import type { Fit, HideReason, Job, Match } from '../api/types'
-import { ageInDays, ageLabel, distanceText, onLinkedIn, placeOf } from '../logic/jobs'
+import { ageInDays, ageLabel, distanceText, onLinkedIn, placeOf, webLink } from '../logic/jobs'
 import { postingBlocks } from '../logic/posting'
 import { FitScore } from './FitBadge'
 import { modelName } from '../logic/scoring'
@@ -76,7 +76,7 @@ export function JobPanel({ job, closing, onClose, onScore, scoring, onHide, onUs
         {job.source && ` · text from ${job.source}`}
       </p>
       <div className="panel-actions">
-        <a className="button" href={job.apply_url || job.url} target="_blank" rel="noopener noreferrer">
+        <a className="button" href={webLink(job.apply_url) ?? webLink(job.url)} target="_blank" rel="noopener noreferrer">
           {linkedIn ? 'Open on LinkedIn ↗' : 'Open posting'}
         </a>
         {/* The same mark as the table's Applied tick, without closing the panel. */}
