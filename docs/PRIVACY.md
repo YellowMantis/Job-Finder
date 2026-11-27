@@ -23,8 +23,10 @@ folder name the app has always used. On macOS they're in `~/Library/Application 
 and on Linux in `~/.local/share/job-finder`. Updating or uninstalling the app doesn't delete them.
 Delete the folder to remove them.
 
-The copy from the **Microsoft Store** keeps them in its own folder, which Windows sets aside for it
-(under `%LOCALAPPDATA%\Packages`), and Windows deletes them when you uninstall it.
+The copy from the **Microsoft Store** keeps what it creates in its own folder, which Windows sets
+aside for it (under `%LOCALAPPDATA%\Packages`), and Windows deletes that folder when you uninstall
+it. If Veri was installed before from GitHub, the Store copy finds the files already in
+`%LOCALAPPDATA%\Job Finder` and uses them where they are; uninstalling it leaves those.
 
 **AI keys** are kept in your system's password safe (Windows Credential Manager, macOS
 Keychain), never in a file. A key is only ever sent to the service it belongs to.

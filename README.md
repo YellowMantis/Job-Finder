@@ -4,6 +4,8 @@
 
 **One clear place to find the tech jobs in Israel that actually fit you.** (Formerly called Job Finder.)
 
+<a href="https://apps.microsoft.com/detail/9N52S05KF8B1"><img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200" alt="Get it from Microsoft"></a>
+
 ![Veri's jobs table in light mode, ranked by how well each job fits the CV](docs/images/veri-jobs-table-light.png)
 
 ![A job's fit review in dark mode: what the CV has, what's partly there, and what's missing](docs/images/veri-job-fit-review-dark.png)
@@ -68,12 +70,17 @@ and refining it to make it as useful as possible.
 
 ## Install
 
-From the latest [Release](https://github.com/YellowMantis/Job-Finder/releases):
+- **Windows (recommended):** get Veri from the
+  [Microsoft Store](https://apps.microsoft.com/detail/9N52S05KF8B1). The Store installs it,
+  signed by Microsoft, and keeps it up to date.
+
+Or from the latest [Release](https://github.com/YellowMantis/Job-Finder/releases):
 
 - **Windows:** download `Job-Finder-Setup.exe` and run it. It installs for you only (no
   administrator rights), adds Veri to the Start menu, and can be removed like any app.
-  Windows may warn about an unknown publisher, since the app isn't code-signed yet: choose
-  "More info" and "Run anyway".
+  Windows may warn about an unknown publisher, since this installer isn't code-signed: choose
+  "More info" and "Run anyway". (Keep one copy, not both. Switching to the Store copy? It
+  picks up your existing data; then uninstall this one, which never deletes your data.)
 - **macOS (beta):** open `Job-Finder-mac.dmg` and drag Job Finder (Veri's program) into Applications. The first
   time, right-click it and choose Open (the app isn't notarised by Apple).
 - **Linux (beta):** unpack `Job-Finder-linux.tar.gz` and run `Job Finder` inside. It needs a
@@ -84,8 +91,9 @@ Nothing else is needed: no Python, Node or Git. The first time, a short setup as
 should score the fit, takes your CV, suggests what to look for, asks where you live, and
 downloads the jobs. Change anything later in **Settings**.
 
-When a new version comes out, the app tells you. On Windows one click installs it; on macOS
-and Linux it opens the download page. Your data stays either way.
+When a new version comes out, the Microsoft Store updates its copy by itself. The other copies
+tell you: on Windows one click installs it; on macOS and Linux it opens the download page. Your
+data stays either way.
 
 ## Privacy and security
 
@@ -94,8 +102,9 @@ The full [privacy policy](docs/PRIVACY.md) explains what stays on your computer 
 - **Everything stays on your computer.** There is no server of ours: your CV, preferences,
   scores and applications are files on your own PC, in `%LOCALAPPDATA%\Job Finder` (macOS:
   `~/Library/Application Support/Job Finder`, Linux: `~/.local/share/job-finder`). Installing a
-  new version or uninstalling never touches them. The Microsoft Store copy keeps them in its own
-  folder, which Windows removes when you uninstall it.
+  new version or uninstalling never touches them. The Microsoft Store copy keeps what it creates
+  in its own folder, which Windows removes when you uninstall it (see the
+  [privacy notes](docs/PRIVACY.md) for details).
 - **The AI never learns who you are.** Your name, email, phone number, address and links are
   removed from your CV before it's sent to any AI. The CV box shows exactly what the AI receives.
   With a model on your own PC, your CV doesn't leave the computer at all.
