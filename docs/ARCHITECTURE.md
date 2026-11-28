@@ -761,7 +761,7 @@ one computer. A hosted service would need both.
 | File | Job | Main functions |
 |---|---|---|
 | `settings.py` | Fixed values: default distance and fields, level words, career sites, folder paths | – |
-| `download.py` | Downloads and refreshes the techmap data with Git | `download_data` |
+| `download.py` | Downloads and refreshes the techmap data: with Git when the computer has it, otherwise as a zip of which only the job and company data is unpacked | `download_data` |
 | `companies.py` | Reads company files, places cities on the map, measures distances | `load_companies`, `locate_cities`, `place_points`, `nearest_km` |
 | `jobs.py` | Reads the job lists and labels each job's level and industries | `load_listings`, `job_level`, `label_listings` |
 | `industries.py` | The ten industry rule cards (gambling, crypto, defence, banks...) and the labelling function | `company_industries` |
